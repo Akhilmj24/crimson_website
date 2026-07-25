@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crimson - Bulk Email Sender Dashboard</title>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #990F02;
+      --primary-light: #b31c0e;
+      --secondary: #FFC72C;
+      --bg: #FAF7F2;
+      --card-bg: #FFFFFF;
+      --text: #1A1A1A;
+      --text-muted: #666666;
+      --border: #E5E0D8;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.5;
+      padding: 40px 20px;
+      background-image: 
+        radial-gradient(var(--border) 1px, transparent 0),
+        radial-gradient(var(--border) 1px, transparent 0);
+      background-size: 24px 24px;
+      background-position: 0 0, 12px 12px;
+    }
+    
+    .wrapper {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    /* Header styling */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .logo-container {
+      display: inline-block;
+      background-color: var(--primary);
+      padding: 10px 25px;
+      border-radius: 12px;
+      border-bottom: 3px solid var(--secondary);
+      margin-bottom: 12px;
+      box-shadow: 0 4px 15px rgba(153, 15, 2, 0.15);
+    }
+    
+    .logo-text {
+      color: #FFFFFF;
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: 0.5px;
+    }
+    
+    .subtitle {
+      color: var(--primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-top: 2px;
+    }
+    
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1A1A1A;
+      margin-top: 10px;
+    }
+    
+    /* Layout grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 30px;
+    }
+    
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 8px 24px rgba(153, 15, 2, 0.03);
+    }
+    
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    
+    /* Forms */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    
+    input[type="text"], input[type="password"], input[type="number"], textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text);
+      background-color: #FAF7F2;
+      transition: all 0.2s;
+    }
+    
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(153, 15, 2, 0.08);
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    /* Config Mode Select */
+    .mode-select {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .mode-btn {
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background-color: #FFFFFF;
+      transition: all 0.2s;
+    }
+    
+    .mode-btn.active {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+    
+    /* Textarea list */
+    textarea {
+      height: 120px;
+      resize: vertical;
+      font-family: monospace;
+    }
+    
+    /* Button */
+    .btn-submit {
+      width: 100%;
+      background-color: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 30px;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(153, 15, 2, 0.15);
+    }
+    
+    .btn-submit:hover:not(:disabled) {
+      background-color: var(--primary-light);
+      transform: translateY(-1px);
+    }
+    
+    .btn-submit:disabled {
+      background-color: var(--border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    
+    /* Progress and Log section */
+    .progress-section {
+      grid-column: span 2;
+    }
+    
+    @media (max-width: 768px) {
+      .progress-section {
+        grid-column: span 1;
+      }
+    }
+    
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .progress-bar-container {
+      width: 100%;
+      height: 12px;
+      background-color: var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background-color: var(--primary);
+      border-radius: 6px;
+      transition: width 0.3s ease;
+    }
+    
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .stat-val {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    
+    .stat-lbl {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    
+    /* Log block */
+    .log-container {
+      background-color: #1A1A1A;
+      color: #A0A0A0;
+      font-family: monospace;
+      font-size: 11px;
+      border-radius: 8px;
+      padding: 15px;
+      height: 250px;
+      overflow-y: auto;
+      border: 1px solid var(--text);
+    }
+    
+    .log-entry {
+      margin-bottom: 6px;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    
+    .log-entry.success {
+      color: #25D366;
+    }
+    
+    .log-entry.error {
+      color: #FF4D4D;
+    }
+    
+    .log-entry.info {
+      color: #00bcd4;
+    }
+    
+    /* Ad details preview block */
+    .preview-box {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    
+    .preview-row:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <div class="logo-text">Crimson</div>
+        <div class="subtitle">Bulk Email Sender</div>
+      </div>
+      <h1>Campaign Advertisement Dashboard</h1>
+    </header>
+
+    <div class="grid">
+      <!-- Left Card: SMTP Settings -->
+      <div class="card">
+        <div class="card-title">
+          <span>⚙️</span> SMTP Server Configuration
+        </div>
+        
+        <div class="mode-select">
+          <div id="mode-env-btn" class="mode-btn active" onclick="setSmtpMode('env')">Use Server .env</div>
+          <div id="mode-custom-btn" class="mode-btn" onclick="setSmtpMode('custom')">Custom SMTP</div>
+        </div>
+
+        <!-- Env Status Info Box -->
+        <div id="env-status-box" style="margin-bottom: 20px; font-size: 12px; padding: 12px; background-color: #e0f2f1; border-radius: 8px; border: 1px solid #b2dfdb; color: #00796b;">
+          Checking server configuration status...
+        </div>
+
+        <!-- Custom SMTP Fields (Hidden by default) -->
+        <div id="custom-smtp-fields" style="display: none;">
+          <div class="form-group">
+            <label for="smtp-host">Host</label>
+            <input type="text" id="smtp-host" placeholder="smtp.gmail.com">
+          </div>
+          <div class="form-group">
+            <label for="smtp-port">Port</label>
+            <input type="number" id="smtp-port" placeholder="587" value="587">
+          </div>
+          <div class="form-group">
+            <label for="smtp-user">Username (Email)</label>
+            <input type="text" id="smtp-user" placeholder="your-email@gmail.com">
+          </div>
+          <div class="form-group">
+            <label for="smtp-pass">Password / App Pass</label>
+            <input type="password" id="smtp-pass" placeholder="your-app-password">
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="smtp-secure">
+            <label for="smtp-secure" style="display: inline; margin-bottom: 0;">Secure (SSL/TLS Port 465)</label>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="smtp-from-name">From Display Name</label>
+            <input type="text" id="smtp-from-name" value="Crimson Group LLP">
+          </div>
+          <div class="form-group">
+            <label for="smtp-from-email">From Email Address</label>
+            <input type="text" id="smtp-from-email" value="crimsongroupllp@gmail.com">
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Card: Mailing Queue -->
+      <div class="card">
+        <div class="card-title">
+          <span>📨</span> Email Advertisement Queue
+        </div>
+        
+        <div class="preview-box" style="padding: 15px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+            Email Subject Header:
+          </div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 15px; background-color: #FAF7F2; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+            🎁 Celebrate Onam with Crimson Corporate Gift Combos
+          </div>
+          
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+            Email Body Content Preview:
+          </div>
+          <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; max-height: 180px; overflow-y: auto; background-color: #FFFFFF; box-shadow: inset 0 2px 6px rgba(153, 15, 2, 0.05);">
+            <img src="onam_flyer.jpg" alt="Onam Gift Combo Flyer" style="width: 100%; display: block;" />
+          </div>
+          <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-align: center; margin-top: 8px;">
+            ℹ️ Flyer image will be attached inline & referenced in the email body.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email-list">Recipient Email IDs (Paste List or JSON Array)</label>
+          <textarea id="email-list" placeholder='Enter emails (comma separated or JSON array format)&#10;&#10;Example:&#10;customer1@gmail.com, customer2@gmail.com&#10;&#10;Or:&#10;["client1@company.com", "client2@company.com"]'></textarea>
+        </div>
+
+        <button id="send-btn" class="btn-submit" onclick="startSendingCampaign()">
+          🚀 Dispatch Bulk Emails
+        </button>
+      </div>
+
+      <!-- Progress Section (Spans full width) -->
+      <div class="card progress-section">
+        <div class="card-title">
+          <span>📊</span> Transmission Progress Dashboard
+        </div>
+        
+        <div class="progress-header">
+          <span id="progress-text">Ready to dispatch queue...</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div id="bar" class="progress-bar"></div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div id="stat-total" class="stat-val">0</div>
+            <div class="stat-lbl">Queue Total</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-sent" class="stat-val">0</div>
+            <div class="stat-lbl">Sending</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-success" class="stat-val" style="color: #25D366;">0</div>
+            <div class="stat-lbl">Success</div>
+          </div>
+          <div class="stat-card">
+            <div id="stat-error" class="stat-val" style="color: #FF4D4D;">0</div>
+            <div class="stat-lbl">Failed</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Activity Log</label>
+          <div id="logs" class="log-container">
+            <div class="log-entry">[System Ready] Paste email list and configure SMTP parameters above. If SMTP credentials are not active, the system operates in "Simulation Mode" to preview log flow.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let smtpMode = 'env';
+    
+    // Check server SMTP status on load
+    window.onload = function() {
+      checkServerSmtpStatus();
+    }
+    
+    async function checkServerSmtpStatus() {
+      const statusBox = document.getElementById('env-status-box');
+      try {
+        const response = await fetch('/api/smtp-status');
+        const data = await response.json();
+        
+        if (data.configured) {
+          statusBox.style.backgroundColor = '#e0f2f1';
+          statusBox.style.borderColor = '#b2dfdb';
+          statusBox.style.color = '#00796b';
+          statusBox.innerHTML = `<strong>Status:</strong> Active Server SMTP Configured<br/><strong>Username:</strong> ${data.smtpUser}<br/><strong>Host:</strong> ${data.smtpHost}`;
+        } else {
+          statusBox.style.backgroundColor = '#fff3e0';
+          statusBox.style.borderColor = '#ffe0b2';
+          statusBox.style.color = '#e65100';
+          statusBox.innerHTML = `<strong>Status:</strong> Server .env is missing SMTP configs.<br/>It will run in <strong>Simulation (Mock) Mode</strong> unless you select "Custom SMTP" and enter details.`;
+        }
+      } catch (err) {
+        statusBox.style.backgroundColor = '#ffebee';
+        statusBox.style.borderColor = '#ffcdd2';
+        statusBox.style.color = '#c62828';
+        statusBox.innerHTML = `<strong>Error:</strong> Cannot fetch server SMTP status. Is backend running?`;
+      }
+    }
+    
+    function setSmtpMode(mode) {
+      smtpMode = mode;
+      const envBtn = document.getElementById('mode-env-btn');
+      const customBtn = document.getElementById('mode-custom-btn');
+      const customFields = document.getElementById('custom-smtp-fields');
+      const envBox = document.getElementById('env-status-box');
+      
+      if (mode === 'env') {
+        envBtn.classList.add('active');
+        customBtn.classList.remove('active');
+        customFields.style.display = 'none';
+        envBox.style.display = 'block';
+      } else {
+        customBtn.classList.add('active');
+        envBtn.classList.remove('active');
+        customFields.style.display = 'block';
+        envBox.style.display = 'none';
+      }
+    }
+    
+    // Parse the emails textarea input
+    function parseEmails(input) {
+      const trimmed = input.trim();
+      if (!trimmed) return [];
+      
+      // Try parsing as JSON array
+      try {
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            return parsed.map(e => e.trim()).filter(e => e.length > 0);
+          }
+        }
+      } catch (e) {
+        // Fall back to comma separated parse
+      }
+      
+      // Fall back to separator parsing (commas, semicolons, or newlines)
+      return trimmed
+        .split(/[,\n;]+/)
+        .map(e => e.trim())
+        .filter(e => e.length > 0 && e.includes('@'));
+    }
+    
+    function appendLog(text, type = '') {
+      const logs = document.getElementById('logs');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      
+      const time = new Date().toLocaleTimeString();
+      entry.innerHTML = `<span>[${time}]</span> <span>${text}</span>`;
+      
+      logs.appendChild(entry);
+      logs.scrollTop = logs.scrollHeight;
+    }
+    
+    async function startSendingCampaign() {
+      const emailInput = document.getElementById('email-list').value;
+      const sendBtn = document.getElementById('send-btn');
+      
+      const emails = parseEmails(emailInput);
+      if (emails.length === 0) {
+        alert('Please enter at least one valid recipient email address!');
+        return;
+      }
+      
+      // Lock sending state
+      sendBtn.disabled = true;
+      sendBtn.innerText = '⏳ Processing Queue...';
+      
+      // Reset counters and stats
+      document.getElementById('stat-total').innerText = emails.length;
+      document.getElementById('stat-sent').innerText = '0';
+      document.getElementById('stat-success').innerText = '0';
+      document.getElementById('stat-error').innerText = '0';
+      
+      document.getElementById('bar').style.width = '0%';
+      document.getElementById('progress-percent').innerText = '0%';
+      document.getElementById('progress-text').innerText = 'Initializing campaign sending...';
+      
+      // Clear logs
+      document.getElementById('logs').innerHTML = '';
+      appendLog(`Starting campaign send process for ${emails.length} recipients...`, 'info');
+      
+      // Prepare custom SMTP settings if in custom mode
+      let smtpConfig = null;
+      if (smtpMode === 'custom') {
+        smtpConfig = {
+          host: document.getElementById('smtp-host').value,
+          port: document.getElementById('smtp-port').value,
+          secure: document.getElementById('smtp-secure').checked,
+          user: document.getElementById('smtp-user').value,
+          pass: document.getElementById('smtp-pass').value,
+          fromName: document.getElementById('smtp-from-name').value,
+          fromEmail: document.getElementById('smtp-from-email').value,
+        };
+      }
+      
+      try {
+        const response = await fetch('/api/send-emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ emails, smtpConfig })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP Error Status: ${response.status}`);
+        }
+        
+        // Read SSE chunked stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        
+        let successCount = 0;
+        let errorCount = 0;
+        
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Split buffer by SSE boundaries
+          const lines = buffer.split('\n\n');
+          // Save the last partial line back to the buffer
+          buffer = lines.pop();
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const rawData = line.substring(6);
+              try {
+                const data = JSON.parse(rawData);
+                
+                // Handle system updates or statuses
+                if (data.error) {
+                  appendLog(`Error: ${data.error}`, 'error');
+                  document.getElementById('progress-text').innerText = 'Process aborted.';
+                  sendBtn.disabled = false;
+                  sendBtn.innerText = '🚀 Dispatch Bulk Emails';
+                  return;
+                }
+                
+                if (data.message) {
+                  appendLog(data.message, data.mock ? 'info' : '');
+                }
+                
+                if (data.status === 'sending') {
+                  document.getElementById('stat-sent').innerText = data.index;
+                  document.getElementById('progress-text').innerText = `Sending: ${data.index} of ${data.total}`;
+                } else if (data.status === 'success') {
+                  successCount++;
+                  document.getElementById('stat-success').innerText = successCount;
+                  appendLog(`Success to ${data.email}`, 'success');
+                  
+                  // Update progress bar
+                  const percent = Math.round((data.index / data.total) * 100);
+                  document.getElementById('bar').style.width = `${percent}%`;
+                  document.getElementById('progress-percent').innerText = `${percent}%`;
+                } else if (data.status === 'error') {
+                  errorCount++;
+                  document.getElementById('stat-error').innerText = errorCount;
+                  appendLog(`Error to ${data.email}: ${data.message}`, 'error');
+                  
+                  // Update progress bar
+                  const percent = Math.round((data.index / data.total) * 100);
+                  document.getElementById('bar').style.width = `${percent}%`;
+                  document.getElementById('progress-percent').innerText = `${percent}%`;
+                }
+                
+                if (data.done) {
+                  appendLog(`Campaign dispatch finished! Success: ${successCount}, Failures: ${errorCount}`, 'info');
+                  document.getElementById('progress-text').innerText = 'Completed.';
+                  sendBtn.disabled = false;
+                  sendBtn.innerText = '🚀 Dispatch Bulk Emails';
+                }
+              } catch (parseErr) {
+                console.error('Failed to parse SSE JSON block:', parseErr);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        appendLog(`Network dispatch error: ${err.message}`, 'error');
+        document.getElementById('progress-text').innerText = 'Network error occurred.';
+        sendBtn.disabled = false;
+        sendBtn.innerText = '🚀 Dispatch Bulk Emails';
+      }
+    }
+  </script>
+</body>
+</html>

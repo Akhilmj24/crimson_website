@@ -73,7 +73,7 @@ export const PRODUCTS_DATA: Product[] = [
     weight: 'Banana Chips (200g) + Upperi (100g)',
     price: 390,
     ingredients: ['Raw Banana', 'Pure Coconut Oil', 'Organic Jaggery', 'Dry Ginger', 'Cardamom', 'Sea Salt', 'Turmeric'],
-    shelfLife: '30 days - 3 Months',
+    shelfLife: '30 days (Banana Chips) - 2 Month (Sharkara Upperi)',
     storageInstructions: 'Store in dry conditions. Once unsealed, keep the pouches zipped to preserve crunchiness.',
     packagingInfo: 'Stunning heritage-designed rigid gift box containing separate zip-lock pouches.',
     nutritionInfo: {
@@ -98,7 +98,7 @@ export const PRODUCTS_DATA: Product[] = [
 export const FAQ_DATA: FAQItem[] = [
   {
     question: 'What is the shelf life of Crimson snacks?',
-    answer: 'All our products have a shelf life of 30 days from the date of manufacturing. To maintain optimal crunchiness and flavor, store them in a cool, dry place and reseal the zip-lock pack or keep them in an airtight container.',
+    answer: 'All our products have a shelf life of 30 days (Banana Chips) - 2 Month (Sharkara Upperi) from the date of manufacturing. To maintain optimal crunchiness and flavor, store them in a cool, dry place and reseal the zip-lock pack or keep them in an airtight container.',
   },
   {
     question: 'How do you deliver, and do you ship outside Kerala?',
@@ -114,7 +114,7 @@ export const FAQ_DATA: FAQItem[] = [
   },
   {
     question: 'What oil is used for frying?',
-    answer: 'We use pure, filtered edible coconut oil sourced locally from Kerala mills. We never reuse oil, which ensures our snacks taste authentic.',
+    answer: 'We use pure, filtered edible coconut oil sourced locally from Kerala. We never reuse oil, which ensures our snacks taste authentic.',
   },
   {
     question: 'Are the snacks gluten-free?',
@@ -219,7 +219,7 @@ export const PROCESS_STAGES = [
   {
     step: '01',
     title: 'Ethical Farming',
-    description: 'We source high-grade Nendran bananas directly from organic farmers across Wayanad and Thrissur, ensuring fair pricing and sustainable practices.',
+    description: 'We source high-grade Nendran bananas directly from organic farmers across Kerala, ensuring fair pricing and sustainable practices.',
   },
   {
     step: '02',

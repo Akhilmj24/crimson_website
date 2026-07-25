@@ -57,7 +57,7 @@ export const Reviews: React.FC = () => {
   return (
     <section id="reviews" className="bg-transparent py-12 md:py-16 overflow-hidden select-none">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold text-primary uppercase tracking-wider">
@@ -70,7 +70,7 @@ export const Reviews: React.FC = () => {
 
         {/* Carousel Slider Block */}
         <div className="relative min-h-[300px] flex items-center justify-center">
-          
+
           {/* Decorative Quote Icon */}
           <div className="absolute top-2 left-6 text-neutral-200/50 pointer-events-none hidden sm:block">
             <Quote className="h-28 w-28 fill-current rotate-180" />
@@ -91,9 +91,8 @@ export const Reviews: React.FC = () => {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-5 w-5 ${
-                      i < activeReview.rating ? 'fill-current' : 'text-neutral-200'
-                    }`}
+                    className={`h-5 w-5 ${i < activeReview.rating ? 'fill-current' : 'text-neutral-200'
+                      }`}
                   />
                 ))}
               </div>
@@ -107,7 +106,7 @@ export const Reviews: React.FC = () => {
               <div className="mt-8">
                 <h4 className="text-sm font-bold text-neutral-900">{activeReview.name}</h4>
                 <p className="text-xs text-neutral-400 font-semibold mt-1">
-                  {activeReview.location} • <span className="font-medium">{activeReview.date}</span>
+                  {activeReview.location}
                 </p>
               </div>
             </motion.div>
@@ -142,9 +141,8 @@ export const Reviews: React.FC = () => {
                 setDirection(index > activeIndex ? 'right' : 'left')
                 setActiveIndex(index)
               }}
-              className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                index === activeIndex ? 'w-6 bg-primary' : 'w-2.5 bg-neutral-200 hover:bg-neutral-300'
-              }`}
+              className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${index === activeIndex ? 'w-6 bg-primary' : 'w-2.5 bg-neutral-200 hover:bg-neutral-300'
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

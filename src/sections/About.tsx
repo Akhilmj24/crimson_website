@@ -107,7 +107,7 @@ export const About: React.FC = () => {
                 <CheckCircle2 className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-bold text-neutral-900">Traditional Preparation</h4>
-                  <p className="text-xs text-neutral-500 font-medium mt-0.5">Fried in pure coconut oil mills</p>
+                  <p className="text-xs text-neutral-500 font-medium mt-0.5">Fried in coconut oil</p>
                 </div>
               </div>
 

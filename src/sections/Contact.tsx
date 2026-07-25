@@ -65,7 +65,7 @@ export const Contact: React.FC = () => {
       <div className="absolute left-[-100px] bottom-[-100px] h-[300px] w-[300px] rounded-full bg-primary/5 blur-3xl" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold text-primary uppercase tracking-wider">
@@ -80,14 +80,14 @@ export const Contact: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-stretch">
-          
+
           {/* Details Column (Left) */}
           <div className="lg:col-span-5 flex flex-col justify-between space-y-8">
             <div className="bg-white border border-neutral-100 rounded-2xl p-8 shadow-soft flex-1 flex flex-col justify-between">
-              
+
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-neutral-900 border-b border-neutral-100 pb-4">
-                  Corporate Offices
+                  Corporate Office
                 </h3>
 
                 {/* Details list */}
@@ -175,11 +175,10 @@ export const Contact: React.FC = () => {
                       type="text"
                       id="name"
                       {...register('name')}
-                      className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${
-                        errors.name
+                      className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${errors.name
                           ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
                           : 'border-neutral-200 focus:border-primary focus:ring-primary/10'
-                      }`}
+                        }`}
                       placeholder="Your Full Name"
                     />
                     {errors.name && (
@@ -196,11 +195,10 @@ export const Contact: React.FC = () => {
                       type="tel"
                       id="phone"
                       {...register('phone')}
-                      className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${
-                        errors.phone
+                      className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${errors.phone
                           ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
                           : 'border-neutral-200 focus:border-primary focus:ring-primary/10'
-                      }`}
+                        }`}
                       placeholder="e.g. +91XXXXXXXXXX"
                     />
                     {errors.phone && (
@@ -218,11 +216,10 @@ export const Contact: React.FC = () => {
                     type="email"
                     id="email"
                     {...register('email')}
-                    className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${
-                      errors.email
+                    className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${errors.email
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
                         : 'border-neutral-200 focus:border-primary focus:ring-primary/10'
-                    }`}
+                      }`}
                     placeholder="you@example.com"
                   />
                   {errors.email && (
@@ -239,11 +236,10 @@ export const Contact: React.FC = () => {
                     id="message"
                     rows={4}
                     {...register('message')}
-                    className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${
-                      errors.message
+                    className={`mt-2 block w-full rounded-xl border px-4 py-3 text-xs md:text-sm font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 transition-all ${errors.message
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
                         : 'border-neutral-200 focus:border-primary focus:ring-primary/10'
-                    }`}
+                      }`}
                     placeholder="Tell us about your requirements..."
                   />
                   {errors.message && (

@@ -32,7 +32,7 @@ export const WhyChoose: React.FC = () => {
     },
     {
       title: 'Freshly Packed',
-      description: 'Packed directly after cooling in nitrogen-flushed stand-up pouches to lock in natural crispness.',
+      description: 'Packed directly after cooling in stand-up pouches to lock in natural crispness.',
       icon: <PackageOpen className="h-6 w-6 text-primary" />,
     },
     {

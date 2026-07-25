@@ -6,7 +6,7 @@ import { About } from './sections/About'
 import { WhyChoose } from './sections/WhyChoose'
 import { Products } from './sections/Products'
 import { Process } from './sections/Process'
-import { Gallery } from './sections/Gallery'
+// import { Gallery } from './sections/Gallery'
 import { Reviews } from './sections/Reviews'
 import { FAQ } from './sections/FAQ'
 import { Contact } from './sections/Contact'
@@ -33,7 +33,7 @@ function App() {
           <WhyChoose />
           <Products />
           <Process />
-          <Gallery />
+          {/* <Gallery /> */}
           <Reviews />
           <FAQ />
           <Contact />

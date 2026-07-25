@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Target, Compass } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import bananaChipsImg from '../assets/product-banana-chips.png'
@@ -48,6 +48,22 @@ export const About: React.FC = () => {
           },
         }
       )
+
+      // Fade in Mission & Vision on scroll
+      gsap.fromTo(
+        '.mission-vision-row',
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1.2,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.mission-vision-row',
+            start: 'top 85%',
+          },
+        }
+      )
     }, sectionRef)
 
     return () => ctx.revert()
@@ -57,14 +73,14 @@ export const About: React.FC = () => {
     <section
       id="about"
       ref={sectionRef}
-      className="relative bg-transparent py-20 md:py-28 overflow-hidden select-none"
+      className="relative bg-transparent py-12 md:py-16 overflow-hidden select-none"
     >
       {/* Background shape */}
       <div className="absolute -right-32 top-1/4 h-[400px] w-[400px] rounded-full bg-secondary/5 blur-3xl" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 items-center">
-          
+
           {/* Story Info Column (Left) */}
           <div ref={leftColRef} className="space-y-6">
             <div>
@@ -82,7 +98,7 @@ export const About: React.FC = () => {
             </p>
 
             <p className="text-sm md:text-base text-neutral-600 font-medium leading-relaxed">
-              Every single batch of our chips is handcrafted in Thiruvananthapuram, Kerala, following age-old recipes passed down through generations. We source the finest organic Nendran bananas directly from local farms, ensuring each chip is fried to perfection in 100% pure coconut oil.
+              Every single batch of our chips is handcrafted in Thiruvananthapuram, Kerala, following age-old recipes passed down through generations. We source the finest organic Nendran bananas directly from local farms, ensuring each chip is fried to perfection in pure coconut oil.
             </p>
 
             {/* Quality Checklist */}
@@ -125,7 +141,7 @@ export const About: React.FC = () => {
           <div ref={rightColRef} className="relative flex justify-center items-center h-[350px] sm:h-[450px] w-full max-w-[500px]">
             {/* Golden ambient background circle */}
             <div className="absolute h-[250px] w-[250px] sm:h-[350px] sm:w-[350px] rounded-full bg-secondary/15 blur-2xl z-0" />
-            
+
             {/* Layered Product 1: Sharkara Upperi (Behind, slightly tilted left) */}
             <div className="absolute left-[5%] bottom-[10%] w-[150px] sm:w-[200px] z-10 rotate-[-12deg] drop-shadow-[0_15px_30px_rgba(153,15,2,0.15)] transition-transform duration-500 hover:rotate-[-6deg] hover:scale-105">
               <img
@@ -135,7 +151,7 @@ export const About: React.FC = () => {
                 loading="lazy"
               />
             </div>
-            
+
             {/* Layered Product 2: Banana Chips (Front, slightly tilted right) */}
             <div className="absolute right-[5%] top-[10%] w-[150px] sm:w-[200px] z-20 rotate-[8deg] drop-shadow-[0_20px_40px_rgba(153,15,2,0.2)] transition-transform duration-500 hover:rotate-[3deg] hover:scale-105">
               <img
@@ -145,7 +161,7 @@ export const About: React.FC = () => {
                 loading="lazy"
               />
             </div>
-            
+
             {/* Rotating Seal Badge */}
             <div className="absolute bottom-[5%] right-[5%] sm:right-[10%] z-30 bg-primary text-white h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-premium flex items-center justify-center p-1.5 text-center animate-[spin_20s_linear_infinite]">
               <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -156,7 +172,7 @@ export const About: React.FC = () => {
                 />
                 <text className="fill-white text-[9.5px] font-bold tracking-[1.5px]">
                   <textPath href="#textPath" startOffset="0%">
-                    * PURE COCONUT OIL * 100% NATURAL
+                    * PURE COCONUT OIL * NATURAL
                   </textPath>
                 </text>
               </svg>
@@ -167,6 +183,44 @@ export const About: React.FC = () => {
           </div>
 
         </div>
+
+        {/* Mission & Vision Row */}
+        <div className="mission-vision-row mt-20 grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-neutral-200/50 pt-16">
+          {/* Mission Card */}
+          <div className="group relative rounded-2xl bg-white/60 backdrop-blur-sm p-6 sm:p-8 border border-neutral-100 hover:shadow-soft transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+            <div className="absolute -right-16 -top-16 w-36 h-36 rounded-full bg-primary/5 blur-xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Target className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Purpose</span>
+                <h3 className="font-display text-xl font-bold text-neutral-900">Our Mission</h3>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-neutral-600 font-medium leading-relaxed">
+              To preserve, slow-cook, and share the authentic, clean culinary legacy of Kerala. We source raw ingredients ethically from local organic farms, cooking exclusively in pure coconut oil to deliver premium, traditional taste without a single preservative or additive.
+            </p>
+          </div>
+
+          {/* Vision Card */}
+          <div className="group relative rounded-2xl bg-white/60 backdrop-blur-sm p-6 sm:p-8 border border-neutral-100 hover:shadow-soft transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+            <div className="absolute -right-16 -top-16 w-36 h-36 rounded-full bg-secondary/5 blur-xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/20 text-amber-800">
+                <Compass className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Aspiration</span>
+                <h3 className="font-display text-xl font-bold text-neutral-900">Our Vision</h3>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-neutral-600 font-medium leading-relaxed">
+              To stand as the global benchmark for premium, chemical-free traditional Indian snacking. We aspire to prove that centuries-old heritage foods can be delivered fresh to modern households worldwide, keeping local agricultural communities thriving.
+            </p>
+          </div>
+        </div>
+
       </div>
     </section>
   )

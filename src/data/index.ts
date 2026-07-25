@@ -1,7 +1,6 @@
 import { FAQItem, Review, GalleryItem, Product } from '../types'
 // Import assets
 import bananaChipsImg from '../assets/product-banana-chips.png'
-import bananaChipsDetailsImg from '../assets/product-banana-chips-details.png'
 import sharkaraUpperiImg from '../assets/product-sharkara-upperi.png'
 import comboPackImg from '../assets/product-combo-pack.png'
 // import businessCardImg from '../assets/business-card-banner.jpg'
@@ -13,11 +12,11 @@ export const PRODUCTS_DATA: Product[] = [
     name: 'Kerala Banana Chips',
     tagline: 'Crispy & Delicious',
     shortDescription: 'Premium crispy banana chips made using authentic Kerala bananas and pure coconut oil.',
-    description: 'Our signature Kerala Banana Chips are crafted from hand-picked raw bananas (Nendran variety) grown in the fertile soils of Kerala. Sliced thin and cooked in 100% pure coconut oil, these chips are light, crispy, and seasoned with a touch of sea salt for the perfect traditional taste.',
+    description: 'Our signature Kerala Banana Chips are crafted from hand-picked raw bananas (Nendran variety) grown in the fertile soils of Kerala. Sliced thin and cooked in pure coconut oil, these chips are light, crispy, and seasoned with a touch of sea salt for the perfect traditional taste.',
     weight: '200g',
     price: 180,
     ingredients: ['Raw Banana (Nendran)', 'Pure Coconut Oil', 'Iodized Salt', 'Turmeric Powder'],
-    shelfLife: '3 Months (from manufacturing date)',
+    shelfLife: '1 Months (from manufacturing date)',
     storageInstructions: 'Store in a cool, dry place away from direct sunlight. Once opened, transfer to an airtight container to retain crispness.',
     packagingInfo: 'Premium food-grade stand-up pouch with zip lock to preserve freshness.',
     nutritionInfo: {
@@ -34,7 +33,7 @@ export const PRODUCTS_DATA: Product[] = [
     },
     features: ['100% Kerala Bananas', 'Made in Coconut Oil', 'No Artificial Colors', 'No Preservatives', 'Gluten Free'],
     imageUrl: bananaChipsImg,
-    detailsImageUrl: bananaChipsDetailsImg,
+    detailsImageUrl: bananaChipsImg,
     whatsappMessage: `Hello Crimson,\n\nI would like to order the "Kerala Banana Chips (200g)" for ₹180. Please share payment and delivery details.`,
   },
   {
@@ -44,9 +43,9 @@ export const PRODUCTS_DATA: Product[] = [
     shortDescription: 'Traditional thick-cut sweet banana chips coated in organic jaggery, ginger, and cardamom.',
     description: 'A classic festival delicacy of Kerala, our Sharkara Upperi features thick-cut banana chunks, slow-cooked in pure coconut oil and coated with highly aromatic organic jaggery (sharkara). Infused with dry ginger (chukku), cardamom (elakka), and cumin, it offers a sweet, spicy, and earthy taste that melts in your mouth.',
     weight: '200g',
-    price: 150,
+    price: 190,
     ingredients: ['Raw Banana (Nendran)', 'Organic Jaggery', 'Pure Coconut Oil', 'Dry Ginger Powder', 'Cardamom Powder', 'Cumin Powder'],
-    shelfLife: '3 Months (from manufacturing date)',
+    shelfLife: '3 months (from manufacturing date)',
     storageInstructions: 'Store in a cool, dry place. Keep away from humidity and moisture. Keep in airtight containers.',
     packagingInfo: 'Eco-friendly premium zip-lock stand-up pouch.',
     nutritionInfo: {
@@ -74,7 +73,7 @@ export const PRODUCTS_DATA: Product[] = [
     weight: 'Banana Chips (200g) + Upperi (100g)',
     price: 390,
     ingredients: ['Raw Banana', 'Pure Coconut Oil', 'Organic Jaggery', 'Dry Ginger', 'Cardamom', 'Sea Salt', 'Turmeric'],
-    shelfLife: '3 Months',
+    shelfLife: '30 days - 3 Months',
     storageInstructions: 'Store in dry conditions. Once unsealed, keep the pouches zipped to preserve crunchiness.',
     packagingInfo: 'Stunning heritage-designed rigid gift box containing separate zip-lock pouches.',
     nutritionInfo: {
@@ -99,7 +98,7 @@ export const PRODUCTS_DATA: Product[] = [
 export const FAQ_DATA: FAQItem[] = [
   {
     question: 'What is the shelf life of Crimson snacks?',
-    answer: 'All our products have a shelf life of 3 months from the date of manufacturing. To maintain optimal crunchiness and flavor, store them in a cool, dry place and reseal the zip-lock pack or keep them in an airtight container.',
+    answer: 'All our products have a shelf life of 30 days from the date of manufacturing. To maintain optimal crunchiness and flavor, store them in a cool, dry place and reseal the zip-lock pack or keep them in an airtight container.',
   },
   {
     question: 'How do you deliver, and do you ship outside Kerala?',
@@ -115,7 +114,19 @@ export const FAQ_DATA: FAQItem[] = [
   },
   {
     question: 'What oil is used for frying?',
-    answer: 'We use 100% pure, filtered edible coconut oil sourced locally from Kerala mills. We never reuse oil or blend it with palm, cotton, or sunflower oil, which ensures our snacks taste authentic and do not develop any stale odor.',
+    answer: 'We use pure, filtered edible coconut oil sourced locally from Kerala mills. We never reuse oil, which ensures our snacks taste authentic.',
+  },
+  {
+    question: 'Are the snacks gluten-free?',
+    answer: 'Yes, all our snacks are gluten-free. They are made from natural ingredients and do not contain any gluten-containing additives.',
+  },
+  {
+    question: 'Do you offer vegan-friendly options?',
+    answer: 'Yes, all our snacks are vegan-friendly. They are made from natural ingredients and do not contain any animal products.',
+  },
+  {
+    question: 'What are Nendran bananas?',
+    answer: 'Nendran bananas are a variety of banana grown in Kerala, India. They are known for their large size, thick skin, and starchy texture, making them ideal for making banana chips.',
   },
 ]
 
@@ -218,7 +229,7 @@ export const PROCESS_STAGES = [
   {
     step: '03',
     title: 'Traditional Preparation',
-    description: 'Thinly sliced in traditional fryers and slow-cooked in 100% pure coconut oil. Sweet varieties are coated in melted organic jaggery infused with local spices.',
+    description: 'Thinly sliced in traditional fryers and slow-cooked in pure coconut oil. Sweet varieties are coated in melted organic jaggery infused with local spices.',
   },
   {
     step: '04',

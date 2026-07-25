@@ -16,7 +16,7 @@ export const Products: React.FC = () => {
   }
 
   return (
-    <section id="products" className="bg-transparent py-20 md:py-28 select-none">
+    <section id="products" className="bg-transparent py-12 md:py-16 select-none">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

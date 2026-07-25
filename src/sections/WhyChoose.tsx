@@ -17,7 +17,7 @@ export const WhyChoose: React.FC = () => {
     },
     {
       title: 'Pure Coconut Oil',
-      description: 'Slow-cooked exclusively in 100% pure filtered coconut oil. Never blended, never reused.',
+      description: 'Slow-cooked exclusively in pure filtered coconut oil. Never blended, never reused.',
       icon: <Flame className="h-6 w-6 text-primary" />,
     },
     {
@@ -65,9 +65,9 @@ export const WhyChoose: React.FC = () => {
   }
 
   return (
-    <section id="why-choose" className="bg-transparent py-20 md:py-28 select-none">
+    <section id="why-choose" className="bg-transparent py-12 md:py-16 select-none">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold text-primary uppercase tracking-wider">

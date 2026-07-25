@@ -55,7 +55,7 @@ export const Reviews: React.FC = () => {
   const activeReview = REVIEWS_DATA[activeIndex]
 
   return (
-    <section id="reviews" className="bg-transparent py-20 md:py-28 overflow-hidden select-none">
+    <section id="reviews" className="bg-transparent py-12 md:py-16 overflow-hidden select-none">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

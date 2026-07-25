@@ -8,9 +8,9 @@ export const Gallery: React.FC = () => {
 
   const categories = [
     { id: 'all', name: 'All Collection' },
-    { id: 'packaging', name: 'Packaging' },
-    { id: 'closeup', name: 'Closeups' },
-    { id: 'culture', name: 'Kerala Heritage' },
+    // { id: 'packaging', name: 'Packaging' },
+    // { id: 'closeup', name: 'Closeups' },
+    // { id: 'culture', name: 'Kerala Heritage' },
   ]
 
   const filteredItems = GALLERY_DATA.filter((item) => {
@@ -19,9 +19,9 @@ export const Gallery: React.FC = () => {
   })
 
   return (
-    <section id="gallery" className="bg-transparent py-20 md:py-28 select-none">
+    <section id="gallery" className="bg-transparent py-12 md:py-16 select-none">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <span className="text-xs font-bold text-primary uppercase tracking-wider">
@@ -41,11 +41,10 @@ export const Gallery: React.FC = () => {
             <button
               key={cat.id}
               onClick={() => setFilter(cat.id as any)}
-              className={`rounded-full px-5 py-2.5 text-xs font-bold tracking-wide transition-all duration-300 cursor-pointer ${
-                filter === cat.id
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
-              }`}
+              className={`rounded-full px-5 py-2.5 text-xs font-bold tracking-wide transition-all duration-300 cursor-pointer ${filter === cat.id
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
+                }`}
             >
               {cat.name}
             </button>

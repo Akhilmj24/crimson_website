@@ -60,7 +60,7 @@ export const Contact: React.FC = () => {
   }
 
   return (
-    <section id="contact" className="bg-transparent py-20 md:py-28 select-none relative overflow-hidden">
+    <section id="contact" className="bg-transparent py-12 md:py-16 select-none relative overflow-hidden">
       {/* Background shape */}
       <div className="absolute left-[-100px] bottom-[-100px] h-[300px] w-[300px] rounded-full bg-primary/5 blur-3xl" />
 

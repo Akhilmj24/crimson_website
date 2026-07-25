@@ -16,7 +16,7 @@ export const Products: React.FC = () => {
   }
 
   return (
-    <section id="products" className="bg-[#FAF7F2] py-20 md:py-28 select-none">
+    <section id="products" className="bg-transparent py-20 md:py-28 select-none">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -72,9 +72,16 @@ export const Products: React.FC = () => {
 
                   {/* Info */}
                   <div className="mt-6">
-                    <h3 className="text-xl font-bold text-neutral-900 group-hover:text-primary transition-colors">
-                      {product.name}
-                    </h3>
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-xl font-bold text-neutral-900 group-hover:text-primary transition-colors">
+                        {product.name}
+                      </h3>
+                      {product.price && (
+                        <span className="text-lg font-extrabold text-primary flex-shrink-0">
+                          ₹{product.price}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-2 text-xs md:text-sm text-neutral-500 font-medium leading-relaxed min-h-[48px]">
                       {product.shortDescription}
                     </p>

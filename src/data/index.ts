@@ -4,7 +4,7 @@ import bananaChipsImg from '../assets/product-banana-chips.png'
 import bananaChipsDetailsImg from '../assets/product-banana-chips-details.png'
 import sharkaraUpperiImg from '../assets/product-sharkara-upperi.png'
 import comboPackImg from '../assets/product-combo-pack.png'
-import businessCardImg from '../assets/business-card-banner.jpg'
+// import businessCardImg from '../assets/business-card-banner.jpg'
 
 // Products Data
 export const PRODUCTS_DATA: Product[] = [
@@ -15,6 +15,7 @@ export const PRODUCTS_DATA: Product[] = [
     shortDescription: 'Premium crispy banana chips made using authentic Kerala bananas and pure coconut oil.',
     description: 'Our signature Kerala Banana Chips are crafted from hand-picked raw bananas (Nendran variety) grown in the fertile soils of Kerala. Sliced thin and cooked in 100% pure coconut oil, these chips are light, crispy, and seasoned with a touch of sea salt for the perfect traditional taste.',
     weight: '200g',
+    price: 180,
     ingredients: ['Raw Banana (Nendran)', 'Pure Coconut Oil', 'Iodized Salt', 'Turmeric Powder'],
     shelfLife: '3 Months (from manufacturing date)',
     storageInstructions: 'Store in a cool, dry place away from direct sunlight. Once opened, transfer to an airtight container to retain crispness.',
@@ -34,7 +35,7 @@ export const PRODUCTS_DATA: Product[] = [
     features: ['100% Kerala Bananas', 'Made in Coconut Oil', 'No Artificial Colors', 'No Preservatives', 'Gluten Free'],
     imageUrl: bananaChipsImg,
     detailsImageUrl: bananaChipsDetailsImg,
-    whatsappMessage: `Hello Crimson,\n\nI would like to order the "Kerala Banana Chips (200g)". Please share pricing and delivery details.`,
+    whatsappMessage: `Hello Crimson,\n\nI would like to order the "Kerala Banana Chips (200g)" for ₹180. Please share payment and delivery details.`,
   },
   {
     id: 'sharkara-upperi',
@@ -43,6 +44,7 @@ export const PRODUCTS_DATA: Product[] = [
     shortDescription: 'Traditional thick-cut sweet banana chips coated in organic jaggery, ginger, and cardamom.',
     description: 'A classic festival delicacy of Kerala, our Sharkara Upperi features thick-cut banana chunks, slow-cooked in pure coconut oil and coated with highly aromatic organic jaggery (sharkara). Infused with dry ginger (chukku), cardamom (elakka), and cumin, it offers a sweet, spicy, and earthy taste that melts in your mouth.',
     weight: '200g',
+    price: 150,
     ingredients: ['Raw Banana (Nendran)', 'Organic Jaggery', 'Pure Coconut Oil', 'Dry Ginger Powder', 'Cardamom Powder', 'Cumin Powder'],
     shelfLife: '3 Months (from manufacturing date)',
     storageInstructions: 'Store in a cool, dry place. Keep away from humidity and moisture. Keep in airtight containers.',
@@ -61,7 +63,7 @@ export const PRODUCTS_DATA: Product[] = [
     },
     features: ['Traditional Recipe', 'Coated in Organic Jaggery', 'Infused with Ginger & Cardamom', 'No Preservatives', '100% Authentic Kerala Taste'],
     imageUrl: sharkaraUpperiImg,
-    whatsappMessage: `Hello Crimson,\n\nI would like to order the "Sharkara Upperi (200g)". Please share pricing and delivery details.`,
+    whatsappMessage: `Hello Crimson,\n\nI would like to order the "Sharkara Upperi (200g)" for ₹190. Please share payment and delivery details.`,
   },
   {
     id: 'combo-pack',
@@ -70,6 +72,7 @@ export const PRODUCTS_DATA: Product[] = [
     shortDescription: 'An elegant gift combo containing our signature savory Banana Chips and sweet Sharkara Upperi.',
     description: 'Perfect for festivals, corporate gifting, and family get-togethers. This premium gift combo brings together the best of both worlds: 200g of crispy salted Banana Chips and 100g of sweet jaggery-coated Sharkara Upperi. Gift your loved ones the authentic flavors of a Kerala sadhya.',
     weight: 'Banana Chips (200g) + Upperi (100g)',
+    price: 390,
     ingredients: ['Raw Banana', 'Pure Coconut Oil', 'Organic Jaggery', 'Dry Ginger', 'Cardamom', 'Sea Salt', 'Turmeric'],
     shelfLife: '3 Months',
     storageInstructions: 'Store in dry conditions. Once unsealed, keep the pouches zipped to preserve crunchiness.',
@@ -88,7 +91,7 @@ export const PRODUCTS_DATA: Product[] = [
     },
     features: ['Perfect for Gifting', 'Handcrafted Assortment', 'Beautiful Festive Box', 'A Taste of Kerala Tradition'],
     imageUrl: comboPackImg,
-    whatsappMessage: `Hello Crimson,\n\nI would like to order the "Onam Combo Pack". Please share pricing and delivery details.`,
+    whatsappMessage: `Hello Crimson,\n\nI would like to order the "Celebrate Onam Combo Pack" for ₹390. Please share payment and delivery details.`,
   },
 ]
 
@@ -180,24 +183,24 @@ export const GALLERY_DATA: GalleryItem[] = [
     category: 'packaging',
     imageUrl: sharkaraUpperiImg,
   },
-  {
-    id: 'g4',
-    title: 'Crimson Brand Identity & Address Detail',
-    category: 'culture',
-    imageUrl: businessCardImg,
-  },
-  {
-    id: 'g5',
-    title: 'Double Pouch Product Showcase',
-    category: 'closeup',
-    imageUrl: bananaChipsDetailsImg,
-  },
-  {
-    id: 'g6',
-    title: 'Yellow Slate Banana Chips',
-    category: 'closeup',
-    imageUrl: bananaChipsImg,
-  },
+  // {
+  //   id: 'g4',
+  //   title: 'Crimson Brand Identity & Address Detail',
+  //   category: 'culture',
+  //   imageUrl: businessCardImg,
+  // },
+  // {
+  //   id: 'g5',
+  //   title: 'Double Pouch Product Showcase',
+  //   category: 'closeup',
+  //   imageUrl: bananaChipsDetailsImg,
+  // },
+  // {
+  //   id: 'g6',
+  //   title: 'Yellow Slate Banana Chips',
+  //   category: 'closeup',
+  //   imageUrl: bananaChipsImg,
+  // },
 ]
 
 // Process Timeline Stages
@@ -219,8 +222,8 @@ export const PROCESS_STAGES = [
   },
   {
     step: '04',
-    title: 'Nitrogen Flush Packing',
-    description: 'We pack the warm snacks in food-grade multilayer pouches flushed with nitrogen to keep moisture away and preserve natural crispness without preservatives.',
+    title: 'Hygienic Airtight Packing',
+    description: 'Every batch is packed in premium food-grade, airtight pouches to lock in freshness, preserve crispness, and protect the chips from moisture. The resealable packaging makes it easy to enjoy and store while maintaining quality.',
   },
   {
     step: '05',

@@ -41,6 +41,7 @@ export interface Product {
   shortDescription: string
   description: string
   weight: string
+  price?: number
   ingredients: string[]
   shelfLife: string
   storageInstructions: string

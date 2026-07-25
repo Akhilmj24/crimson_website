@@ -11,11 +11,15 @@ import { Reviews } from './sections/Reviews'
 import { FAQ } from './sections/FAQ'
 import { Contact } from './sections/Contact'
 import { Footer } from './sections/Footer'
+import { BackgroundManager } from './components/BackgroundManager'
 
 function App() {
   return (
     <HelmetProvider>
-      <div className="min-h-screen bg-[#FAF7F2] font-sans antialiased text-[#1A1A1A]">
+      <div className="min-h-screen bg-paper-texture font-sans antialiased text-[#1A1A1A] relative">
+        {/* Global background theme and watermarks */}
+        <BackgroundManager />
+
         {/* Global SEO Meta Manager */}
         <SEO />
 

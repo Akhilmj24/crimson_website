@@ -76,7 +76,7 @@ export const Process: React.FC = () => {
     <section
       id="process"
       ref={containerRef}
-      className="bg-[#FAF7F2] py-20 md:py-28 relative overflow-hidden select-none"
+      className="bg-transparent py-20 md:py-28 relative overflow-hidden select-none"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         

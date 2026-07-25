@@ -19,7 +19,7 @@ export const Gallery: React.FC = () => {
   })
 
   return (
-    <section id="gallery" className="bg-[#FAF7F2] py-20 md:py-28 select-none">
+    <section id="gallery" className="bg-transparent py-20 md:py-28 select-none">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

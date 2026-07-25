@@ -103,7 +103,7 @@ export const Hero: React.FC = () => {
     <section
       id="home"
       ref={containerRef}
-      className="relative flex min-h-screen items-center justify-center bg-[#FAF7F2] pt-20 overflow-hidden select-none"
+      className="relative flex min-h-screen items-center justify-center bg-transparent pt-20 overflow-hidden select-none"
     >
       {/* Dynamic Ambient Background Elements */}
       <div className="absolute top-1/4 left-1/10 h-72 w-72 rounded-full bg-secondary/15 blur-3xl" />

@@ -92,9 +92,16 @@ export const Modal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
                   <span className="text-xs font-bold text-secondary uppercase tracking-wider">
                     {product.tagline}
                   </span>
-                  <h3 id="modal-title" className="text-2xl md:text-3xl font-display font-bold text-neutral-900 mt-1">
-                    {product.name}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2 mt-1">
+                    <h3 id="modal-title" className="text-2xl md:text-3xl font-display font-bold text-neutral-900">
+                      {product.name}
+                    </h3>
+                    {product.price && (
+                      <span className="text-xl md:text-2xl font-extrabold text-primary flex-shrink-0">
+                        ₹{product.price}
+                      </span>
+                    )}
+                  </div>
 
                   <p className="text-sm text-neutral-600 font-medium leading-relaxed mt-3">
                     {product.description}

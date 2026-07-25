@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import heritageImg from '../assets/business-card-banner.jpg'
+import bananaChipsImg from '../assets/product-banana-chips.png'
+import sharkaraUpperiImg from '../assets/product-sharkara-upperi.png'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -56,7 +57,7 @@ export const About: React.FC = () => {
     <section
       id="about"
       ref={sectionRef}
-      className="relative bg-[#FAF7F2] py-20 md:py-28 overflow-hidden select-none"
+      className="relative bg-transparent py-20 md:py-28 overflow-hidden select-none"
     >
       {/* Background shape */}
       <div className="absolute -right-32 top-1/4 h-[400px] w-[400px] rounded-full bg-secondary/5 blur-3xl" />
@@ -121,20 +122,46 @@ export const About: React.FC = () => {
           </div>
 
           {/* Heritage Visual Column (Right) */}
-          <div ref={rightColRef} className="relative flex justify-center">
-            {/* Visual Box */}
-            <div className="relative w-full max-w-[480px] overflow-hidden rounded-2xl bg-white p-4 shadow-soft border border-neutral-100/50">
+          <div ref={rightColRef} className="relative flex justify-center items-center h-[350px] sm:h-[450px] w-full max-w-[500px]">
+            {/* Golden ambient background circle */}
+            <div className="absolute h-[250px] w-[250px] sm:h-[350px] sm:w-[350px] rounded-full bg-secondary/15 blur-2xl z-0" />
+            
+            {/* Layered Product 1: Sharkara Upperi (Behind, slightly tilted left) */}
+            <div className="absolute left-[5%] bottom-[10%] w-[150px] sm:w-[200px] z-10 rotate-[-12deg] drop-shadow-[0_15px_30px_rgba(153,15,2,0.15)] transition-transform duration-500 hover:rotate-[-6deg] hover:scale-105">
               <img
-                src={heritageImg}
-                alt="Crimson Group LLP Logo and Heritage"
-                className="w-full h-auto object-cover rounded-xl shadow-inner select-none pointer-events-none"
+                src={sharkaraUpperiImg}
+                alt="Crimson Sharkara Upperi Packaging"
+                className="w-full h-auto object-contain"
+                loading="lazy"
               />
-              {/* Floating Tag */}
-              <div className="absolute -bottom-5 -left-5 bg-primary text-white p-6 rounded-2xl shadow-premium hidden sm:block">
-                <p className="font-display text-2xl font-bold">100%</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-200 mt-1">
-                  Authentic Taste
-                </p>
+            </div>
+            
+            {/* Layered Product 2: Banana Chips (Front, slightly tilted right) */}
+            <div className="absolute right-[5%] top-[10%] w-[150px] sm:w-[200px] z-20 rotate-[8deg] drop-shadow-[0_20px_40px_rgba(153,15,2,0.2)] transition-transform duration-500 hover:rotate-[3deg] hover:scale-105">
+              <img
+                src={bananaChipsImg}
+                alt="Crimson Banana Chips Packaging"
+                className="w-full h-auto object-contain"
+                loading="lazy"
+              />
+            </div>
+            
+            {/* Rotating Seal Badge */}
+            <div className="absolute bottom-[5%] right-[5%] sm:right-[10%] z-30 bg-primary text-white h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-premium flex items-center justify-center p-1.5 text-center animate-[spin_20s_linear_infinite]">
+              <svg viewBox="0 0 100 100" className="w-full h-full">
+                <path
+                  id="textPath"
+                  d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+                  fill="none"
+                />
+                <text className="fill-white text-[9.5px] font-bold tracking-[1.5px]">
+                  <textPath href="#textPath" startOffset="0%">
+                    * PURE COCONUT OIL * 100% NATURAL
+                  </textPath>
+                </text>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center font-display text-xs font-bold text-secondary">
+                Crimson
               </div>
             </div>
           </div>

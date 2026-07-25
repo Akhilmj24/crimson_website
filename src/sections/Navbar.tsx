@@ -59,10 +59,8 @@ export const Navbar: React.FC = () => {
               className="flex items-center gap-2.5 cursor-pointer focus:outline-none"
               aria-label="Crimson Home"
             >
-              <img src={logoClean} alt="Crimson Logo" className="h-9 w-9 object-contain" />
-              <span className="font-display text-xl font-bold tracking-tight text-primary md:text-2xl">
-                Crimson
-              </span>
+              <img src={logoClean} alt="Crimson Logo" className="h-14 w-14 object-contain" />
+
             </a>
 
             {/* Desktop Navigation Links */}

@@ -167,12 +167,27 @@ export const About: React.FC = () => {
               <svg viewBox="0 0 100 100" className="w-full h-full">
                 <path
                   id="textPath"
-                  d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+                  d="M 50,87 a 37,37 0 1,1 0,-74 a 37,37 0 1,1 0,74"
                   fill="none"
                 />
-                <text className="fill-white text-[9.5px] font-bold tracking-[1.5px]">
+                <text className="fill-white text-[9.5px] font-bold tracking-[1.5px]" textAnchor="middle">
+                  <textPath href="#textPath" startOffset="25%">
+                    NATURAL
+                  </textPath>
+                </text>
+                <text className="fill-white text-[9.5px] font-bold tracking-[1.5px]" textAnchor="middle">
+                  <textPath href="#textPath" startOffset="75%">
+                    PURE COCONUT OIL
+                  </textPath>
+                </text>
+                <text className="fill-white text-[9.5px] font-bold tracking-[1.5px]" textAnchor="middle">
                   <textPath href="#textPath" startOffset="0%">
-                    * PURE COCONUT OIL * NATURAL
+
+                  </textPath>
+                </text>
+                <text className="fill-white text-[9.5px] font-bold tracking-[1.5px]" textAnchor="middle">
+                  <textPath href="#textPath" startOffset="50%">
+
                   </textPath>
                 </text>
               </svg>

@@ -114,7 +114,7 @@ export const Reviews: React.FC = () => {
           </AnimatePresence>
 
           {/* Slider controls (Arrows) */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 z-20 flex justify-between px-2 pointer-events-none">
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 z-20 hidden md:flex justify-between px-2 pointer-events-none">
             <button
               onClick={handlePrev}
               className="h-12 w-12 rounded-full bg-white border border-neutral-100 shadow-md flex items-center justify-center text-neutral-600 hover:text-primary hover:scale-105 active:scale-95 transition-all pointer-events-auto cursor-pointer"

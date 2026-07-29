@@ -9,7 +9,8 @@ export default function InvoicePreview() {
     sellerDetails,
     invoiceItems,
     termsAndConditions,
-    handleDownloadPDF
+    handleDownloadPDF,
+    gstEnabled
   } = useInvoice();
 
   const formatCurrency = (amount) => {
@@ -117,19 +118,19 @@ export default function InvoicePreview() {
               <thead>
                 <tr>
                   <th style={{ width: '4%', textAlign: 'center' }}>#</th>
-                  <th style={{ width: '38%' }}>Pouch / Finish</th>
-                  <th style={{ width: '22%' }}>Size</th>
-                  <th style={{ width: '8%', textAlign: 'center' }}>Qty</th>
-                  <th style={{ width: '6%', textAlign: 'center' }}>SKUs</th>
-                  <th style={{ width: '8%', textAlign: 'right' }}>Price/pc</th>
-                  <th style={{ width: '14%', textAlign: 'right' }}>GST</th>
+                  <th style={{ width: '42%' }}>Product</th>
+                  <th style={{ width: '24%' }}>Size</th>
+                  <th style={{ width: '10%', textAlign: 'center' }}>Qty</th>
+                  <th style={{ width: '10%', textAlign: 'right' }}>Price/pc</th>
+                  {gstEnabled && <th style={{ width: '10%', textAlign: 'right' }}>GST</th>}
                   <th style={{ width: '12%', textAlign: 'right' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
                 {invoiceItems.map((item, idx) => {
-                  const itemTotal = item.qty * item.price;
-                  const itemGst = itemTotal * (item.gstRate / 100);
+                  const itemSubtotal = item.qty * item.price;
+                  const itemGst = gstEnabled ? itemSubtotal * (item.gstRate / 100) : 0;
+                  const itemTotal = itemSubtotal + itemGst;
                   return (
                     <tr key={item.id}>
                       <td className="center" style={{ color: '#64748b' }}>{idx + 1}</td>
@@ -146,14 +147,15 @@ export default function InvoicePreview() {
                         </div>
                       </td>
                       <td className="center">{formatNumber(item.qty)}</td>
-                      <td className="center">{item.skus !== undefined ? item.skus : 1}</td>
                       <td className="right">{formatCurrency(item.price)}</td>
-                      <td className="right">
-                        {formatCurrency(itemGst)}
-                        <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>
-                          ({item.gstRate}%)
-                        </div>
-                      </td>
+                      {gstEnabled && (
+                        <td className="right">
+                          {formatCurrency(itemGst)}
+                          <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>
+                            ({item.gstRate}%)
+                          </div>
+                        </td>
+                      )}
                       <td className="right" style={{ fontWeight: '600' }}>{formatCurrency(itemTotal)}</td>
                     </tr>
                   );
@@ -166,22 +168,27 @@ export default function InvoicePreview() {
           <div className="invoice-preview-summary-section">
             <table className="invoice-preview-summary-table">
               <tbody>
-                <tr>
-                  <td>Subtotal:</td>
-                  <td>{formatCurrency(subtotal)}</td>
-                </tr>
-                <tr>
-                  <td>Basic Total (excl. GST):</td>
-                  <td>{formatCurrency(subtotal)}</td>
-                </tr>
-                <tr>
-                  <td>GST Amount:</td>
-                  <td>{formatCurrency(gstAmount)}</td>
-                </tr>
-                <tr className="grand-total-row">
-                  <td>Total (incl. GST):</td>
-                  <td>{formatCurrency(grandTotal)}</td>
-                </tr>
+                {gstEnabled ? (
+                  <>
+                    <tr>
+                      <td>Subtotal (excl. GST):</td>
+                      <td>{formatCurrency(subtotal)}</td>
+                    </tr>
+                    <tr>
+                      <td>GST Amount:</td>
+                      <td>{formatCurrency(gstAmount)}</td>
+                    </tr>
+                    <tr className="grand-total-row">
+                      <td>Total (incl. GST):</td>
+                      <td>{formatCurrency(grandTotal)}</td>
+                    </tr>
+                  </>
+                ) : (
+                  <tr className="grand-total-row">
+                    <td>Total:</td>
+                    <td>{formatCurrency(subtotal)}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

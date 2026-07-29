@@ -21,7 +21,9 @@ export default function InvoiceForm() {
     allowEditSeller,
     allowEditTerms,
     handleToggleEditSeller,
-    handleToggleEditTerms
+    handleToggleEditTerms,
+    gstEnabled,
+    setGstEnabled
   } = useInvoice();
 
   const [isOpen, setIsOpen] = useState({
@@ -286,7 +288,36 @@ export default function InvoiceForm() {
             <Database size={16} />
             Product Items List
           </span>
-          {isOpen.items ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <label
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                color: gstEnabled ? 'var(--primary-light)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: `1px solid ${gstEnabled ? 'var(--primary-light)' : 'var(--border)'}`,
+                background: gstEnabled ? 'rgba(153,15,2,0.12)' : 'transparent',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={gstEnabled}
+                onChange={(e) => setGstEnabled(e.target.checked)}
+                style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: '13px', height: '13px' }}
+              />
+              GST
+            </label>
+            {isOpen.items ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </div>
         </div>
 
         {isOpen.items && (

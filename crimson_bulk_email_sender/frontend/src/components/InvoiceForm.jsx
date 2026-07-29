@@ -328,8 +328,8 @@ export default function InvoiceForm() {
                   <tr>
                     <th style={{ width: '40%' }}>Description</th>
                     <th style={{ width: '25%' }}>Size</th>
-                    <th style={{ width: '12%' }}>Qty</th>
-                    <th style={{ width: '13%' }}>Price/pc</th>
+                    <th style={{ width: '10%' }}>Qty</th>
+                    <th style={{ width: '10%' }}>Price/pc</th>
                     <th style={{ width: '10%' }}>GST%</th>
                     <th style={{ width: '5%' }}></th>
                   </tr>

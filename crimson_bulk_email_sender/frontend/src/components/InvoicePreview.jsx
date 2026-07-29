@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
 import { useInvoice } from '../context/InvoiceContext';
 
 export default function InvoicePreview() {
@@ -10,6 +10,7 @@ export default function InvoicePreview() {
     invoiceItems,
     termsAndConditions,
     handleDownloadPDF,
+    handleDownloadDocx,
     gstEnabled
   } = useInvoice();
 
@@ -51,10 +52,16 @@ export default function InvoicePreview() {
       <div className="invoice-preview-card">
         <div className="invoice-preview-toolbar">
           <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Live A4 Quotation Preview</span>
-          <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF}>
-            <ExternalLink size={14} />
-            Download PDF Invoice
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
+              <ExternalLink size={14} />
+              Download PDF Invoice
+            </button>
+            <button type="button" className="btn-download-pdf" onClick={handleDownloadDocx} style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff' }}>
+              <FileText size={14} />
+              Download DOCX
+            </button>
+          </div>
         </div>
 
         {/* Print Document A4 Canvas Container */}
@@ -117,13 +124,14 @@ export default function InvoicePreview() {
             <table className="invoice-preview-table">
               <thead>
                 <tr>
-                  <th style={{ width: '4%', textAlign: 'center' }}>#</th>
-                  <th style={{ width: '42%' }}>Product</th>
-                  <th style={{ width: '24%' }}>Size</th>
-                  <th style={{ width: '10%', textAlign: 'center' }}>Qty</th>
-                  <th style={{ width: '10%', textAlign: 'right' }}>Price/pc</th>
-                  {gstEnabled && <th style={{ width: '10%', textAlign: 'right' }}>GST</th>}
-                  <th style={{ width: '12%', textAlign: 'right' }}>Total</th>
+                  <th style={{ width: '5%', textAlign: 'center' }}>Sr</th>
+                  <th style={{ width: '52%' }}>Goods & Service Description</th>
+                  <th style={{ width: '11%', textAlign: 'center' }}>Quantity</th>
+                  <th style={{ width: '11%', textAlign: 'right' }}>Rate</th>
+                  {gstEnabled && (
+                    <th style={{ width: '10%', textAlign: 'center' }}>GST</th>
+                  )}
+                  <th style={{ width: '11%', textAlign: 'right' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,26 +143,17 @@ export default function InvoicePreview() {
                     <tr key={item.id}>
                       <td className="center" style={{ color: '#64748b' }}>{idx + 1}</td>
                       <td>
-                        <div className="invoice-preview-item-title">{item.description.split('\n')[0]}</div>
-                        <div className="invoice-preview-item-desc">
-                          {item.description.split('\n').slice(1).join('\n')}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="invoice-preview-item-title">{item.size.split('\n')[0]}</div>
-                        <div className="invoice-preview-item-desc">
-                          {item.size.split('\n').slice(1).join('\n')}
-                        </div>
+                        <div className="invoice-preview-item-title">{item.description}</div>
+                        {item.size && (
+                          <div className="invoice-preview-item-desc" style={{ marginTop: '2px', fontStyle: 'italic', fontSize: '11px', color: '#64748b' }}>
+                            Size: {item.size}
+                          </div>
+                        )}
                       </td>
                       <td className="center">{formatNumber(item.qty)}</td>
                       <td className="right">{formatCurrency(item.price)}</td>
                       {gstEnabled && (
-                        <td className="right">
-                          {formatCurrency(itemGst)}
-                          <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>
-                            ({item.gstRate}%)
-                          </div>
-                        </td>
+                        <td className="center">{item.gstRate}%</td>
                       )}
                       <td className="right" style={{ fontWeight: '600' }}>{formatCurrency(itemTotal)}</td>
                     </tr>

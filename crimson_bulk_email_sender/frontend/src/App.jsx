@@ -7,6 +7,7 @@ import CampaignDispatcher from './pages/CampaignDispatcher';
 import SmtpSettings from './pages/SmtpSettings';
 import SentCampaigns from './pages/SentCampaigns';
 import InvoiceGenerator from './pages/InvoiceGenerator';
+import ProposalGenerator from './pages/ProposalGenerator';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
                 <Route path="/settings" element={<SmtpSettings />} />
                 <Route path="/history" element={<SentCampaigns />} />
                 <Route path="/invoice" element={<InvoiceGenerator />} />
+                <Route path="/proposal" element={<ProposalGenerator />} />
                 <Route path="*" element={<Navigate to="/dispatcher" replace />} />
               </Routes>
             </main>

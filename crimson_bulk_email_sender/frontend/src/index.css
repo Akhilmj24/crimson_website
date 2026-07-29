@@ -1873,7 +1873,7 @@ textarea {
   font-family: 'Outfit', sans-serif;
   font-size: 26px;
   font-weight: 800;
-  color: #0f766e; /* Teal tone */
+  color: #990f02; /* Crimson tone */
   letter-spacing: 0.5px;
   margin-bottom: 4px;
   text-transform: uppercase;
@@ -1897,7 +1897,7 @@ textarea {
 
 .invoice-preview-divider {
   height: 3px;
-  background-color: #0f766e;
+  background-color: #990f02;
   margin-bottom: 24px;
   border-radius: 2px;
 }
@@ -1952,12 +1952,12 @@ textarea {
 }
 
 .invoice-preview-table th {
-  background-color: #0f766e; /* Dark teal background matching mockup */
+  background-color: #990f02; /* Crimson red background matching logo */
   color: #ffffff;
   font-weight: 700;
   text-align: left;
   padding: 8px 10px;
-  border: 1px solid #0d9488;
+  border: 1px solid #880e02;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2025,20 +2025,20 @@ textarea {
 
 .invoice-preview-summary-table tr.grand-total-row td {
   background-color: #f1f5f9;
-  border-top: 2px solid #0f766e;
-  border-bottom: 2px solid #0f766e;
+  border-top: 2px solid #990f02;
+  border-bottom: 2px solid #990f02;
   padding: 10px 12px;
 }
 
 .invoice-preview-summary-table tr.grand-total-row td:first-child {
-  color: #0f766e;
+  color: #990f02;
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .invoice-preview-summary-table tr.grand-total-row td:last-child {
-  color: #0f766e;
+  color: #990f02;
   font-size: 15px;
   font-weight: 800;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, History, FileText } from 'lucide-react';
+import { LayoutDashboard, Settings, History, FileText, Briefcase } from 'lucide-react';
 import { useCampaign } from '../context/CampaignContext';
 
 export default function Sidebar() {
@@ -41,6 +41,13 @@ export default function Sidebar() {
         >
           <FileText size={18} />
           Invoice Generator
+        </NavLink>
+        <NavLink
+          to="/proposal"
+          className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+        >
+          <Briefcase size={18} />
+          Proposal Creator
         </NavLink>
       </nav>
 

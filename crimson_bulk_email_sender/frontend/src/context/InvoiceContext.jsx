@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType } from 'docx';
 import { useCampaign } from './CampaignContext';
 import { product, terms } from './data';
 
@@ -26,10 +27,10 @@ export function InvoiceProvider({ children }) {
   });
 
   const [customerDetails, setCustomerDetails] = useState({
-    name: 'Crimson Snacks',
-    attn: 'Mr. Akhil',
-    phone: '+91 7907160645',
-    destination: 'South India'
+    name: 'Athen Cars',
+    attn: 'Satheesh VS',
+    phone: '+91 9744050505',
+    destination: 'Anayara, Trivandrum'
   });
 
   const [sellerDetails, setSellerDetails] = useState({
@@ -163,21 +164,24 @@ export function InvoiceProvider({ children }) {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = 210;
       const pageHeight = 297; // correct A4 height in mm
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      let heightLeft = imgHeight;
-      let position = 0;
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Calculate width and height to fit on exactly one A4 page while maintaining aspect ratio
+      let imgWidth = pageWidth;
+      let imgHeight = (canvasHeight * imgWidth) / canvasWidth;
 
-      while (heightLeft > 0) {
-        position -= pageHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      if (imgHeight > pageHeight) {
+        imgHeight = pageHeight;
+        imgWidth = (canvasWidth * imgHeight) / canvasHeight;
       }
+
+      // Center the image on the page
+      const xOffset = (pageWidth - imgWidth) / 2;
+      const yOffset = (pageHeight - imgHeight) / 2;
+
+      pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidth, imgHeight);
 
       const fileName = `${customerDetails.name.replace(/\s+/g, '_')}_Quotation_${invoiceMeta.quoteNo}.pdf`;
       pdf.save(fileName);
@@ -185,6 +189,543 @@ export function InvoiceProvider({ children }) {
     } catch (err) {
       console.error('PDF Generation error:', err);
       alert('Failed to generate PDF. Error: ' + err.message);
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    try {
+      // 1. Header Table (Logo / Title info)
+      const tableHeader = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+          top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+          bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+          left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+          right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+          insideVertical: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+        },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: '●', color: '990f02', size: 36 }),
+                      new TextRun({ text: '● ', color: 'ffc72c', size: 36 }),
+                      new TextRun({ text: 'Crimson', bold: true, size: 28, font: 'Inter', color: '990f02' }),
+                    ],
+                  }),
+                ],
+              }),
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                },
+                children: [
+                  new Paragraph({
+                    children: [new TextRun({ text: 'PRE-QUOTATION', bold: true, color: '990f02', font: 'Inter', size: 24 })],
+                    alignment: AlignmentType.RIGHT,
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Quote No: ', bold: true, font: 'Inter', size: 18, color: '374151' }),
+                      new TextRun({ text: invoiceMeta.quoteNo, font: 'Inter', size: 18, color: '4b5563' })
+                    ],
+                    alignment: AlignmentType.RIGHT,
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Date: ', bold: true, font: 'Inter', size: 18, color: '374151' }),
+                      new TextRun({ text: (() => {
+                        if (!invoiceMeta.date) return '';
+                        try {
+                          const parts = invoiceMeta.date.split('-');
+                          if (parts.length === 3) {
+                            const date = new Date(parts[0], parts[1] - 1, parts[2]);
+                            return date.toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            });
+                          }
+                          return invoiceMeta.date;
+                        } catch (e) {
+                          return invoiceMeta.date;
+                        }
+                      })(), font: 'Inter', size: 18, color: '4b5563' })
+                    ],
+                    alignment: AlignmentType.RIGHT,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      // Divider Line
+      const dividerLine = new Paragraph({
+        children: [],
+        border: {
+          bottom: {
+            color: '990f02',
+            space: 1,
+            value: 'single',
+            size: 12,
+          },
+        },
+        spacing: { after: 240, before: 120 },
+      });
+
+      // 2. Addresses Table (Customer / Seller details)
+      const tableAddresses = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+          top: { style: BorderStyle.NONE },
+          bottom: { style: BorderStyle.NONE },
+          left: { style: BorderStyle.NONE },
+          right: { style: BorderStyle.NONE },
+          insideHorizontal: { style: BorderStyle.NONE },
+          insideVertical: { style: BorderStyle.NONE },
+        },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                },
+                children: [
+                  new Paragraph({
+                    children: [new TextRun({ text: 'QUOTATION FOR', bold: true, color: '990f02', font: 'Inter', size: 18 })],
+                    spacing: { after: 80 },
+                  }),
+                  new Paragraph({
+                    children: [new TextRun({ text: customerDetails.name, bold: true, font: 'Inter', size: 20, color: '111827' })],
+                    spacing: { after: 40 },
+                  }),
+                  new Paragraph({
+                    children: [new TextRun({ text: `Attn: ${customerDetails.attn}`, font: 'Inter', size: 18, color: '4b5563' })],
+                    spacing: { after: 20 },
+                  }),
+                  new Paragraph({
+                    children: [new TextRun({ text: `Phone: ${customerDetails.phone}`, font: 'Inter', size: 18, color: '4b5563' })],
+                    spacing: { after: 20 },
+                  }),
+                  new Paragraph({
+                    children: [new TextRun({ text: `Destination: ${customerDetails.destination}`, font: 'Inter', size: 18, color: '6b7280' })],
+                  }),
+                ],
+              }),
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                },
+                children: [
+                  new Paragraph({
+                    children: [new TextRun({ text: sellerDetails.name, bold: true, color: '990f02', font: 'Inter', size: 18 })],
+                    spacing: { after: 80 },
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Office: ', bold: true, font: 'Inter', size: 16, color: '374151' }),
+                      new TextRun({ text: sellerDetails.office, font: 'Inter', size: 16, color: '4b5563' })
+                    ],
+                    spacing: { after: 40 },
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'GSTIN: ', bold: true, font: 'Inter', size: 16, color: '374151' }),
+                      new TextRun({ text: sellerDetails.gstin, font: 'Inter', size: 16, color: '4b5563' })
+                    ],
+                    spacing: { after: 20 },
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Phone: ', bold: true, font: 'Inter', size: 16, color: '374151' }),
+                      new TextRun({ text: sellerDetails.phone, font: 'Inter', size: 16, color: '4b5563' }),
+                      new TextRun({ text: ' | Email: ', bold: true, font: 'Inter', size: 16, color: '374151' }),
+                      new TextRun({ text: sellerDetails.email, font: 'Inter', size: 16, color: '4b5563' })
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      // 3. Products List Table
+      // Header Cells
+      const headerRowCells = [
+        new TableCell({
+          width: { size: 6, type: WidthType.PERCENTAGE },
+          shading: { fill: '990f02' },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            left: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            right: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+          },
+          children: [new Paragraph({ children: [new TextRun({ text: 'Sr', bold: true, color: 'ffffff', font: 'Inter', size: 18 })], alignment: AlignmentType.CENTER })],
+        }),
+        new TableCell({
+          width: { size: 62, type: WidthType.PERCENTAGE },
+          shading: { fill: '990f02' },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            left: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            right: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+          },
+          children: [new Paragraph({ children: [new TextRun({ text: 'Goods & Service Description', bold: true, color: 'ffffff', font: 'Inter', size: 18 })] })],
+        }),
+        new TableCell({
+          width: { size: 11, type: WidthType.PERCENTAGE },
+          shading: { fill: '990f02' },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            left: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            right: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+          },
+          children: [new Paragraph({ children: [new TextRun({ text: 'Quantity', bold: true, color: 'ffffff', font: 'Inter', size: 18 })], alignment: AlignmentType.CENTER })],
+        }),
+        new TableCell({
+          width: { size: 11, type: WidthType.PERCENTAGE },
+          shading: { fill: '990f02' },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            left: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            right: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+          },
+          children: [new Paragraph({ children: [new TextRun({ text: 'Rate', bold: true, color: 'ffffff', font: 'Inter', size: 18 })], alignment: AlignmentType.RIGHT })],
+        })
+      ];
+
+      if (gstEnabled) {
+        headerRowCells.push(
+          new TableCell({
+            width: { size: 10, type: WidthType.PERCENTAGE },
+            shading: { fill: '990f02' },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+              bottom: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+              left: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+              right: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            },
+            children: [new Paragraph({ children: [new TextRun({ text: 'GST', bold: true, color: 'ffffff', font: 'Inter', size: 18 })], alignment: AlignmentType.CENTER })],
+          })
+        );
+      }
+
+      headerRowCells.push(
+        new TableCell({
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          shading: { fill: '990f02' },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            left: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            right: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+          },
+          children: [new Paragraph({ children: [new TextRun({ text: 'Total', bold: true, color: 'ffffff', font: 'Inter', size: 18 })], alignment: AlignmentType.RIGHT })],
+        })
+      );
+
+      const tableRows = [
+        new TableRow({
+          children: headerRowCells,
+        })
+      ];
+
+      invoiceItems.forEach((item, idx) => {
+        const itemSubtotal = item.qty * item.price;
+        const itemGst = gstEnabled ? itemSubtotal * (item.gstRate / 100) : 0;
+        const itemTotal = itemSubtotal + itemGst;
+
+        const rowCells = [
+          new TableCell({
+            width: { size: 6, type: WidthType.PERCENTAGE },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+            },
+            children: [new Paragraph({ children: [new TextRun({ text: (idx + 1).toString(), font: 'Inter', size: 18, color: '64748b' })], alignment: AlignmentType.CENTER })],
+          }),
+          new TableCell({
+            width: { size: 62, type: WidthType.PERCENTAGE },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+            },
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: item.description, bold: true, font: 'Inter', size: 18, color: '111827' })]
+              }),
+              item.size && new Paragraph({
+                children: [new TextRun({ text: `Size: ${item.size}`, font: 'Inter', size: 16, color: '64748b', italic: true })],
+                spacing: { before: 20 }
+              })
+            ].filter(Boolean),
+          }),
+          new TableCell({
+            width: { size: 11, type: WidthType.PERCENTAGE },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+            },
+            children: [new Paragraph({ children: [new TextRun({ text: item.qty.toLocaleString('en-IN'), font: 'Inter', size: 18, color: '1f2937' })], alignment: AlignmentType.CENTER })],
+          }),
+          new TableCell({
+            width: { size: 11, type: WidthType.PERCENTAGE },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+            },
+            children: [new Paragraph({ children: [new TextRun({ text: '₹' + item.price.toFixed(2), font: 'Inter', size: 18, color: '1f2937' })], alignment: AlignmentType.RIGHT })],
+          })
+        ];
+
+        if (gstEnabled) {
+          rowCells.push(
+            new TableCell({
+              width: { size: 10, type: WidthType.PERCENTAGE },
+              borders: {
+                top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              },
+              children: [new Paragraph({ children: [new TextRun({ text: `${item.gstRate}%`, font: 'Inter', size: 18, color: '1f2937' })], alignment: AlignmentType.CENTER })],
+            })
+          );
+        }
+
+        rowCells.push(
+          new TableCell({
+            width: { size: 10, type: WidthType.PERCENTAGE },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+            },
+            children: [new Paragraph({ children: [new TextRun({ text: '₹' + itemTotal.toFixed(2), bold: true, font: 'Inter', size: 18, color: '111827' })], alignment: AlignmentType.RIGHT })],
+          })
+        );
+
+        tableRows.push(
+          new TableRow({
+            children: rowCells,
+          })
+        );
+      });
+
+      const tableProducts = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: tableRows,
+        spacing: { after: 200 }
+      });
+
+      // 4. Summary Table (Subtotal, GST, Grand Total)
+      const subtotal = invoiceItems.reduce((sum, item) => sum + (item.qty * item.price), 0);
+      const gstAmount = invoiceItems.reduce((sum, item) => sum + (item.qty * item.price * (item.gstRate / 100)), 0);
+      const grandTotal = subtotal + gstAmount;
+
+      const summaryRows = [];
+
+      if (gstEnabled) {
+        summaryRows.push(
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                },
+                children: [new Paragraph({ children: [new TextRun({ text: 'Subtotal (excl. GST):', bold: true, font: 'Inter', size: 18, color: '475569' })] })],
+              }),
+              new TableCell({
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                },
+                children: [new Paragraph({ children: [new TextRun({ text: '₹' + subtotal.toFixed(2), font: 'Inter', size: 18, color: '0f172a' })], alignment: AlignmentType.RIGHT })],
+              }),
+            ],
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                },
+                children: [new Paragraph({ children: [new TextRun({ text: 'GST Amount:', bold: true, font: 'Inter', size: 18, color: '475569' })] })],
+              }),
+              new TableCell({
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                  right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                },
+                children: [new Paragraph({ children: [new TextRun({ text: '₹' + gstAmount.toFixed(2), font: 'Inter', size: 18, color: '0f172a' })], alignment: AlignmentType.RIGHT })],
+              }),
+            ],
+          })
+        );
+      }
+
+      summaryRows.push(
+        new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 70, type: WidthType.PERCENTAGE },
+              shading: { fill: 'f8fafc' },
+              borders: {
+                top: { style: BorderStyle.SINGLE, size: 12, color: '990f02' },
+                bottom: { style: BorderStyle.SINGLE, size: 12, color: '990f02' },
+                left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              },
+              children: [new Paragraph({ children: [new TextRun({ text: gstEnabled ? 'Total (incl. GST):' : 'Total:', bold: true, font: 'Inter', size: 20, color: '990f02' })] })],
+            }),
+            new TableCell({
+              width: { size: 30, type: WidthType.PERCENTAGE },
+              shading: { fill: 'f8fafc' },
+              borders: {
+                top: { style: BorderStyle.SINGLE, size: 12, color: '990f02' },
+                bottom: { style: BorderStyle.SINGLE, size: 12, color: '990f02' },
+                left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+                right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              },
+              children: [new Paragraph({ children: [new TextRun({ text: '₹' + grandTotal.toFixed(2), bold: true, font: 'Inter', size: 20, color: '990f02' })], alignment: AlignmentType.RIGHT })],
+            }),
+          ],
+        })
+      );
+
+      const tableSummary = new Table({
+        width: { size: 40, type: WidthType.PERCENTAGE },
+        rows: summaryRows,
+        alignment: AlignmentType.RIGHT,
+      });
+
+      // 5. Signatures and Footer Details
+      const paragraphFooter = new Paragraph({
+        children: [
+          new TextRun({ text: 'Prepared by: ', bold: true, font: 'Inter', size: 18, color: '1e293b' }),
+          new TextRun({ text: invoiceMeta.preparedBy, font: 'Inter', size: 18, color: '1e293b' }),
+        ],
+        spacing: { before: 400, after: 80 }
+      });
+
+      const paragraphElectronically = new Paragraph({
+        children: [new TextRun({ text: 'This is electronically generated and does not require signature.', italic: true, font: 'Inter', size: 16, color: '64748b' })],
+        spacing: { after: 300 }
+      });
+
+      const listTerms = [];
+      if (termsAndConditions.length > 0) {
+        listTerms.push(
+          new Paragraph({
+            children: [new TextRun({ text: 'Terms & Conditions', bold: true, font: 'Inter', size: 18, color: '334155' })],
+            spacing: { before: 200, after: 100 },
+          })
+        );
+        termsAndConditions.forEach((term, index) => {
+          listTerms.push(
+            new Paragraph({
+              children: [new TextRun({ text: `${index + 1}. ${term}`, font: 'Inter', size: 16, color: '475569' })],
+              spacing: { after: 60 }
+            })
+          );
+        });
+      }
+
+      const paragraphFooterNote = new Paragraph({
+        children: [new TextRun({ text: 'This is a pre-quotation. Prices are indicative and subject to final confirmation.', font: 'Inter', size: 16, color: '94a3b8' })],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 400 }
+      });
+
+      // Assemble doc
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            tableHeader,
+            dividerLine,
+            tableAddresses,
+            new Paragraph({ spacing: { after: 200 } }),
+            tableProducts,
+            new Paragraph({ spacing: { after: 100 } }),
+            tableSummary,
+            paragraphFooter,
+            paragraphElectronically,
+            ...listTerms,
+            paragraphFooterNote
+          ],
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const fileName = `${customerDetails.name.replace(/\s+/g, '_')}_Quotation_${invoiceMeta.quoteNo}.docx`;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      appendLog(`Successfully generated and downloaded DOCX quotation: ${fileName}`, 'success');
+    } catch (err) {
+      console.error('DOCX Generation error:', err);
+      alert('Failed to generate DOCX. Error: ' + err.message);
     }
   };
 
@@ -220,6 +761,7 @@ export function InvoiceProvider({ children }) {
       handleRemoveInvoiceItem,
       handleInvoiceItemChange,
       handleDownloadPDF,
+      handleDownloadDocx,
       handleTermChange,
       handleAddTerm,
       handleRemoveTerm,

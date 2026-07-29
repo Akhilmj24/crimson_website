@@ -3,7 +3,7 @@ export const product = [{
     description: 'Kerala Banana Chips',
     size: '200 gm',
     qty: 200,
-    price: 150,
+    price: 160,
     gstRate: 5
 },
 {
@@ -11,7 +11,7 @@ export const product = [{
     description: 'Sharkara Upperi',
     size: '100 gm',
     qty: 200,
-    price: 110,
+    price: 100,
     gstRate: 5
 }]
 

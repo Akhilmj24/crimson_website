@@ -68,7 +68,7 @@ function getOnamAdTemplate() {
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; font-style: italic; color: #666666; padding-bottom: 12px; text-align: center;">
+                  <td align="center" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; font-style: italic; font-weight: bold; color: #C21807; padding-bottom: 12px; text-align: center;">
                     We can design your branding also
                   </td>
                 </tr>

@@ -118,12 +118,28 @@ export default function ProposalForm() {
 
         {isOpen.recipient && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px', animation: 'fadeIn 0.2s ease-out' }}>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label>Company Name</label>
+              <input
+                type="text"
+                value={recipient.company}
+                onChange={(e) => setRecipient({ ...recipient, company: e.target.value })}
+              />
+            </div>
             <div className="form-group">
               <label>Recipient Name</label>
               <input
                 type="text"
                 value={recipient.name}
-                onChange={(e) => setRecipient({ ...recipient, name: e.target.value })}
+                onChange={(e) => {
+                  const newName = e.target.value;
+                  setRecipient({ ...recipient, name: newName });
+                  if (newName.trim()) {
+                    setMeta(prev => ({ ...prev, salutation: `Dear ${newName},` }));
+                  } else {
+                    setMeta(prev => ({ ...prev, salutation: 'Dear Sir/Madam,' }));
+                  }
+                }}
               />
             </div>
             <div className="form-group">
@@ -132,14 +148,6 @@ export default function ProposalForm() {
                 type="text"
                 value={recipient.title}
                 onChange={(e) => setRecipient({ ...recipient, title: e.target.value })}
-              />
-            </div>
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label>Company Name</label>
-              <input
-                type="text"
-                value={recipient.company}
-                onChange={(e) => setRecipient({ ...recipient, company: e.target.value })}
               />
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2' }}>

@@ -77,14 +77,18 @@ export default function ProposalPreview() {
           <div className="invoice-preview-addresses" style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div className="invoice-preview-address-box" style={{ padding: '0', flex: '1' }}>
               <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '15px', fontWeight: '800', color: '#990f02', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
-                {recipient.name || 'RECIPIENT NAME'}
+                {recipient.company || 'COMPANY NAME'}
               </div>
-              <div style={{ fontSize: '12px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
-                {recipient.title || 'Title'}
-              </div>
-              <div style={{ fontSize: '11px', color: '#475569', marginBottom: '2px' }}>
-                {recipient.company || 'Company'}
-              </div>
+              {recipient.name && recipient.name.trim() ? (
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
+                  {recipient.name.toLowerCase().startsWith('attn') ? recipient.name : `${recipient.name}`}
+                </div>
+              ) : null}
+              {recipient.title && recipient.title.trim() ? (
+                <div style={{ fontSize: '11px', color: '#475569', marginBottom: '2px' }}>
+                  {recipient.title}
+                </div>
+              ) : null}
               <div style={{ fontSize: '11px', color: '#64748b' }}>
                 {recipient.address}
               </div>
@@ -97,10 +101,10 @@ export default function ProposalPreview() {
 
           {/* Subject block */}
           <div style={{ marginBottom: '12px' }}>
-            <div style={{ fontSize: '11px', fontWeight: '800', color: '#990f02', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+            <div style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
               SUBJECT
             </div>
-            <div style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a' }}>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: '#990f02' }}>
               {meta.subject || 'Proposal Subject'}
             </div>
           </div>
@@ -108,7 +112,7 @@ export default function ProposalPreview() {
           {/* Salutation & Intro */}
           <div style={{ fontSize: '12px', lineHeight: '1.5', color: '#334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: '600' }}>
-              {meta.salutation}
+              {!recipient.name || !recipient.name.trim() ? 'Dear Sir/Madam,' : meta.salutation}
             </div>
 
             {meta.intro && meta.intro.split('\n').map((para, idx) => (

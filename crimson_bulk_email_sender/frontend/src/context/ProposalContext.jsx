@@ -23,7 +23,7 @@ export function ProposalProvider({ children }) {
   });
 
   const [recipient, setRecipient] = useState({
-    name: 'Satheesh VS',
+    name: 'Mr Satheesh V S',
     title: 'Manager ISL & Marketing',
     company: 'Athen Cars',
     address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
@@ -39,7 +39,7 @@ export function ProposalProvider({ children }) {
       return `${yyyy}-${mm}-${dd}`;
     })(),
     subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
-    salutation: 'Dear Sir/Madam,',
+    salutation: 'Dear Mr Satheesh V S,',
     intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
   });
 
@@ -273,21 +273,27 @@ export function ProposalProvider({ children }) {
                 },
                 children: [
                   new Paragraph({
-                    children: [new TextRun({ text: recipient.name.toUpperCase(), bold: true, color: '990f02', font: 'Inter', size: 22 })],
+                    children: [new TextRun({ text: (recipient.company || '').toUpperCase(), bold: true, color: '990f02', font: 'Inter', size: 22 })],
                     spacing: { after: 40 },
                   }),
-                  new Paragraph({
-                    children: [new TextRun({ text: recipient.title, bold: true, font: 'Inter', size: 18, color: '374151' })],
+                  recipient.name && recipient.name.trim() ? new Paragraph({
+                    children: [new TextRun({
+                      text: recipient.name.toLowerCase().startsWith('attn') ? recipient.name : `${recipient.name}`,
+                      bold: true,
+                      font: 'Inter',
+                      size: 18,
+                      color: '374151'
+                    })],
                     spacing: { after: 40 },
-                  }),
-                  new Paragraph({
-                    children: [new TextRun({ text: recipient.company, font: 'Inter', size: 18, color: '4b5563' })],
+                  }) : null,
+                  recipient.title && recipient.title.trim() ? new Paragraph({
+                    children: [new TextRun({ text: recipient.title, font: 'Inter', size: 18, color: '4b5563' })],
                     spacing: { after: 40 },
-                  }),
+                  }) : null,
                   new Paragraph({
                     children: [new TextRun({ text: recipient.address, font: 'Inter', size: 16, color: '6b7280' })],
                   }),
-                ],
+                ].filter(Boolean),
               }),
               new TableCell({
                 width: { size: 40, type: WidthType.PERCENTAGE },
@@ -313,18 +319,19 @@ export function ProposalProvider({ children }) {
 
       bodyParagraphs.push(
         new Paragraph({
-          children: [new TextRun({ text: 'SUBJECT', bold: true, color: '990f02', font: 'Inter', size: 18 })],
+          children: [new TextRun({ text: 'SUBJECT', bold: true, color: '4b5563', font: 'Inter', size: 18 })],
           spacing: { before: 240, after: 40 },
         }),
         new Paragraph({
-          children: [new TextRun({ text: meta.subject, bold: true, font: 'Inter', size: 20, color: '111827' })],
+          children: [new TextRun({ text: meta.subject, bold: true, font: 'Inter', size: 20, color: '990f02' })],
           spacing: { after: 240 },
         })
       );
 
+      const activeSalutation = !recipient.name || !recipient.name.trim() ? 'Dear Sir/Madam,' : meta.salutation;
       bodyParagraphs.push(
         new Paragraph({
-          children: [new TextRun({ text: meta.salutation, font: 'Inter', size: 20, color: '1f2937' })],
+          children: [new TextRun({ text: activeSalutation, font: 'Inter', size: 20, color: '1f2937' })],
           spacing: { after: 180 },
         })
       );

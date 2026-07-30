@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const { getOnamAdTemplate } = require('./template');
 const Campaign = require('./models/Campaign');
+const DocumentHistory = require('./models/DocumentHistory');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,7 @@ mongoose.connect(MONGODB_URI)
 
 // In-Memory fallback storage
 const inMemoryCampaigns = [];
+const inMemoryDocuments = [];
 
 // Helper persistence wrappers
 async function createCampaignRecord({ subject, emails, smtpHost, smtpUser }) {
@@ -213,6 +215,88 @@ app.delete('/api/campaigns/:id', async (req, res) => {
   }
   
   res.status(404).json({ success: false, error: 'Campaign record not found in memory.' });
+});
+
+// --- DOCUMENT HISTORY ENDPOINTS ---
+
+// GET: retrieve all document download records
+app.get('/api/documents', async (req, res) => {
+  if (dbConnected) {
+    try {
+      const docs = await DocumentHistory.find().sort({ createdAt: -1 });
+      return res.json(docs);
+    } catch (err) {
+      console.error('Failed to retrieve documents from database:', err.message);
+    }
+  }
+  // Fallback
+  const sortedMemory = [...inMemoryDocuments].sort((a, b) => b.createdAt - a.createdAt);
+  res.json(sortedMemory);
+});
+
+// POST: create a new document download history record
+app.post('/api/documents', async (req, res) => {
+  const { type, clientName, documentId, proposalData, invoiceData } = req.body;
+  if (!type || !clientName || !documentId) {
+    return res.status(400).json({ success: false, error: 'Missing required fields: type, clientName, or documentId' });
+  }
+
+  if (dbConnected) {
+    try {
+      const doc = new DocumentHistory({
+        type,
+        clientName,
+        documentId,
+        proposalData,
+        invoiceData
+      });
+      await doc.save();
+      return res.json({ success: true, data: doc });
+    } catch (err) {
+      console.error('Failed to save document history to MongoDB:', err.message);
+    }
+  }
+
+  // Fallback in-memory
+  const id = 'doc_mem_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  const doc = {
+    _id: id,
+    type,
+    clientName,
+    documentId,
+    proposalData,
+    invoiceData,
+    createdAt: new Date()
+  };
+  inMemoryDocuments.push(doc);
+  res.json({ success: true, data: doc });
+});
+
+// DELETE: delete a document download history record
+app.delete('/api/documents/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (dbConnected && !id.startsWith('doc_mem_')) {
+    try {
+      const result = await DocumentHistory.findByIdAndDelete(id);
+      if (result) {
+        return res.json({ success: true, message: 'Document history record deleted successfully from database.' });
+      }
+      return res.status(404).json({ success: false, error: 'Document history record not found.' });
+    } catch (err) {
+      console.error('Failed to delete document from database:', err.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // Fallback in-memory
+  const index = inMemoryDocuments.findIndex(d => d._id === id);
+  if (index !== -1) {
+    inMemoryDocuments.splice(index, 1);
+    return res.json({ success: true, message: 'Document history record deleted successfully from memory backup.' });
+  }
+
+  res.status(404).json({ success: false, error: 'Document history record not found in memory.' });
 });
 
 // SSE HTTP POST Endpoint to send bulk emails with real-time progress stream

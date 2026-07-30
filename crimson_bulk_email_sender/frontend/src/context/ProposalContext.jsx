@@ -12,6 +12,7 @@ export function useProposal() {
 
 export function ProposalProvider({ children }) {
   const { appendLog } = useCampaign();
+  const [proposalConfirmModal, setProposalConfirmModal] = useState({ isOpen: false, onConfirm: null });
 
   const [sender, setSender] = useState({
     name: 'AKHIL',
@@ -118,7 +119,15 @@ export function ProposalProvider({ children }) {
     }
   };
 
-  const handleDownloadPDF = async () => {
+  const loadProposalData = (data) => {
+    if (!data) return;
+    if (data.sender) setSender(data.sender);
+    if (data.recipient) setRecipient(data.recipient);
+    if (data.meta) setMeta(data.meta);
+    if (data.sections) setSections(data.sections);
+  };
+
+  const handleDownloadPDF = async (options = { skipPrompt: false }) => {
     const element = document.getElementById('proposal-pdf-area');
     if (!element) return;
 
@@ -166,6 +175,39 @@ export function ProposalProvider({ children }) {
       const fileName = `${recipient.company.replace(/\s+/g, '_')}_Proposal_${meta.proposalId}.pdf`;
       pdf.save(fileName);
       appendLog(`Successfully generated and downloaded PDF proposal: ${fileName}`, 'success');
+
+      // Save to document history
+      try {
+        await fetch('/api/documents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'proposal',
+            clientName: recipient.company || recipient.name || 'Client',
+            documentId: meta.proposalId,
+            proposalData: { sender, recipient, meta, sections }
+          })
+        });
+      } catch (historyErr) {
+        console.error('Failed to log document history:', historyErr);
+      }
+
+      // Prompt to change serial number
+      if (!options?.skipPrompt) {
+        setTimeout(() => {
+          setProposalConfirmModal({
+            isOpen: true,
+            onConfirm: () => {
+              setMeta(prev => ({
+                ...prev,
+                proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000)
+              }));
+            }
+          });
+        }, 500);
+      }
     } catch (err) {
       console.error('PDF Generation error:', err);
       alert('Failed to generate PDF. Error: ' + err.message);
@@ -465,7 +507,10 @@ export function ProposalProvider({ children }) {
       handleSectionChange,
       handleDownloadPDF,
       handleDownloadDocx,
-      formatDate
+      formatDate,
+      loadProposalData,
+      proposalConfirmModal,
+      setProposalConfirmModal
     }}>
       {children}
     </ProposalContext.Provider>

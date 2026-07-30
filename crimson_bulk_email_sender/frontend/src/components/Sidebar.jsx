@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, History, FileText, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Settings, History, FileText, Briefcase, FolderOpen } from 'lucide-react';
 import { useCampaign } from '../context/CampaignContext';
 
 export default function Sidebar() {
@@ -48,6 +48,13 @@ export default function Sidebar() {
         >
           <Briefcase size={18} />
           Proposal Creator
+        </NavLink>
+        <NavLink
+          to="/document-history"
+          className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+        >
+          <FolderOpen size={18} />
+          Document History
         </NavLink>
       </nav>
 

@@ -1,8 +1,8 @@
 import React from 'react';
-import { ExternalLink, FileText } from 'lucide-react';
+import { ExternalLink, FileText, Download } from 'lucide-react';
 import { useInvoice } from '../context/InvoiceContext';
 
-export default function InvoicePreview() {
+export default function InvoicePreview({ hideToolbar = false }) {
   const {
     invoiceMeta,
     customerDetails,
@@ -10,8 +10,10 @@ export default function InvoicePreview() {
     invoiceItems,
     termsAndConditions,
     handleDownloadPDF,
+    handleDownloadCombinedPDF,
     handleDownloadDocx,
-    gstEnabled
+    gstEnabled,
+    showGstin
   } = useInvoice();
 
   const formatCurrency = (amount) => {
@@ -50,19 +52,25 @@ export default function InvoicePreview() {
   return (
     <div className="invoice-preview-section">
       <div className="invoice-preview-card">
-        <div className="invoice-preview-toolbar">
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Live A4 Quotation Preview</span>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
-              <ExternalLink size={14} />
-              Download PDF Invoice
-            </button>
-            <button type="button" className="btn-download-pdf" onClick={handleDownloadDocx} style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff' }}>
-              <FileText size={14} />
-              Download DOCX
-            </button>
+        {!hideToolbar && (
+          <div className="invoice-preview-toolbar">
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Live A4 Quotation Preview</span>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
+                <ExternalLink size={14} />
+                Download PDF Invoice
+              </button>
+              <button type="button" className="btn-download-pdf" onClick={handleDownloadCombinedPDF} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#ffffff' }}>
+                <Download size={14} />
+                Download Proposal + Invoice PDF
+              </button>
+              <button type="button" className="btn-download-pdf" onClick={handleDownloadDocx} style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff' }}>
+                <FileText size={14} />
+                Download DOCX
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Print Document A4 Canvas Container */}
         <div className="invoice-preview-canvas" id="invoice-pdf-area">
@@ -100,7 +108,7 @@ export default function InvoicePreview() {
             <div className="invoice-preview-address-box">
               <div className="invoice-preview-section-title">Quotation For</div>
               <div className="invoice-preview-client-name">{customerDetails.name}</div>
-              <div className="invoice-preview-text-line">Attn: {customerDetails.attn}</div>
+              <div className="invoice-preview-text-line"> {customerDetails.attn}</div>
               <div className="invoice-preview-text-line">Phone: {customerDetails.phone}</div>
               <div className="invoice-preview-text-line">Destination: {customerDetails.destination}</div>
             </div>
@@ -110,9 +118,11 @@ export default function InvoicePreview() {
               <div className="invoice-preview-text-line" style={{ fontSize: '11px', marginTop: '4px' }}>
                 <strong>Office:</strong> {sellerDetails.office}
               </div>
-              <div className="invoice-preview-text-line" style={{ marginTop: '6px' }}>
-                <strong>GSTIN:</strong> {sellerDetails.gstin}
-              </div>
+              {showGstin && sellerDetails.gstin && (
+                <div className="invoice-preview-text-line" style={{ marginTop: '6px' }}>
+                  <strong>GSTIN:</strong> {sellerDetails.gstin}
+                </div>
+              )}
               <div className="invoice-preview-text-line">
                 <strong>Phone:</strong> {sellerDetails.phone} | <strong>Email:</strong> {sellerDetails.email}
               </div>

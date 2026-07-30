@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType } from 'docx';
 import { useCampaign } from './CampaignContext';
+import { useProposal } from './ProposalContext';
 import { product, terms } from './data';
 
 const InvoiceContext = createContext();
@@ -13,6 +14,8 @@ export function useInvoice() {
 
 export function InvoiceProvider({ children }) {
   const { appendLog } = useCampaign();
+  const proposalContext = useProposal();
+  const [invoiceConfirmModal, setInvoiceConfirmModal] = useState({ isOpen: false, onConfirm: null });
 
   const [invoiceMeta, setInvoiceMeta] = useState({
     quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
@@ -69,6 +72,7 @@ export function InvoiceProvider({ children }) {
 
   // GST toggle: enabled by default
   const [gstEnabled, setGstEnabled] = useState(true);
+  const [showGstin, setShowGstin] = useState(true);
 
   const handleToggleEditSeller = (val) => {
     setAllowEditSeller(val);
@@ -137,7 +141,18 @@ export function InvoiceProvider({ children }) {
     }));
   };
 
-  const handleDownloadPDF = async () => {
+  const loadInvoiceData = (data) => {
+    if (!data) return;
+    if (data.customerDetails) setCustomerDetails(data.customerDetails);
+    if (data.sellerDetails) setSellerDetails(data.sellerDetails);
+    if (data.invoiceMeta) setInvoiceMeta(data.invoiceMeta);
+    if (data.invoiceItems) setInvoiceItems(data.invoiceItems);
+    if (data.termsAndConditions) setTermsAndConditions(data.termsAndConditions);
+    if (data.gstEnabled !== undefined) setGstEnabled(data.gstEnabled);
+    if (data.showGstin !== undefined) setShowGstin(data.showGstin);
+  };
+
+  const handleDownloadPDF = async (options = { skipPrompt: false }) => {
     const element = document.getElementById('invoice-pdf-area');
     if (!element) return;
 
@@ -186,9 +201,182 @@ export function InvoiceProvider({ children }) {
       const fileName = `${customerDetails.name.replace(/\s+/g, '_')}_Quotation_${invoiceMeta.quoteNo}.pdf`;
       pdf.save(fileName);
       appendLog(`Successfully generated and downloaded PDF quotation: ${fileName}`, 'success');
+
+      // Save to document history
+      try {
+        await fetch('/api/documents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'invoice',
+            clientName: customerDetails.name || 'Client',
+            documentId: invoiceMeta.quoteNo,
+            invoiceData: { customerDetails, sellerDetails, invoiceMeta, invoiceItems, termsAndConditions, gstEnabled, showGstin }
+          })
+        });
+      } catch (historyErr) {
+        console.error('Failed to log document history:', historyErr);
+      }
+
+      // Prompt to change serial number
+      if (!options?.skipPrompt) {
+        setTimeout(() => {
+          setInvoiceConfirmModal({
+            isOpen: true,
+            onConfirm: () => {
+              setInvoiceMeta(prev => ({
+                ...prev,
+                quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000)
+              }));
+            }
+          });
+        }, 500);
+      }
     } catch (err) {
       console.error('PDF Generation error:', err);
       alert('Failed to generate PDF. Error: ' + err.message);
+    }
+  };
+
+  const handleDownloadCombinedPDF = async (options = { skipPrompt: false }) => {
+    const proposalElement = document.getElementById('proposal-pdf-area');
+    const invoiceElement = document.getElementById('invoice-pdf-area');
+
+    if (!proposalElement || !invoiceElement) {
+      alert('Error: Both Proposal and Invoice preview elements must be loaded.');
+      return;
+    }
+
+    try {
+      appendLog('Generating combined PDF (Proposal + Invoice)...', 'info');
+
+      // Capture Proposal Canvas
+      const proposalHeight = proposalElement.scrollHeight;
+      const proposalWidth = proposalElement.scrollWidth;
+      const proposalCanvas = await html2canvas(proposalElement, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: proposalWidth,
+        height: proposalHeight,
+        windowWidth: proposalWidth,
+        windowHeight: proposalHeight,
+        scrollX: 0,
+        scrollY: 0,
+        logging: false
+      });
+      const proposalImgData = proposalCanvas.toDataURL('image/png');
+
+      // Capture Invoice Canvas
+      const invoiceHeight = invoiceElement.scrollHeight;
+      const invoiceWidth = invoiceElement.scrollWidth;
+      const invoiceCanvas = await html2canvas(invoiceElement, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: invoiceWidth,
+        height: invoiceHeight,
+        windowWidth: invoiceWidth,
+        windowHeight: invoiceHeight,
+        scrollX: 0,
+        scrollY: 0,
+        logging: false
+      });
+      const invoiceImgData = invoiceCanvas.toDataURL('image/png');
+
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const pageHeight = 297;
+
+      // --- PAGE 1: Proposal ---
+      const propCanvasWidth = proposalCanvas.width;
+      const propCanvasHeight = proposalCanvas.height;
+      let propImgWidth = pageWidth;
+      let propImgHeight = (propCanvasHeight * propImgWidth) / propCanvasWidth;
+      if (propImgHeight > pageHeight) {
+        propImgHeight = pageHeight;
+        propImgWidth = (propCanvasWidth * propImgHeight) / propCanvasHeight;
+      }
+      const propXOffset = (pageWidth - propImgWidth) / 2;
+      const propYOffset = (pageHeight - propImgHeight) / 2;
+      pdf.addImage(proposalImgData, 'PNG', propXOffset, propYOffset, propImgWidth, propImgHeight);
+
+      // --- PAGE 2: Invoice ---
+      pdf.addPage();
+      const invCanvasWidth = invoiceCanvas.width;
+      const invCanvasHeight = invoiceCanvas.height;
+      let invImgWidth = pageWidth;
+      let invImgHeight = (invCanvasHeight * invImgWidth) / invCanvasWidth;
+      if (invImgHeight > pageHeight) {
+        invImgHeight = pageHeight;
+        invImgWidth = (invCanvasWidth * invImgHeight) / invCanvasHeight;
+      }
+      const invXOffset = (pageWidth - invImgWidth) / 2;
+      const invYOffset = (pageHeight - invImgHeight) / 2;
+      pdf.addImage(invoiceImgData, 'PNG', invXOffset, invYOffset, invImgWidth, invImgHeight);
+
+      // Filename
+      const propRecipient = proposalContext?.recipient;
+      const propMeta = proposalContext?.meta;
+      const clientName = (propRecipient?.company || customerDetails?.name || 'Client').replace(/\s+/g, '_');
+      const fileName = `${clientName}_Proposal_Invoice_${invoiceMeta.quoteNo || propMeta?.proposalId || 'Combo'}.pdf`;
+      pdf.save(fileName);
+      appendLog(`Successfully generated and downloaded combined PDF: ${fileName}`, 'success');
+
+      // Save to document history
+      try {
+        await fetch('/api/documents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'both',
+            clientName: propRecipient?.company || customerDetails.name || 'Client',
+            documentId: `${invoiceMeta.quoteNo} / ${propMeta?.proposalId || 'Combo'}`,
+            proposalData: proposalContext ? {
+              sender: proposalContext.sender,
+              recipient: proposalContext.recipient,
+              meta: proposalContext.meta,
+              sections: proposalContext.sections
+            } : null,
+            invoiceData: { customerDetails, sellerDetails, invoiceMeta, invoiceItems, termsAndConditions, gstEnabled, showGstin }
+          })
+        });
+      } catch (historyErr) {
+        console.error('Failed to log document history:', historyErr);
+      }
+
+      // Prompt to change serial number
+      if (!options?.skipPrompt) {
+        setTimeout(() => {
+          setInvoiceConfirmModal({
+            isOpen: true,
+            onConfirm: () => {
+              // Change quote number
+              setInvoiceMeta(prev => ({
+                ...prev,
+                quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000)
+              }));
+              // Change proposal ID
+              if (proposalContext?.setMeta) {
+                proposalContext.setMeta(prev => ({
+                  ...prev,
+                  proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000)
+                }));
+              }
+            }
+          });
+        }, 500);
+      }
+    } catch (err) {
+      console.error('Combined PDF Generation error:', err);
+      alert('Failed to generate combined PDF. Error: ' + err.message);
     }
   };
 
@@ -249,23 +437,25 @@ export function InvoiceProvider({ children }) {
                   new Paragraph({
                     children: [
                       new TextRun({ text: 'Date: ', bold: true, font: 'Inter', size: 18, color: '374151' }),
-                      new TextRun({ text: (() => {
-                        if (!invoiceMeta.date) return '';
-                        try {
-                          const parts = invoiceMeta.date.split('-');
-                          if (parts.length === 3) {
-                            const date = new Date(parts[0], parts[1] - 1, parts[2]);
-                            return date.toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            });
+                      new TextRun({
+                        text: (() => {
+                          if (!invoiceMeta.date) return '';
+                          try {
+                            const parts = invoiceMeta.date.split('-');
+                            if (parts.length === 3) {
+                              const date = new Date(parts[0], parts[1] - 1, parts[2]);
+                              return date.toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              });
+                            }
+                            return invoiceMeta.date;
+                          } catch (e) {
+                            return invoiceMeta.date;
                           }
-                          return invoiceMeta.date;
-                        } catch (e) {
-                          return invoiceMeta.date;
-                        }
-                      })(), font: 'Inter', size: 18, color: '4b5563' })
+                        })(), font: 'Inter', size: 18, color: '4b5563'
+                      })
                     ],
                     alignment: AlignmentType.RIGHT,
                   }),
@@ -322,7 +512,7 @@ export function InvoiceProvider({ children }) {
                     spacing: { after: 40 },
                   }),
                   new Paragraph({
-                    children: [new TextRun({ text: `Attn: ${customerDetails.attn}`, font: 'Inter', size: 18, color: '4b5563' })],
+                    children: [new TextRun({ text: `${customerDetails.attn}`, font: 'Inter', size: 18, color: '4b5563' })],
                     spacing: { after: 20 },
                   }),
                   new Paragraph({
@@ -761,12 +951,18 @@ export function InvoiceProvider({ children }) {
       handleRemoveInvoiceItem,
       handleInvoiceItemChange,
       handleDownloadPDF,
+      handleDownloadCombinedPDF,
       handleDownloadDocx,
       handleTermChange,
       handleAddTerm,
       handleRemoveTerm,
       gstEnabled,
-      setGstEnabled
+      setGstEnabled,
+      showGstin,
+      setShowGstin,
+      loadInvoiceData,
+      invoiceConfirmModal,
+      setInvoiceConfirmModal
     }}>
       {children}
     </InvoiceContext.Provider>

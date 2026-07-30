@@ -1,8 +1,9 @@
 import React from 'react';
 import { FileText, Download } from 'lucide-react';
 import { useProposal } from '../context/ProposalContext';
+import { useInvoice } from '../context/InvoiceContext';
 
-export default function ProposalPreview() {
+export default function ProposalPreview({ hideToolbar = false }) {
   const {
     sender,
     recipient,
@@ -13,24 +14,32 @@ export default function ProposalPreview() {
     formatDate
   } = useProposal();
 
+  const { handleDownloadCombinedPDF } = useInvoice();
+
   return (
     <div className="invoice-preview-section">
       <div className="invoice-preview-card">
-        <div className="invoice-preview-toolbar">
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-            Live A4 Proposal Preview
-          </span>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
-              <Download size={14} />
-              Download PDF
-            </button>
-            <button type="button" className="btn-download-pdf" onClick={handleDownloadDocx} style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff' }}>
-              <FileText size={14} />
-              Download DOCX
-            </button>
+        {!hideToolbar && (
+          <div className="invoice-preview-toolbar">
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+              Live A4 Proposal Preview
+            </span>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
+                <Download size={14} />
+                Download PDF
+              </button>
+              <button type="button" className="btn-download-pdf" onClick={handleDownloadCombinedPDF} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#ffffff' }}>
+                <Download size={14} />
+                Download Proposal + Invoice PDF
+              </button>
+              <button type="button" className="btn-download-pdf" onClick={handleDownloadDocx} style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff' }}>
+                <FileText size={14} />
+                Download DOCX
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Print Document A4 Canvas Container */}
         <div className="invoice-preview-canvas" id="proposal-pdf-area" style={{ padding: '35px 45px', position: 'relative' }}>

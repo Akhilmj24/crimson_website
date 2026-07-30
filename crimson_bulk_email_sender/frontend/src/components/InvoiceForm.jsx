@@ -23,7 +23,9 @@ export default function InvoiceForm() {
     handleToggleEditSeller,
     handleToggleEditTerms,
     gstEnabled,
-    setGstEnabled
+    setGstEnabled,
+    showGstin,
+    setShowGstin
   } = useInvoice();
 
   const [isOpen, setIsOpen] = useState({
@@ -124,7 +126,37 @@ export default function InvoiceForm() {
             <Settings size={16} />
             Seller Details
           </span>
-          {isOpen.seller ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <label
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                color: showGstin ? 'var(--primary-light)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: `1px solid ${showGstin ? 'var(--primary-light)' : 'var(--border)'}`,
+                background: showGstin ? 'rgba(153,15,2,0.12)' : 'transparent',
+                transition: 'all 0.2s ease',
+                marginRight: '8px'
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={showGstin}
+                onChange={(e) => setShowGstin(e.target.checked)}
+                style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: '13px', height: '13px' }}
+              />
+              Show GSTIN
+            </label>
+            {isOpen.seller ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </div>
         </div>
 
         {isOpen.seller && (

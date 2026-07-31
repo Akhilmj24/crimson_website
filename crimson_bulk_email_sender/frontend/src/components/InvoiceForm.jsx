@@ -11,6 +11,7 @@ export default function InvoiceForm() {
     invoiceMeta,
     setInvoiceMeta,
     invoiceItems,
+    setInvoiceItems,
     handleAddInvoiceItem,
     handleRemoveInvoiceItem,
     handleInvoiceItemChange,
@@ -25,7 +26,8 @@ export default function InvoiceForm() {
     gstEnabled,
     setGstEnabled,
     showGstin,
-    setShowGstin
+    setShowGstin,
+    masterProducts
   } = useInvoice();
 
   const [isOpen, setIsOpen] = useState({
@@ -370,6 +372,40 @@ export default function InvoiceForm() {
                   {invoiceItems.map((item) => (
                     <tr key={item.id}>
                       <td>
+                        {masterProducts && masterProducts.length > 0 && (
+                          <select
+                            className="invoice-form-item-input"
+                            style={{ marginBottom: '8px', fontSize: '11px', padding: '4px 6px', height: 'auto', background: 'rgba(0,0,0,0.15)', cursor: 'pointer' }}
+                            value={masterProducts.find(p => p.description === item.description && p.size === item.size)?.id || ""}
+                            onChange={(e) => {
+                              const prodId = e.target.value;
+                              if (prodId) {
+                                const selected = masterProducts.find(p => p.id === parseInt(prodId));
+                                if (selected) {
+                                  setInvoiceItems(prev => prev.map(invItem => {
+                                    if (invItem.id === item.id) {
+                                      return {
+                                        ...invItem,
+                                        description: selected.description,
+                                        size: selected.size,
+                                        price: selected.price,
+                                        gstRate: selected.gstRate
+                                      };
+                                    }
+                                    return invItem;
+                                  }));
+                                }
+                              }
+                            }}
+                          >
+                            <option value="">-- Pick from Product List --</option>
+                            {masterProducts.map(p => (
+                              <option key={p.id} value={p.id}>
+                                {p.description} {p.size ? `(${p.size})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                         <textarea
                           className="invoice-form-item-input"
                           rows="2"

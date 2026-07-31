@@ -10,6 +10,7 @@ import SentCampaigns from './pages/SentCampaigns';
 import InvoiceGenerator from './pages/InvoiceGenerator';
 import ProposalGenerator from './pages/ProposalGenerator';
 import DocumentHistory from './pages/DocumentHistory';
+import ProductList from './pages/ProductList';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
                 <Route path="/invoice" element={<InvoiceGenerator />} />
                 <Route path="/proposal" element={<ProposalGenerator />} />
                 <Route path="/document-history" element={<DocumentHistory />} />
+                <Route path="/products" element={<ProductList />} />
                 <Route path="*" element={<Navigate to="/dispatcher" replace />} />
               </Routes>
             </main>

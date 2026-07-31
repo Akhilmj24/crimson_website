@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType } from 'docx';
@@ -17,62 +17,148 @@ export function InvoiceProvider({ children }) {
   const proposalContext = useProposal();
   const [invoiceConfirmModal, setInvoiceConfirmModal] = useState({ isOpen: false, onConfirm: null });
 
-  const [invoiceMeta, setInvoiceMeta] = useState({
-    quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
-    date: (() => {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    })(),
-    preparedBy: 'Akhil'
+  const [customerDetails, setCustomerDetails] = useState(() => {
+    const saved = localStorage.getItem('invoice_customerDetails');
+    return saved ? JSON.parse(saved) : {
+      name: 'Athen Cars',
+      attn: 'Mr Satheesh V S',
+      phone: '+91 9744050505',
+      destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+    };
   });
 
-  const [customerDetails, setCustomerDetails] = useState({
-    name: 'Athen Cars',
-    attn: 'Satheesh VS',
-    phone: '+91 9744050505',
-    destination: 'Anayara, Trivandrum'
+  // Synchronize Invoice customerDetails and Proposal recipient
+  const prevRecipientRef = useRef(proposalContext?.recipient);
+  const prevCustomerDetailsRef = useRef(customerDetails);
+
+  useEffect(() => {
+    if (!proposalContext) return;
+
+    const recipient = proposalContext.recipient;
+    const isRecipientChanged =
+      recipient.company !== prevRecipientRef.current?.company ||
+      recipient.name !== prevRecipientRef.current?.name ||
+      recipient.address !== prevRecipientRef.current?.address;
+
+    const isCustomerDetailsChanged =
+      customerDetails.name !== prevCustomerDetailsRef.current?.name ||
+      customerDetails.attn !== prevCustomerDetailsRef.current?.attn ||
+      customerDetails.destination !== prevCustomerDetailsRef.current?.destination;
+
+    const companyDiff = recipient.company !== customerDetails.name;
+    const nameDiff = recipient.name !== customerDetails.attn;
+    const addressDiff = recipient.address !== customerDetails.destination;
+
+    if (isRecipientChanged && !isCustomerDetailsChanged) {
+      if (companyDiff || nameDiff || addressDiff) {
+        setCustomerDetails(prev => ({
+          ...prev,
+          name: recipient.company || '',
+          attn: recipient.name || '',
+          destination: recipient.address || ''
+        }));
+      }
+    } else if (isCustomerDetailsChanged && !isRecipientChanged) {
+      if (companyDiff || nameDiff || addressDiff) {
+        proposalContext.setRecipient(prev => ({
+          ...prev,
+          company: customerDetails.name || '',
+          name: customerDetails.attn || '',
+          address: customerDetails.destination || ''
+        }));
+      }
+    }
+
+    prevRecipientRef.current = recipient;
+    prevCustomerDetailsRef.current = customerDetails;
+  }, [proposalContext?.recipient, customerDetails]);
+
+  const [invoiceMeta, setInvoiceMeta] = useState(() => {
+    const saved = localStorage.getItem('invoice_meta');
+    return saved ? JSON.parse(saved) : {
+      quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
+      date: (() => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      })(),
+      preparedBy: 'Akhil'
+    };
   });
 
-  const [sellerDetails, setSellerDetails] = useState({
-    name: 'Crimson Group LLP',
-    office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
-    gstin: '06ADMTEST',
-    phone: '+91 99467 99457',
-    email: 'crimsongroupllp@gmail.com'
+  const [sellerDetails, setSellerDetails] = useState(() => {
+    const saved = localStorage.getItem('invoice_sellerDetails');
+    return saved ? JSON.parse(saved) : {
+      name: 'Crimson Group LLP',
+      office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+      gstin: '06ADMTEST',
+      phone: '+91 99467 99457',
+      email: 'crimsongroupllp@gmail.com'
+    };
   });
 
-  // const [invoiceItems, setInvoiceItems] = useState([
-  //   {
-  //     id: 1,
-  //     description: 'Digital Printed Stand Up Pouch with Zipper\nFinish: Matte Metalised\nLayers: 18μ MATTE BOPP / 12μ METPET / 80μ PE',
-  //     size: 'Medium\nWidth(mm): 130 • Height(mm): 210 • Gusset(mm): 80',
-  //     qty: 2000,
-  //     price: 14.20,
-  //     gstRate: 18
-  //   },
-  //   {
-  //     id: 2,
-  //     description: 'Digital Printed Stand Up Pouch with Zipper\nFinish: Matte Metalised\nLayers: 18μ MATTE BOPP / 12μ METPET / 90μ PE',
-  //     size: 'Large\nWidth(mm): 160 • Height(mm): 230 • Gusset(mm): 90',
-  //     qty: 2000,
-  //     price: 15.30,
-  //     gstRate: 18
-  //   }
-  // ]);
-  const [invoiceItems, setInvoiceItems] = useState(product);
+  const [invoiceItems, setInvoiceItems] = useState(() => {
+    const saved = localStorage.getItem('invoice_items');
+    return saved ? JSON.parse(saved) : product;
+  });
 
-  const [termsAndConditions, setTermsAndConditions] = useState(terms);
+  const [termsAndConditions, setTermsAndConditions] = useState(() => {
+    const saved = localStorage.getItem('invoice_terms');
+    return saved ? JSON.parse(saved) : terms;
+  });
 
   // Edit authorization states: init as false
   const [allowEditSeller, setAllowEditSeller] = useState(false);
   const [allowEditTerms, setAllowEditTerms] = useState(false);
 
   // GST toggle: enabled by default
-  const [gstEnabled, setGstEnabled] = useState(true);
-  const [showGstin, setShowGstin] = useState(true);
+  const [gstEnabled, setGstEnabled] = useState(() => {
+    const saved = localStorage.getItem('invoice_gstEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [showGstin, setShowGstin] = useState(() => {
+    const saved = localStorage.getItem('invoice_showGstin');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  const [masterProducts, setMasterProducts] = useState(() => {
+    const saved = localStorage.getItem('invoice_masterProducts');
+    return saved ? JSON.parse(saved) : product;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('invoice_customerDetails', JSON.stringify(customerDetails));
+  }, [customerDetails]);
+
+  useEffect(() => {
+    localStorage.setItem('invoice_meta', JSON.stringify(invoiceMeta));
+  }, [invoiceMeta]);
+
+  useEffect(() => {
+    localStorage.setItem('invoice_sellerDetails', JSON.stringify(sellerDetails));
+  }, [sellerDetails]);
+
+  useEffect(() => {
+    localStorage.setItem('invoice_items', JSON.stringify(invoiceItems));
+  }, [invoiceItems]);
+
+  useEffect(() => {
+    localStorage.setItem('invoice_terms', JSON.stringify(termsAndConditions));
+  }, [termsAndConditions]);
+
+  useEffect(() => {
+    localStorage.setItem('invoice_gstEnabled', JSON.stringify(gstEnabled));
+  }, [gstEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('invoice_showGstin', JSON.stringify(showGstin));
+  }, [showGstin]);
+
+  useEffect(() => {
+    localStorage.setItem('invoice_masterProducts', JSON.stringify(masterProducts));
+  }, [masterProducts]);
 
   const handleToggleEditSeller = (val) => {
     setAllowEditSeller(val);
@@ -129,7 +215,7 @@ export function InvoiceProvider({ children }) {
   };
 
   const handleInvoiceItemChange = (id, field, val) => {
-    setInvoiceItems(invoiceItems.map(item => {
+    setInvoiceItems(prev => prev.map(item => {
       if (item.id === id) {
         let parsedVal = val;
         if (field === 'qty') parsedVal = parseInt(val) || 0;
@@ -355,23 +441,32 @@ export function InvoiceProvider({ children }) {
       // Prompt to change serial number
       if (!options?.skipPrompt) {
         setTimeout(() => {
+          const onConfirmHandler = () => {
+            // Change quote number
+            setInvoiceMeta(prev => ({
+              ...prev,
+              quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000)
+            }));
+            // Change proposal ID
+            if (proposalContext?.setMeta) {
+              proposalContext.setMeta(prev => ({
+                ...prev,
+                proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000)
+              }));
+            }
+          };
+
           setInvoiceConfirmModal({
             isOpen: true,
-            onConfirm: () => {
-              // Change quote number
-              setInvoiceMeta(prev => ({
-                ...prev,
-                quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000)
-              }));
-              // Change proposal ID
-              if (proposalContext?.setMeta) {
-                proposalContext.setMeta(prev => ({
-                  ...prev,
-                  proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000)
-                }));
-              }
-            }
+            onConfirm: onConfirmHandler
           });
+
+          if (proposalContext?.setProposalConfirmModal) {
+            proposalContext.setProposalConfirmModal({
+              isOpen: true,
+              onConfirm: onConfirmHandler
+            });
+          }
         }, 500);
       }
     } catch (err) {
@@ -508,7 +603,7 @@ export function InvoiceProvider({ children }) {
                     spacing: { after: 80 },
                   }),
                   new Paragraph({
-                    children: [new TextRun({ text: customerDetails.name, bold: true, font: 'Inter', size: 20, color: '111827' })],
+                    children: [new TextRun({ text: (customerDetails.name || '').toUpperCase(), bold: true, font: 'Inter', size: 20, color: '990f02' })],
                     spacing: { after: 40 },
                   }),
                   new Paragraph({
@@ -962,7 +1057,9 @@ export function InvoiceProvider({ children }) {
       setShowGstin,
       loadInvoiceData,
       invoiceConfirmModal,
-      setInvoiceConfirmModal
+      setInvoiceConfirmModal,
+      masterProducts,
+      setMasterProducts
     }}>
       {children}
     </InvoiceContext.Provider>

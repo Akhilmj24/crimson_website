@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, History, FileText, Briefcase, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, Settings, History, FileText, Briefcase, FolderOpen, Package } from 'lucide-react';
 import { useCampaign } from '../context/CampaignContext';
 
 export default function Sidebar() {
@@ -55,6 +55,13 @@ export default function Sidebar() {
         >
           <FolderOpen size={18} />
           Document History
+        </NavLink>
+        <NavLink
+          to="/products"
+          className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+        >
+          <Package size={18} />
+          Product List
         </NavLink>
       </nav>
 

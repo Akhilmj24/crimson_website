@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType } from 'docx';
@@ -14,63 +14,91 @@ export function ProposalProvider({ children }) {
   const { appendLog } = useCampaign();
   const [proposalConfirmModal, setProposalConfirmModal] = useState({ isOpen: false, onConfirm: null });
 
-  const [sender, setSender] = useState({
-    name: 'AKHIL',
-    title: 'Manager',
-    company: 'Crimson Group LLP',
-    address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
-    email: 'crimsongroupllp@gmail.com',
-    phone: '+91 99467 99457'
+  const [sender, setSender] = useState(() => {
+    const saved = localStorage.getItem('proposal_sender');
+    return saved ? JSON.parse(saved) : {
+      name: 'AKHIL',
+      title: 'Manager',
+      company: 'Crimson Group LLP',
+      address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+      email: 'crimsongroupllp@gmail.com',
+      phone: '+91 99467 99457'
+    };
   });
 
-  const [recipient, setRecipient] = useState({
-    name: 'Mr Satheesh V S',
-    title: 'Manager ISL & Marketing',
-    company: 'Athen Cars',
-    address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+  const [recipient, setRecipient] = useState(() => {
+    const saved = localStorage.getItem('proposal_recipient');
+    return saved ? JSON.parse(saved) : {
+      name: 'Mr Satheesh V S',
+      title: 'Manager ISL & Marketing',
+      company: 'Athen Cars',
+      address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+    };
   });
 
-  const [meta, setMeta] = useState({
-    proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
-    date: (() => {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    })(),
-    subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
-    salutation: 'Dear Mr Satheesh V S,',
-    intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
+  const [meta, setMeta] = useState(() => {
+    const saved = localStorage.getItem('proposal_meta');
+    return saved ? JSON.parse(saved) : {
+      proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
+      date: (() => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      })(),
+      subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
+      salutation: 'Dear Mr Satheesh V S,',
+      intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
+    };
   });
 
-  const [sections, setSections] = useState([
-    {
-      id: 1,
-      title: 'THE ONAM COMBO',
-      content: 'Kerala Banana Chips - 200 g\nSharkara Upperi - 100 g\n\nA balanced combination of crispy Kerala banana chips and traditional sweet Sharkara Upperi—two familiar festive favourites presented in a professional format suitable for corporate gifting.'
-    },
-    {
-      id: 2,
-      title: 'QUALITY & PACKAGING',
-      content: '- Authentic taste: Banana chips prepared in coconut oil for the traditional Kerala flavour, paired with sweet and crunchy Sharkara Upperi.\n- Fresh & carefully prepared: Produced in controlled batches with attention to taste, texture and crispness.\n- Premium stand-up pouches: Products are separately packed for convenient handling, storage and distribution, with festive Crimson branding for a polished presentation.\n- Product focus: Premium ingredients, hygienic packing, freshness, convenient handling and no unnecessary preservatives.'
-    },
-    {
-      id: 3,
-      title: 'IDEAL FOR CORPORATE GIFTING',
-      content: 'Suitable for employee Onam gifts, customer appreciation, client and business-partner gifting, dealer/distributor gifts, office celebrations, festive giveaways and bulk institutional requirements. The individually packed format also supports organized distribution across teams, branches and customer groups.'
-    },
-    {
-      id: 4,
-      title: 'CUSTOMIZATION & BULK ORDERS',
-      content: 'For eligible bulk orders, we can discuss solutions based on quantity, budget and presentation requirements, including custom stickers or branding, corporate greeting messages, customized outer packaging, gift presentation and alternate product/quantity combinations. This allows the combo to serve as both a Crimson festive gift and a customized corporate gifting experience.'
-    },
-    {
-      id: 5,
-      title: 'WHY CRIMSON?',
-      content: 'Crimson Group LLP brings traditional Kerala products into a modern, professional gifting format. From product preparation and hygienic packing to presentation and bulk-order coordination, our goal is to provide a dependable Onam gift that your organization can confidently share with the people who matter.'
-    }
-  ]);
+  const [sections, setSections] = useState(() => {
+    const saved = localStorage.getItem('proposal_sections');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 1,
+        title: 'THE ONAM COMBO',
+        content: 'Kerala Banana Chips - 200 g\nSharkara Upperi - 100 g\n\nA balanced combination of crispy Kerala banana chips and traditional sweet Sharkara Upperi—two familiar festive favourites presented in a professional format suitable for corporate gifting.'
+      },
+      {
+        id: 2,
+        title: 'QUALITY & PACKAGING',
+        content: '- Authentic taste: Banana chips prepared in coconut oil for the traditional Kerala flavour, paired with sweet and crunchy Sharkara Upperi.\n- Fresh & carefully prepared: Produced in controlled batches with attention to taste, texture and crispness.\n- Premium stand-up pouches: Products are separately packed for convenient handling, storage and distribution, with festive Crimson branding for a polished presentation.\n- Product focus: Premium ingredients, hygienic packing, freshness, convenient handling and no unnecessary preservatives.'
+      },
+      {
+        id: 3,
+        title: 'IDEAL FOR CORPORATE GIFTING',
+        content: 'Suitable for employee Onam gifts, customer appreciation, client and business-partner gifting, dealer/distributor gifts, office celebrations, festive giveaways and bulk institutional requirements. The individually packed format also supports organized distribution across teams, branches and customer groups.'
+      },
+      {
+        id: 4,
+        title: 'CUSTOMIZATION & BULK ORDERS',
+        content: 'For eligible bulk orders, we can discuss solutions based on quantity, budget and presentation requirements, including custom stickers or branding, corporate greeting messages, customized outer packaging, gift presentation and alternate product/quantity combinations. This allows the combo to serve as both a Crimson festive gift and a customized corporate gifting experience.'
+      },
+      {
+        id: 5,
+        title: 'WHY CRIMSON?',
+        content: 'Crimson Group LLP brings traditional Kerala products into a modern, professional gifting format. From product preparation and hygienic packing to presentation and bulk-order coordination, our goal is to provide a dependable Onam gift that your organization can confidently share with the people who matter.'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('proposal_sender', JSON.stringify(sender));
+  }, [sender]);
+
+  useEffect(() => {
+    localStorage.setItem('proposal_recipient', JSON.stringify(recipient));
+  }, [recipient]);
+
+  useEffect(() => {
+    localStorage.setItem('proposal_meta', JSON.stringify(meta));
+  }, [meta]);
+
+  useEffect(() => {
+    localStorage.setItem('proposal_sections', JSON.stringify(sections));
+  }, [sections]);
 
   const handleAddSection = () => {
     const nextId = sections.length > 0 ? Math.max(...sections.map(s => s.id)) + 1 : 1;

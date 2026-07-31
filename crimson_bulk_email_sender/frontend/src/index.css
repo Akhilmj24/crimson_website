@@ -1926,9 +1926,10 @@ textarea {
 
 .invoice-preview-client-name {
   font-size: 16px;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 800;
+  color: #990f02;
   margin-bottom: 4px;
+  text-transform: uppercase;
 }
 
 .invoice-preview-text-line {

@@ -20,8 +20,8 @@ export function InvoiceProvider({ children }) {
 
   const [activeInvoiceId, setActiveInvoiceId] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({
-    name: 'Athen Cars',
-    attn: 'Mr Satheesh V S',
+    name: 'Client Compay',
+    attn: 'Mr Akhil',
     phone: '+91 9744050505',
     destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
   });
@@ -104,7 +104,7 @@ export function InvoiceProvider({ children }) {
   useEffect(() => {
     const initializeInvoiceDraft = async () => {
       let activeId = localStorage.getItem('active_invoice_id');
-      
+
       if (activeId) {
         try {
           const res = await invoiceService.getInvoice(activeId);
@@ -128,16 +128,16 @@ export function InvoiceProvider({ children }) {
       }
 
       // Check for legacy localStorage data
-      const hasLegacyData = localStorage.getItem('invoice_customerDetails') || 
-                            localStorage.getItem('invoice_meta') ||
-                            localStorage.getItem('invoice_items');
+      const hasLegacyData = localStorage.getItem('invoice_customerDetails') ||
+        localStorage.getItem('invoice_meta') ||
+        localStorage.getItem('invoice_items');
 
       if (hasLegacyData) {
         try {
           const legacyPayload = {
             customerDetails: localStorage.getItem('invoice_customerDetails') ? JSON.parse(localStorage.getItem('invoice_customerDetails')) : {
-              name: 'Athen Cars',
-              attn: 'Mr Satheesh V S',
+              name: 'Client Compay',
+              attn: 'Mr Akhil',
               phone: '+91 9744050505',
               destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
             },
@@ -206,8 +206,8 @@ export function InvoiceProvider({ children }) {
           // Empty DB, create initial default document
           const newInvoice = await invoiceService.createInvoice({
             customerDetails: {
-              name: 'Athen Cars',
-              attn: 'Mr Satheesh V S',
+              name: 'Client Compay',
+              attn: 'Mr Akhil',
               phone: '+91 9744050505',
               destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
             },

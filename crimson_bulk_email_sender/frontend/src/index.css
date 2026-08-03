@@ -2205,6 +2205,11 @@ input[type="number"].invoice-form-item-input {
   outline: none;
 }
 
+select option {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+}
+
 .btn-add-item-row {
   margin-top: 12px;
   background: transparent;

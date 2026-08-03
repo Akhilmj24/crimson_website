@@ -26,9 +26,9 @@ export function ProposalProvider({ children }) {
   });
 
   const [recipient, setRecipient] = useState({
-    name: 'Mr Satheesh V S',
+    name: 'Mr Akhil',
     title: 'Manager ISL & Marketing',
-    company: 'Athen Cars',
+    company: 'Client Compay',
     address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
   });
 
@@ -42,7 +42,7 @@ export function ProposalProvider({ children }) {
       return `${yyyy}-${mm}-${dd}`;
     })(),
     subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
-    salutation: 'Dear Mr Satheesh V S,',
+    salutation: 'Dear Mr Akhil,',
     intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
   });
 
@@ -98,9 +98,9 @@ export function ProposalProvider({ children }) {
       }
 
       // Check for legacy localStorage data
-      const hasLegacyData = localStorage.getItem('proposal_sender') || 
-                            localStorage.getItem('proposal_recipient') ||
-                            localStorage.getItem('proposal_sections');
+      const hasLegacyData = localStorage.getItem('proposal_sender') ||
+        localStorage.getItem('proposal_recipient') ||
+        localStorage.getItem('proposal_sections');
 
       if (hasLegacyData) {
         try {
@@ -114,16 +114,16 @@ export function ProposalProvider({ children }) {
               phone: '+91 99467 99457'
             },
             recipient: localStorage.getItem('proposal_recipient') ? JSON.parse(localStorage.getItem('proposal_recipient')) : {
-              name: 'Mr Satheesh V S',
+              name: 'Mr Akhil',
               title: 'Manager ISL & Marketing',
-              company: 'Athen Cars',
+              company: 'Client Compay',
               address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
             },
             meta: localStorage.getItem('proposal_meta') ? JSON.parse(localStorage.getItem('proposal_meta')) : {
               proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
               date: new Date().toISOString().split('T')[0],
               subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
-              salutation: 'Dear Mr Satheesh V S,',
+              salutation: 'Dear Mr Akhil,',
               intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
             },
             sections: localStorage.getItem('proposal_sections') ? JSON.parse(localStorage.getItem('proposal_sections')) : [
@@ -177,16 +177,16 @@ export function ProposalProvider({ children }) {
               phone: '+91 99467 99457'
             },
             recipient: {
-              name: 'Mr Satheesh V S',
+              name: 'Mr Akhil',
               title: 'Manager ISL & Marketing',
-              company: 'Athen Cars',
+              company: 'Client Compay',
               address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
             },
             meta: {
               proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
               date: new Date().toISOString().split('T')[0],
               subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
-              salutation: 'Dear Mr Satheesh V S,',
+              salutation: 'Dear Mr Akhil,',
               intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation.'
             },
             sections: [

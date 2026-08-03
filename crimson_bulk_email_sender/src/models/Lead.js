@@ -1,0 +1,23 @@
+const mongoose = require('mongoose');
+
+const leadSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  company: { type: String, default: '' },
+  email: { type: String, default: '' },
+  phone: { type: String, default: '' },
+  source: { type: String, default: 'Website' },
+  status: { type: String, default: 'New' }, // e.g. New, Contacted, Proposal, Qualified, Won, Lost
+  priority: { type: String, default: 'Medium' }, // Low, Medium, High
+  assignedUser: { type: String, default: '' },
+  tags: [{ type: String }],
+  notes: [{ type: String }],
+  attachments: [{ type: String }], // Array of file names or URLs
+  tenantId: { type: String, required: true, index: true },
+  isDeleted: { type: Boolean, default: false, index: true },
+  createdBy: { type: String, default: 'system' },
+  updatedBy: { type: String, default: 'system' }
+}, {
+  timestamps: true
+});
+
+module.exports = mongoose.model('Lead', leadSchema);

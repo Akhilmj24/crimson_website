@@ -360,8 +360,8 @@ export default function InvoiceForm() {
               <table className="invoice-form-items-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '40%' }}>Description</th>
-                    <th style={{ width: '25%' }}>Size</th>
+                    <th style={{ width: '50%' }}>Description</th>
+                    <th style={{ width: '15%' }}>Size</th>
                     <th style={{ width: '10%' }}>Qty</th>
                     <th style={{ width: '10%' }}>Price/pc</th>
                     <th style={{ width: '10%' }}>GST%</th>
@@ -375,7 +375,20 @@ export default function InvoiceForm() {
                         {masterProducts && masterProducts.length > 0 && (
                           <select
                             className="invoice-form-item-input"
-                            style={{ marginBottom: '8px', fontSize: '11px', padding: '4px 6px', height: 'auto', background: 'rgba(0,0,0,0.15)', cursor: 'pointer' }}
+                            style={{ 
+                              marginBottom: '6px', 
+                              fontSize: '10px', 
+                              padding: '4px 8px', 
+                              height: 'auto', 
+                              background: 'rgba(255, 199, 44, 0.06)', 
+                              border: '1px solid rgba(255, 199, 44, 0.2)', 
+                              borderRadius: '4px',
+                              color: 'var(--secondary)',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              width: '100%',
+                              textOverflow: 'ellipsis'
+                            }}
                             value={masterProducts.find(p => p.description === item.description && p.size === item.size)?.id || ""}
                             onChange={(e) => {
                               const prodId = e.target.value;
@@ -398,9 +411,9 @@ export default function InvoiceForm() {
                               }
                             }}
                           >
-                            <option value="">-- Pick from Product List --</option>
+                            <option value="" style={{ color: '#000000' }}>-- Pick from Product List --</option>
                             {masterProducts.map(p => (
-                              <option key={p.id} value={p.id}>
+                              <option key={p.id} value={p.id} style={{ color: '#000000' }}>
                                 {p.description} {p.size ? `(${p.size})` : ''}
                               </option>
                             ))}
@@ -408,18 +421,18 @@ export default function InvoiceForm() {
                         )}
                         <textarea
                           className="invoice-form-item-input"
-                          rows="2"
+                          rows="1"
                           placeholder="Product description & specifications"
                           value={item.description}
                           onChange={(e) => handleInvoiceItemChange(item.id, 'description', e.target.value)}
                         />
                       </td>
                       <td>
-                        <textarea
+                        <input
+                          type="text"
                           className="invoice-form-item-input"
-                          rows="2"
-                          placeholder="Dimensions"
-                          value={item.size}
+                          placeholder="Size/Dimensions"
+                          value={item.size || ''}
                           onChange={(e) => handleInvoiceItemChange(item.id, 'size', e.target.value)}
                         />
                       </td>

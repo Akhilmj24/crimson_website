@@ -5,6 +5,7 @@ import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, Borde
 import { useCampaign } from './CampaignContext';
 import { useProposal } from './ProposalContext';
 import { product, terms } from './data';
+import { invoiceService } from '../services/invoiceService';
 
 const InvoiceContext = createContext();
 
@@ -17,14 +18,12 @@ export function InvoiceProvider({ children }) {
   const proposalContext = useProposal();
   const [invoiceConfirmModal, setInvoiceConfirmModal] = useState({ isOpen: false, onConfirm: null });
 
-  const [customerDetails, setCustomerDetails] = useState(() => {
-    const saved = localStorage.getItem('invoice_customerDetails');
-    return saved ? JSON.parse(saved) : {
-      name: 'Athen Cars',
-      attn: 'Mr Satheesh V S',
-      phone: '+91 9744050505',
-      destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
-    };
+  const [activeInvoiceId, setActiveInvoiceId] = useState(null);
+  const [customerDetails, setCustomerDetails] = useState({
+    name: 'Athen Cars',
+    attn: 'Mr Satheesh V S',
+    phone: '+91 9744050505',
+    destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
   });
 
   // Synchronize Invoice customerDetails and Proposal recipient
@@ -73,92 +72,205 @@ export function InvoiceProvider({ children }) {
     prevCustomerDetailsRef.current = customerDetails;
   }, [proposalContext?.recipient, customerDetails]);
 
-  const [invoiceMeta, setInvoiceMeta] = useState(() => {
-    const saved = localStorage.getItem('invoice_meta');
-    return saved ? JSON.parse(saved) : {
-      quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
-      date: (() => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-      })(),
-      preparedBy: 'Akhil'
-    };
+  const [invoiceMeta, setInvoiceMeta] = useState({
+    quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
+    date: (() => {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    })(),
+    preparedBy: 'Akhil'
   });
 
-  const [sellerDetails, setSellerDetails] = useState(() => {
-    const saved = localStorage.getItem('invoice_sellerDetails');
-    return saved ? JSON.parse(saved) : {
-      name: 'Crimson Group LLP',
-      office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
-      gstin: '06ADMTEST',
-      phone: '+91 99467 99457',
-      email: 'crimsongroupllp@gmail.com'
-    };
+  const [sellerDetails, setSellerDetails] = useState({
+    name: 'Crimson Group LLP',
+    office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+    gstin: '06ADMTEST',
+    phone: '+91 99467 99457',
+    email: 'crimsongroupllp@gmail.com'
   });
 
-  const [invoiceItems, setInvoiceItems] = useState(() => {
-    const saved = localStorage.getItem('invoice_items');
-    return saved ? JSON.parse(saved) : product;
-  });
-
-  const [termsAndConditions, setTermsAndConditions] = useState(() => {
-    const saved = localStorage.getItem('invoice_terms');
-    return saved ? JSON.parse(saved) : terms;
-  });
-
-  // Edit authorization states: init as false
+  const [invoiceItems, setInvoiceItems] = useState(product);
+  const [termsAndConditions, setTermsAndConditions] = useState(terms);
   const [allowEditSeller, setAllowEditSeller] = useState(false);
   const [allowEditTerms, setAllowEditTerms] = useState(false);
+  const [gstEnabled, setGstEnabled] = useState(true);
+  const [showGstin, setShowGstin] = useState(true);
+  const [masterProducts, setMasterProducts] = useState(product);
 
-  // GST toggle: enabled by default
-  const [gstEnabled, setGstEnabled] = useState(() => {
-    const saved = localStorage.getItem('invoice_gstEnabled');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [showGstin, setShowGstin] = useState(() => {
-    const saved = localStorage.getItem('invoice_showGstin');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-
-  const [masterProducts, setMasterProducts] = useState(() => {
-    const saved = localStorage.getItem('invoice_masterProducts');
-    return saved ? JSON.parse(saved) : product;
-  });
-
+  // Initialize draft: Load from DB, Migrate legacy, or create a default document
   useEffect(() => {
-    localStorage.setItem('invoice_customerDetails', JSON.stringify(customerDetails));
-  }, [customerDetails]);
+    const initializeInvoiceDraft = async () => {
+      let activeId = localStorage.getItem('active_invoice_id');
+      
+      if (activeId) {
+        try {
+          const res = await invoiceService.getInvoice(activeId);
+          if (res) {
+            setCustomerDetails(res.customerDetails || {});
+            setSellerDetails(res.sellerDetails || {});
+            setInvoiceItems(res.items || []);
+            setTermsAndConditions(res.terms || []);
+            setInvoiceMeta(res.meta || {});
+            setGstEnabled(res.gstEnabled !== undefined ? res.gstEnabled : true);
+            setShowGstin(res.showGstin !== undefined ? res.showGstin : true);
+            setMasterProducts(res.masterProducts || []);
+            setActiveInvoiceId(activeId);
+            return;
+          }
+        } catch (err) {
+          console.warn('Failed to load active invoice from MongoDB, resetting active ID', err.message);
+          localStorage.removeItem('active_invoice_id');
+          activeId = null;
+        }
+      }
 
-  useEffect(() => {
-    localStorage.setItem('invoice_meta', JSON.stringify(invoiceMeta));
-  }, [invoiceMeta]);
+      // Check for legacy localStorage data
+      const hasLegacyData = localStorage.getItem('invoice_customerDetails') || 
+                            localStorage.getItem('invoice_meta') ||
+                            localStorage.getItem('invoice_items');
 
-  useEffect(() => {
-    localStorage.setItem('invoice_sellerDetails', JSON.stringify(sellerDetails));
-  }, [sellerDetails]);
+      if (hasLegacyData) {
+        try {
+          const legacyPayload = {
+            customerDetails: localStorage.getItem('invoice_customerDetails') ? JSON.parse(localStorage.getItem('invoice_customerDetails')) : {
+              name: 'Athen Cars',
+              attn: 'Mr Satheesh V S',
+              phone: '+91 9744050505',
+              destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+            },
+            meta: localStorage.getItem('invoice_meta') ? JSON.parse(localStorage.getItem('invoice_meta')) : {
+              quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
+              date: new Date().toISOString().split('T')[0],
+              preparedBy: 'Akhil'
+            },
+            sellerDetails: localStorage.getItem('invoice_sellerDetails') ? JSON.parse(localStorage.getItem('invoice_sellerDetails')) : {
+              name: 'Crimson Group LLP',
+              office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+              gstin: '06ADMTEST',
+              phone: '+91 99467 99457',
+              email: 'crimsongroupllp@gmail.com'
+            },
+            items: localStorage.getItem('invoice_items') ? JSON.parse(localStorage.getItem('invoice_items')) : product,
+            terms: localStorage.getItem('invoice_terms') ? JSON.parse(localStorage.getItem('invoice_terms')) : terms,
+            gstEnabled: localStorage.getItem('invoice_gstEnabled') ? JSON.parse(localStorage.getItem('invoice_gstEnabled')) : true,
+            showGstin: localStorage.getItem('invoice_showGstin') ? JSON.parse(localStorage.getItem('invoice_showGstin')) : true,
+            masterProducts: localStorage.getItem('invoice_masterProducts') ? JSON.parse(localStorage.getItem('invoice_masterProducts')) : product
+          };
 
-  useEffect(() => {
-    localStorage.setItem('invoice_items', JSON.stringify(invoiceItems));
-  }, [invoiceItems]);
+          const newInvoice = await invoiceService.createInvoice(legacyPayload);
+          localStorage.setItem('active_invoice_id', newInvoice._id);
+          setActiveInvoiceId(newInvoice._id);
+          setCustomerDetails(newInvoice.customerDetails || {});
+          setSellerDetails(newInvoice.sellerDetails || {});
+          setInvoiceItems(newInvoice.items || []);
+          setTermsAndConditions(newInvoice.terms || []);
+          setInvoiceMeta(newInvoice.meta || {});
+          setGstEnabled(newInvoice.gstEnabled !== undefined ? newInvoice.gstEnabled : true);
+          setShowGstin(newInvoice.showGstin !== undefined ? newInvoice.showGstin : true);
+          setMasterProducts(newInvoice.masterProducts || []);
 
-  useEffect(() => {
-    localStorage.setItem('invoice_terms', JSON.stringify(termsAndConditions));
-  }, [termsAndConditions]);
+          // Safe clean legacy keys after successful migration save
+          localStorage.removeItem('invoice_customerDetails');
+          localStorage.removeItem('invoice_meta');
+          localStorage.removeItem('invoice_sellerDetails');
+          localStorage.removeItem('invoice_items');
+          localStorage.removeItem('invoice_terms');
+          localStorage.removeItem('invoice_gstEnabled');
+          localStorage.removeItem('invoice_showGstin');
+          localStorage.removeItem('invoice_masterProducts');
+          return;
+        } catch (err) {
+          console.error('Migration of legacy invoice data to MongoDB failed:', err.message);
+        }
+      }
 
-  useEffect(() => {
-    localStorage.setItem('invoice_gstEnabled', JSON.stringify(gstEnabled));
-  }, [gstEnabled]);
+      // No active draft or legacy data, query MongoDB list
+      try {
+        const invoices = await invoiceService.getInvoices();
+        if (invoices && invoices.length > 0) {
+          const latest = invoices[0];
+          localStorage.setItem('active_invoice_id', latest._id);
+          setActiveInvoiceId(latest._id);
+          setCustomerDetails(latest.customerDetails || {});
+          setSellerDetails(latest.sellerDetails || {});
+          setInvoiceItems(latest.items || []);
+          setTermsAndConditions(latest.terms || []);
+          setInvoiceMeta(latest.meta || {});
+          setGstEnabled(latest.gstEnabled !== undefined ? latest.gstEnabled : true);
+          setShowGstin(latest.showGstin !== undefined ? latest.showGstin : true);
+          setMasterProducts(latest.masterProducts || []);
+        } else {
+          // Empty DB, create initial default document
+          const newInvoice = await invoiceService.createInvoice({
+            customerDetails: {
+              name: 'Athen Cars',
+              attn: 'Mr Satheesh V S',
+              phone: '+91 9744050505',
+              destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+            },
+            meta: {
+              quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
+              date: new Date().toISOString().split('T')[0],
+              preparedBy: 'Akhil'
+            },
+            sellerDetails: {
+              name: 'Crimson Group LLP',
+              office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+              gstin: '06ADMTEST',
+              phone: '+91 99467 99457',
+              email: 'crimsongroupllp@gmail.com'
+            },
+            items: product,
+            terms: terms,
+            gstEnabled: true,
+            showGstin: true,
+            masterProducts: product
+          });
+          localStorage.setItem('active_invoice_id', newInvoice._id);
+          setActiveInvoiceId(newInvoice._id);
+          setCustomerDetails(newInvoice.customerDetails || {});
+          setSellerDetails(newInvoice.sellerDetails || {});
+          setInvoiceItems(newInvoice.items || []);
+          setTermsAndConditions(newInvoice.terms || []);
+          setInvoiceMeta(newInvoice.meta || {});
+          setGstEnabled(newInvoice.gstEnabled !== undefined ? newInvoice.gstEnabled : true);
+          setShowGstin(newInvoice.showGstin !== undefined ? newInvoice.showGstin : true);
+          setMasterProducts(newInvoice.masterProducts || []);
+        }
+      } catch (err) {
+        console.error('Initialization invoice draft error:', err.message);
+      }
+    };
 
-  useEffect(() => {
-    localStorage.setItem('invoice_showGstin', JSON.stringify(showGstin));
-  }, [showGstin]);
+    initializeInvoiceDraft();
+  }, []);
 
+  // Debounced auto-save to MongoDB
   useEffect(() => {
-    localStorage.setItem('invoice_masterProducts', JSON.stringify(masterProducts));
-  }, [masterProducts]);
+    if (!activeInvoiceId) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        await invoiceService.updateInvoice(activeInvoiceId, {
+          customerDetails,
+          sellerDetails,
+          items: invoiceItems,
+          terms: termsAndConditions,
+          meta: invoiceMeta,
+          gstEnabled,
+          showGstin,
+          masterProducts
+        });
+      } catch (err) {
+        console.error('Invoice draft autosave failed:', err.message);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [customerDetails, sellerDetails, invoiceItems, termsAndConditions, invoiceMeta, gstEnabled, showGstin, masterProducts, activeInvoiceId]);
 
   const handleToggleEditSeller = (val) => {
     setAllowEditSeller(val);

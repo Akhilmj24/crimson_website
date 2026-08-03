@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType } from 'docx';
 import { useCampaign } from './CampaignContext';
+import { proposalService } from '../services/proposalService';
 
 const ProposalContext = createContext();
 
@@ -14,91 +15,221 @@ export function ProposalProvider({ children }) {
   const { appendLog } = useCampaign();
   const [proposalConfirmModal, setProposalConfirmModal] = useState({ isOpen: false, onConfirm: null });
 
-  const [sender, setSender] = useState(() => {
-    const saved = localStorage.getItem('proposal_sender');
-    return saved ? JSON.parse(saved) : {
-      name: 'AKHIL',
-      title: 'Manager',
-      company: 'Crimson Group LLP',
-      address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
-      email: 'crimsongroupllp@gmail.com',
-      phone: '+91 99467 99457'
-    };
+  const [activeProposalId, setActiveProposalId] = useState(null);
+  const [sender, setSender] = useState({
+    name: 'AKHIL',
+    title: 'Manager',
+    company: 'Crimson Group LLP',
+    address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+    email: 'crimsongroupllp@gmail.com',
+    phone: '+91 99467 99457'
   });
 
-  const [recipient, setRecipient] = useState(() => {
-    const saved = localStorage.getItem('proposal_recipient');
-    return saved ? JSON.parse(saved) : {
-      name: 'Mr Satheesh V S',
-      title: 'Manager ISL & Marketing',
-      company: 'Athen Cars',
-      address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
-    };
+  const [recipient, setRecipient] = useState({
+    name: 'Mr Satheesh V S',
+    title: 'Manager ISL & Marketing',
+    company: 'Athen Cars',
+    address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
   });
 
-  const [meta, setMeta] = useState(() => {
-    const saved = localStorage.getItem('proposal_meta');
-    return saved ? JSON.parse(saved) : {
-      proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
-      date: (() => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-      })(),
-      subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
-      salutation: 'Dear Mr Satheesh V S,',
-      intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
-    };
+  const [meta, setMeta] = useState({
+    proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
+    date: (() => {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    })(),
+    subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
+    salutation: 'Dear Mr Satheesh V S,',
+    intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
   });
 
-  const [sections, setSections] = useState(() => {
-    const saved = localStorage.getItem('proposal_sections');
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 1,
-        title: 'THE ONAM COMBO',
-        content: 'Kerala Banana Chips - 200 g\nSharkara Upperi - 100 g\n\nA balanced combination of crispy Kerala banana chips and traditional sweet Sharkara Upperi—two familiar festive favourites presented in a professional format suitable for corporate gifting.'
-      },
-      {
-        id: 2,
-        title: 'QUALITY & PACKAGING',
-        content: '- Authentic taste: Banana chips prepared in coconut oil for the traditional Kerala flavour, paired with sweet and crunchy Sharkara Upperi.\n- Fresh & carefully prepared: Produced in controlled batches with attention to taste, texture and crispness.\n- Premium stand-up pouches: Products are separately packed for convenient handling, storage and distribution, with festive Crimson branding for a polished presentation.\n- Product focus: Premium ingredients, hygienic packing, freshness, convenient handling and no unnecessary preservatives.'
-      },
-      {
-        id: 3,
-        title: 'IDEAL FOR CORPORATE GIFTING',
-        content: 'Suitable for employee Onam gifts, customer appreciation, client and business-partner gifting, dealer/distributor gifts, office celebrations, festive giveaways and bulk institutional requirements. The individually packed format also supports organized distribution across teams, branches and customer groups.'
-      },
-      {
-        id: 4,
-        title: 'CUSTOMIZATION & BULK ORDERS',
-        content: 'For eligible bulk orders, we can discuss solutions based on quantity, budget and presentation requirements, including custom stickers or branding, corporate greeting messages, customized outer packaging, gift presentation and alternate product/quantity combinations. This allows the combo to serve as both a Crimson festive gift and a customized corporate gifting experience.'
-      },
-      {
-        id: 5,
-        title: 'WHY CRIMSON?',
-        content: 'Crimson Group LLP brings traditional Kerala products into a modern, professional gifting format. From product preparation and hygienic packing to presentation and bulk-order coordination, our goal is to provide a dependable Onam gift that your organization can confidently share with the people who matter.'
+  const [sections, setSections] = useState([
+    {
+      id: 1,
+      title: 'THE ONAM COMBO',
+      content: 'Kerala Banana Chips - 200 g\nSharkara Upperi - 100 g\n\nA balanced combination of crispy Kerala banana chips and traditional sweet Sharkara Upperi—two familiar festive favourites presented in a professional format suitable for corporate gifting.'
+    },
+    {
+      id: 2,
+      title: 'QUALITY & PACKAGING',
+      content: '- Authentic taste: Banana chips prepared in coconut oil for the traditional Kerala flavour, paired with sweet and crunchy Sharkara Upperi.\n- Fresh & carefully prepared: Produced in controlled batches with attention to taste, texture and crispness.\n- Premium stand-up pouches: Products are separately packed for convenient handling, storage and distribution, with festive Crimson branding for a polished presentation.\n- Product focus: Premium ingredients, hygienic packing, freshness, convenient handling and no unnecessary preservatives.'
+    },
+    {
+      id: 3,
+      title: 'IDEAL FOR CORPORATE GIFTING',
+      content: 'Suitable for employee Onam gifts, customer appreciation, client and business-partner gifting, dealer/distributor gifts, office celebrations, festive giveaways and bulk institutional requirements. The individually packed format also supports organized distribution across teams, branches and customer groups.'
+    },
+    {
+      id: 4,
+      title: 'CUSTOMIZATION & BULK ORDERS',
+      content: 'For eligible bulk orders, we can discuss solutions based on quantity, budget and presentation requirements, including custom stickers or branding, corporate greeting messages, customized outer packaging, gift presentation and alternate product/quantity combinations. This allows the combo to serve as both a Crimson festive gift and a customized corporate gifting experience.'
+    },
+    {
+      id: 5,
+      title: 'WHY CRIMSON?',
+      content: 'Crimson Group LLP brings traditional Kerala products into a modern, professional gifting format. From product preparation and hygienic packing to presentation and bulk-order coordination, our goal is to provide a dependable Onam gift that your organization can confidently share with the people who matter.'
+    }
+  ]);
+
+  // Initialize draft: Load from DB, Migrate legacy, or create a default document
+  useEffect(() => {
+    const initializeProposalDraft = async () => {
+      let activeId = localStorage.getItem('active_proposal_id');
+
+      if (activeId) {
+        try {
+          const res = await proposalService.getProposal(activeId);
+          if (res) {
+            setSender(res.sender || {});
+            setRecipient(res.recipient || {});
+            setSections(res.sections || []);
+            setMeta(res.meta || {});
+            setActiveProposalId(activeId);
+            return;
+          }
+        } catch (err) {
+          console.warn('Failed to load active proposal from MongoDB, resetting active ID', err.message);
+          localStorage.removeItem('active_proposal_id');
+          activeId = null;
+        }
       }
-    ];
-  });
 
-  useEffect(() => {
-    localStorage.setItem('proposal_sender', JSON.stringify(sender));
-  }, [sender]);
+      // Check for legacy localStorage data
+      const hasLegacyData = localStorage.getItem('proposal_sender') || 
+                            localStorage.getItem('proposal_recipient') ||
+                            localStorage.getItem('proposal_sections');
 
-  useEffect(() => {
-    localStorage.setItem('proposal_recipient', JSON.stringify(recipient));
-  }, [recipient]);
+      if (hasLegacyData) {
+        try {
+          const legacyPayload = {
+            sender: localStorage.getItem('proposal_sender') ? JSON.parse(localStorage.getItem('proposal_sender')) : {
+              name: 'AKHIL',
+              title: 'Manager',
+              company: 'Crimson Group LLP',
+              address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+              email: 'crimsongroupllp@gmail.com',
+              phone: '+91 99467 99457'
+            },
+            recipient: localStorage.getItem('proposal_recipient') ? JSON.parse(localStorage.getItem('proposal_recipient')) : {
+              name: 'Mr Satheesh V S',
+              title: 'Manager ISL & Marketing',
+              company: 'Athen Cars',
+              address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+            },
+            meta: localStorage.getItem('proposal_meta') ? JSON.parse(localStorage.getItem('proposal_meta')) : {
+              proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
+              date: new Date().toISOString().split('T')[0],
+              subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
+              salutation: 'Dear Mr Satheesh V S,',
+              intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
+            },
+            sections: localStorage.getItem('proposal_sections') ? JSON.parse(localStorage.getItem('proposal_sections')) : [
+              {
+                id: 1,
+                title: 'THE ONAM COMBO',
+                content: 'Kerala Banana Chips - 200 g\nSharkara Upperi - 100 g\n\nA balanced combination of crispy Kerala banana chips and traditional sweet Sharkara Upperi—two familiar festive favourites presented in a professional format suitable for corporate gifting.'
+              }
+            ]
+          };
 
-  useEffect(() => {
-    localStorage.setItem('proposal_meta', JSON.stringify(meta));
-  }, [meta]);
+          const newProposal = await proposalService.createProposal(legacyPayload);
+          localStorage.setItem('active_proposal_id', newProposal._id);
+          setActiveProposalId(newProposal._id);
+          setSender(newProposal.sender || {});
+          setRecipient(newProposal.recipient || {});
+          setSections(newProposal.sections || []);
+          setMeta(newProposal.meta || {});
 
+          // Safe clean legacy keys after successful migration save
+          localStorage.removeItem('proposal_sender');
+          localStorage.removeItem('proposal_recipient');
+          localStorage.removeItem('proposal_meta');
+          localStorage.removeItem('proposal_sections');
+          return;
+        } catch (err) {
+          console.error('Migration of legacy proposal data to MongoDB failed:', err.message);
+        }
+      }
+
+      // No active draft or legacy data, query MongoDB list
+      try {
+        const proposals = await proposalService.getProposals();
+        if (proposals && proposals.length > 0) {
+          const latest = proposals[0];
+          localStorage.setItem('active_proposal_id', latest._id);
+          setActiveProposalId(latest._id);
+          setSender(latest.sender || {});
+          setRecipient(latest.recipient || {});
+          setSections(latest.sections || []);
+          setMeta(latest.meta || {});
+        } else {
+          // Empty DB, create initial default document
+          const newProposal = await proposalService.createProposal({
+            sender: {
+              name: 'AKHIL',
+              title: 'Manager',
+              company: 'Crimson Group LLP',
+              address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+              email: 'crimsongroupllp@gmail.com',
+              phone: '+91 99467 99457'
+            },
+            recipient: {
+              name: 'Mr Satheesh V S',
+              title: 'Manager ISL & Marketing',
+              company: 'Athen Cars',
+              address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+            },
+            meta: {
+              proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
+              date: new Date().toISOString().split('T')[0],
+              subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
+              salutation: 'Dear Mr Satheesh V S,',
+              intro: 'Greetings from Crimson Group LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation.'
+            },
+            sections: [
+              {
+                title: 'THE ONAM COMBO',
+                content: 'Kerala Banana Chips - 200 g\nSharkara Upperi - 100 g\n\nA balanced combination of crispy Kerala banana chips and traditional sweet Sharkara Upperi—two familiar festive favourites presented in a professional format suitable for corporate gifting.'
+              }
+            ]
+          });
+          localStorage.setItem('active_proposal_id', newProposal._id);
+          setActiveProposalId(newProposal._id);
+          setSender(newProposal.sender || {});
+          setRecipient(newProposal.recipient || {});
+          setSections(newProposal.sections || []);
+          setMeta(newProposal.meta || {});
+        }
+      } catch (err) {
+        console.error('Initialization proposal draft error:', err.message);
+      }
+    };
+
+    initializeProposalDraft();
+  }, []);
+
+  // Debounced auto-save to MongoDB
   useEffect(() => {
-    localStorage.setItem('proposal_sections', JSON.stringify(sections));
-  }, [sections]);
+    if (!activeProposalId) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        await proposalService.updateProposal(activeProposalId, {
+          sender,
+          recipient,
+          sections,
+          meta
+        });
+      } catch (err) {
+        console.error('Proposal draft autosave failed:', err.message);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [sender, recipient, sections, meta, activeProposalId]);
 
   const handleAddSection = () => {
     const nextId = sections.length > 0 ? Math.max(...sections.map(s => s.id)) + 1 : 1;

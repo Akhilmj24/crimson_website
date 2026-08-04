@@ -96,6 +96,51 @@ const validateSettings = (data) => {
   return { error: null };
 };
 
+const validateOrder = (data) => {
+  if (!data) return { error: 'Request body is empty' };
+  if (data.customerName === undefined) {
+    if (data.status || data.statusNotes || data.paymentStatus) {
+      return { error: null };
+    }
+    return { error: 'Customer name is required' };
+  }
+  if (typeof data.customerName !== 'string' || !data.customerName.trim()) {
+    return { error: 'Customer name is required' };
+  }
+  if (data.totalAmount !== undefined && (typeof data.totalAmount !== 'number' || data.totalAmount < 0)) {
+    return { error: 'Total amount must be a positive number' };
+  }
+  return { error: null };
+};
+
+const validatePayment = (data) => {
+  if (!data) return { error: 'Request body is empty' };
+  if (!data.orderId) {
+    return { error: 'Order ID is required' };
+  }
+  if (data.amount === undefined || typeof data.amount !== 'number' || data.amount <= 0) {
+    return { error: 'Amount is required and must be a positive number' };
+  }
+  if (!data.paymentMethod || !['Cash', 'Bank Transfer', 'Card', 'UPI', 'Check', 'Other'].includes(data.paymentMethod)) {
+    return { error: 'Valid payment method is required' };
+  }
+  return { error: null };
+};
+
+const validateExpense = (data) => {
+  if (!data) return { error: 'Request body is empty' };
+  if (!data.category || !['Office Expenses', 'Travel', 'Marketing', 'Salary', 'Utilities', 'Miscellaneous'].includes(data.category)) {
+    return { error: 'Valid category is required' };
+  }
+  if (data.amount === undefined || typeof data.amount !== 'number' || data.amount <= 0) {
+    return { error: 'Amount is required and must be a positive number' };
+  }
+  if (!data.date) {
+    return { error: 'Date is required' };
+  }
+  return { error: null };
+};
+
 module.exports = {
   validateLead,
   validateContact,
@@ -103,5 +148,8 @@ module.exports = {
   validateDeal,
   validateTask,
   validateFollowUp,
-  validateSettings
+  validateSettings,
+  validateOrder,
+  validatePayment,
+  validateExpense
 };

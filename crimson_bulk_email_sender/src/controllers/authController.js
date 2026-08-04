@@ -6,6 +6,7 @@ const catchAsync = require('../utils/catchAsync');
 const { isDBConnected } = require('../config/db');
 
 const JWT_SECRET = process.env.ACCESS_TOKEN || 'crimson_secret_key';
+const JWT_REFRESH_SECRET = process.env.REFRESH_TOKEN || 'crimson_refresh_secret_key';
 
 // Fallback in-memory users list when DB is offline
 const inMemoryUsers = [];
@@ -55,16 +56,37 @@ const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid username or password', 401));
   }
 
-  // Generate JWT token
+  // Generate access & refresh JWT tokens
   const token = jwt.sign(
     { id: user._id, username: user.username, role: user.role, tenantId: user.tenantId },
     JWT_SECRET,
-    { expiresIn: '24h' }
+    { expiresIn: '1h' }
   );
+
+  const refreshToken = jwt.sign(
+    { id: user._id, username: user.username, role: user.role, tenantId: user.tenantId },
+    JWT_REFRESH_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  // Save refresh token
+  if (dbConnected) {
+    try {
+      await User.findByIdAndUpdate(user._id, { refreshToken });
+    } catch (err) {
+      console.warn('Failed to save refresh token in MongoDB', err.message);
+    }
+  }
+
+  const inMemUser = inMemoryUsers.find(u => u._id === user._id || u.username === user.username);
+  if (inMemUser) {
+    inMemUser.refreshToken = refreshToken;
+  }
 
   res.json({
     success: true,
     token,
+    refreshToken,
     user: {
       id: user._id,
       username: user.username,
@@ -238,9 +260,58 @@ const deleteUser = catchAsync(async (req, res, next) => {
   });
 });
 
+const refresh = catchAsync(async (req, res, next) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return next(new AppError('Refresh token is required', 400));
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    const dbConnected = isDBConnected();
+    let user;
+
+    if (dbConnected) {
+      try {
+        user = await User.findOne({ _id: decoded.id, isDeleted: false });
+      } catch (err) {
+        console.warn('MongoDB query failed during refresh, falling back to in-memory.', err.message);
+      }
+    }
+
+    if (!user) {
+      user = inMemoryUsers.find(u => u._id === decoded.id && !u.isDeleted);
+    }
+
+    if (!user) {
+      return next(new AppError('User not found or deleted', 401));
+    }
+
+    if (user.refreshToken !== refreshToken) {
+      return next(new AppError('Invalid refresh token', 401));
+    }
+
+    // Generate new access token
+    const token = jwt.sign(
+      { id: user._id, username: user.username, role: user.role, tenantId: user.tenantId },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({
+      success: true,
+      token,
+      refreshToken
+    });
+  } catch (err) {
+    return next(new AppError('Invalid or expired refresh token', 401));
+  }
+});
+
 module.exports = {
   login,
   getUsers,
   createUser,
-  deleteUser
+  deleteUser,
+  refresh
 };

@@ -23,7 +23,7 @@ export function InvoiceProvider({ children }) {
     name: 'Client Compay',
     attn: 'Mr Akhil',
     phone: '+91 9744050505',
-    destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+    destination: 'Trivandrum, Kerala'
   });
 
   // Synchronize Invoice customerDetails and Proposal recipient
@@ -139,7 +139,7 @@ export function InvoiceProvider({ children }) {
               name: 'Client Compay',
               attn: 'Mr Akhil',
               phone: '+91 9744050505',
-              destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+              destination: 'Trivandrum, Kerala'
             },
             meta: localStorage.getItem('invoice_meta') ? JSON.parse(localStorage.getItem('invoice_meta')) : {
               quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
@@ -209,7 +209,7 @@ export function InvoiceProvider({ children }) {
               name: 'Client Compay',
               attn: 'Mr Akhil',
               phone: '+91 9744050505',
-              destination: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+              destination: 'Trivandrum, Kerala'
             },
             meta: {
               quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),

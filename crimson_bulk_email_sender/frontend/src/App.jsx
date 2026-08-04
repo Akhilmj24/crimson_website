@@ -26,6 +26,9 @@ import CrmFollowUps from './modules/crm/CrmFollowUps';
 import CrmReports from './modules/crm/CrmReports';
 import CrmSettings from './modules/crm/CrmSettings';
 import CrmUserManagement from './modules/crm/CrmUserManagement';
+import CrmOrders from './modules/crm/CrmOrders';
+import CrmAccounts from './modules/crm/CrmAccounts';
+import CrmExpenses from './modules/crm/CrmExpenses';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('crm_token'));
@@ -56,7 +59,7 @@ export default function App() {
                       <Route path="/proposal" element={<ProposalGenerator />} />
                       <Route path="/document-history" element={<DocumentHistory />} />
                       <Route path="/products" element={<ProductList />} />
-                      
+
                       {/* CRM Routes */}
                       <Route path="/crm/dashboard" element={<CrmDashboard />} />
                       <Route path="/crm/leads" element={<CrmLeads />} />
@@ -69,6 +72,9 @@ export default function App() {
                       <Route path="/crm/reports" element={<CrmReports />} />
                       <Route path="/crm/settings" element={<CrmSettings />} />
                       <Route path="/crm/users" element={<CrmUserManagement />} />
+                      <Route path="/crm/orders" element={<CrmOrders />} />
+                      <Route path="/crm/income" element={<CrmAccounts />} />
+                      <Route path="/crm/expenses" element={<CrmExpenses />} />
 
                       <Route path="*" element={<Navigate to="/crm/dashboard" replace />} />
                     </Routes>

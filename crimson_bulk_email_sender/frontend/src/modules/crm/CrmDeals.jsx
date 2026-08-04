@@ -4,11 +4,12 @@ import { Plus, Edit, Trash2, X, Loader2, Calendar, DollarSign, MessageSquare, Cl
 
 export default function CrmDeals() {
   const {
-    deals,
-    leads,
-    contacts,
-    companies,
+    deals: rawDeals = [],
+    leads: rawLeads = [],
+    contacts: rawContacts = [],
+    companies: rawCompanies = [],
     settings,
+    users = [],
     isLoading,
     fetchDeals,
     createDeal,
@@ -17,8 +18,18 @@ export default function CrmDeals() {
     fetchLeads,
     fetchContacts,
     fetchCompanies,
-    fetchSettings
+    fetchSettings,
+    fetchUsers,
+    updateLead
   } = useCrm();
+
+  const deals = rawDeals.filter(Boolean);
+  const leads = rawLeads.filter(Boolean);
+  const contacts = rawContacts.filter(Boolean);
+  const companies = rawCompanies.filter(Boolean);
+
+  const [pipelineType, setPipelineType] = useState('Both');
+  const [errors, setErrors] = useState({});
 
   // Kanban Columns (Deal Stages)
   const defaultStages = ['New', 'Contacted', 'Proposal', 'Negotiation', 'Won', 'Lost'];
@@ -41,16 +52,45 @@ export default function CrmDeals() {
   const [activeTimelineDeal, setActiveTimelineDeal] = useState(null);
   const [newNote, setNewNote] = useState('');
 
+  const mapLeadStatusToStage = (status, stages) => {
+    if (!status) return 'New';
+    if (stages.includes(status)) return status;
+    const sLower = status.toLowerCase();
+    if (sLower.includes('new')) return stages.find(s => s.toLowerCase().includes('new')) || stages[0];
+    if (sLower.includes('contacted')) return stages.find(s => s.toLowerCase().includes('contact')) || stages[0];
+    if (sLower.includes('proposal')) return stages.find(s => s.toLowerCase().includes('proposal')) || stages[0];
+    if (sLower.includes('negotiation')) return stages.find(s => s.toLowerCase().includes('negotiat')) || stages[0];
+    if (sLower.includes('confirm') || sLower.includes('won') || sLower.includes('closed')) {
+      return stages.find(s => s.toLowerCase().includes('won') || s.toLowerCase().includes('confirm') || s.toLowerCase().includes('success')) || stages[stages.length - 2] || stages[0];
+    }
+    if (sLower.includes('lost')) return stages.find(s => s.toLowerCase().includes('lost')) || stages[stages.length - 1] || stages[0];
+    return stages[0];
+  };
+
+  const mapStageToLeadStatus = (stage) => {
+    if (!stage) return 'New';
+    const sLower = stage.toLowerCase();
+    if (sLower.includes('new')) return 'New';
+    if (sLower.includes('contacted')) return 'Contacted';
+    if (sLower.includes('proposal')) return 'Proposal Sent';
+    if (sLower.includes('negotiation')) return 'Negotiation';
+    if (sLower.includes('won') || sLower.includes('confirm') || sLower.includes('closed')) return 'Order Confirmed';
+    if (sLower.includes('lost')) return 'Lost';
+    return 'New';
+  };
+
   useEffect(() => {
     fetchDeals();
     fetchLeads({ limit: 100 });
     fetchContacts({ limit: 100 });
     fetchCompanies({ limit: 100 });
     fetchSettings();
+    if (fetchUsers) fetchUsers();
   }, []);
 
   const handleOpenCreate = (stage = 'New') => {
     setCurrentDeal(null);
+    setErrors({});
     setFormData({
       name: '',
       customerSelection: '',
@@ -64,7 +104,12 @@ export default function CrmDeals() {
   };
 
   const handleOpenEdit = (deal) => {
+    if (deal.isLeadDeal) {
+      alert(`This deal is managed directly under Lead: "${deal.name.replace(' - Order/Deal', '')}". Please update the quotation in the Leads module.`);
+      return;
+    }
     setCurrentDeal(deal);
+    setErrors({});
     setFormData({
       name: deal.name || '',
       customerSelection: deal.customer ? `${deal.customerModel}:${deal.customer._id || deal.customer}` : '',
@@ -79,12 +124,21 @@ export default function CrmDeals() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    
+    // Reset and validate
+    const validationErrors = {};
     if (!formData.name.trim()) {
-      alert('Deal Name is required');
-      return;
+      validationErrors.name = 'Deal Name is required';
     }
     if (!formData.customerSelection) {
-      alert('Customer assignment is required');
+      validationErrors.customerSelection = 'Customer assignment is required';
+    }
+    if (formData.value < 0) {
+      validationErrors.value = 'Deal Value must be non-negative';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -133,17 +187,38 @@ export default function CrmDeals() {
 
   const handleDrop = async (e, targetStage) => {
     e.preventDefault();
-    const dealId = e.dataTransfer.getData('text/plain');
-    const deal = deals.find(d => d._id === dealId);
-    if (deal && deal.stage !== targetStage) {
-      try {
-        await updateDeal(dealId, {
-          ...deal,
-          customer: deal.customer?._id || deal.customer,
-          stage: targetStage
-        });
-      } catch (err) {
-        alert(err.message || 'Error dropping deal');
+    const dragId = e.dataTransfer.getData('text/plain');
+    
+    if (dragId.startsWith('lead_')) {
+      const leadId = dragId.replace('lead_', '');
+      const lead = leads.find(l => l._id === leadId);
+      if (lead) {
+        const targetLeadStatus = mapStageToLeadStatus(targetStage);
+        if (lead.status !== targetLeadStatus) {
+          try {
+            // Strip immutable system fields to prevent Mongoose / MongoDB errors
+            const { _id, id, createdAt, updatedAt, __v, statusHistory, createdBy, tenantId, ...cleanLead } = lead;
+            await updateLead(leadId, { ...cleanLead, status: targetLeadStatus });
+          } catch (err) {
+            alert(err.message || 'Error dropping lead');
+          }
+        }
+      }
+    } else {
+      const deal = deals.find(d => d._id === dragId);
+      if (deal && deal.stage !== targetStage) {
+        try {
+          // Strip immutable fields & nested populated objects (like customer) to match DB schema
+          const { _id, id, createdAt, updatedAt, __v, createdBy, tenantId, customer, ...cleanDeal } = deal;
+          const customerId = customer?._id || customer;
+          await updateDeal(dragId, {
+            ...cleanDeal,
+            customer: customerId,
+            stage: targetStage
+          });
+        } catch (err) {
+          alert(err.message || 'Error dropping deal');
+        }
       }
     }
   };
@@ -181,14 +256,10 @@ export default function CrmDeals() {
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-      <header className="history-header" style={{ marginBottom: '24px' }}>
+      <header className="history-header" style={{ marginBottom: '24px', alignItems: 'center' }}>
         <div>
           <h1>Sales Pipeline</h1>
         </div>
-        <button className="btn-add-item-row" onClick={() => handleOpenCreate('New')} style={{ marginTop: 0, width: 'auto' }}>
-          <Plus size={16} />
-          Add Deal
-        </button>
       </header>
 
       {/* Kanban Board */}
@@ -200,8 +271,32 @@ export default function CrmDeals() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${stagesList.length}, 1fr)`, gap: '16px', minHeight: '600px', overflowX: 'auto', paddingBottom: '20px' }}>
           {stagesList.map(stage => {
-            const stageDeals = deals.filter(d => d.stage === stage);
+            const mappedLeadDeals = leads
+              .filter(l => l.quotation?.products?.length > 0 && mapLeadStatusToStage(l.status, stagesList) === stage)
+              .map(l => ({
+                _id: `lead_${l._id}`, // This matches the dragId format lead_id
+                name: `${l.name} - Order/Deal`,
+                customer: { name: l.company || l.name },
+                value: l.quotation.totalAmount || 0,
+                closingDate: l.quotation.expectedDeliveryDate,
+                stage: stage,
+                assignedUser: l.assignedUser,
+                notes: l.notes || [],
+                isLeadDeal: true,
+                leadId: l._id,
+                products: l.quotation.products
+              }));
+
+            const dbDeals = deals.filter(d => d.stage === stage);
+            const stageDeals = pipelineType !== 'Leads' ? [...dbDeals, ...mappedLeadDeals] : [];
+            
+            // For stageLeads, exclude leads that have quotations (since they are now represented as deals)
+            const stageLeads = pipelineType !== 'Deals' 
+              ? leads.filter(l => l.status === stage && (!l.quotation?.products || l.quotation.products.length === 0)) 
+              : [];
+            
             const totalValue = stageDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+            const totalItemsCount = stageDeals.length + stageLeads.length;
 
             return (
               <div
@@ -215,16 +310,37 @@ export default function CrmDeals() {
                   <div>
                     <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{stage}</div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                      ₹{totalValue.toLocaleString('en-IN')} ({stageDeals.length})
+                      {stageDeals.length > 0 && `₹${totalValue.toLocaleString('en-IN')} | `}{totalItemsCount} items
                     </div>
                   </div>
-                  <button onClick={() => handleOpenCreate(stage)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'inline-flex' }}>
-                    <Plus size={14} />
-                  </button>
                 </div>
 
-                {/* Deal Items */}
+                {/* Unified Items List */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1, overflowY: 'auto' }}>
+                  {/* Render Lead Cards */}
+                  {stageLeads.map(lead => (
+                    <div
+                      key={`lead-${lead._id}`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, `lead_${lead._id}`)}
+                      className="card"
+                      style={{ padding: '14px', background: 'rgba(255, 199, 44, 0.03)', border: '1px solid rgba(255, 199, 44, 0.15)', cursor: 'grab', display: 'flex', flexDirection: 'column', gap: '8px' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{lead.name}</span>
+                        <span className="badge pending" style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px' }}>Lead</span>
+                      </div>
+                      {lead.company && <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{lead.company}</div>}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                        <span className={`badge ${lead.priority === 'High' ? 'sending' : lead.priority === 'Medium' ? 'warning' : 'completed'}`} style={{ fontSize: '9px' }}>
+                          {lead.priority}
+                        </span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{lead.source}</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Render Deal Cards */}
                   {stageDeals.map(deal => {
                     const closeDate = deal.closingDate ? new Date(deal.closingDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : null;
                     return (
@@ -241,15 +357,29 @@ export default function CrmDeals() {
                             <button onClick={() => handleOpenEdit(deal)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>
                               <Edit size={12} />
                             </button>
-                            <button onClick={() => handleDelete(deal._id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}>
-                              <Trash2 size={12} />
-                            </button>
+                            {!deal.isLeadDeal && (
+                              <button onClick={() => handleDelete(deal._id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}>
+                                <Trash2 size={12} />
+                              </button>
+                            )}
                           </div>
                         </div>
 
                         <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                           {deal.customer?.name || 'Unknown Client'}
                         </div>
+
+                        {deal.isLeadDeal && deal.products && deal.products.length > 0 && (
+                          <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', marginBottom: '4px' }}>
+                            <div style={{ fontWeight: '600', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '3px', marginBottom: '3px' }}>Items & Order Details:</div>
+                            {deal.products.map((p, pIdx) => (
+                              <div key={pIdx} style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>• {p.name}</span>
+                                <span>x{p.quantity} (₹{p.unitPrice})</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '12px' }}>
                           <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>
@@ -296,24 +426,31 @@ export default function CrmDeals() {
             </div>
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="form-group">
+              <div className="form-group" style={{ gridColumn: 'span 2' }}>
                 <label>Deal Name *</label>
                 <input
                   type="text"
-                  className="invoice-form-item-input"
+                  className={`invoice-form-item-input ${errors.name ? 'error' : ''}`}
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (errors.name) setErrors(prev => ({ ...prev, name: null }));
+                  }}
                   placeholder="e.g. 5,000 pouches matte printing order"
                   required
                 />
+                {errors.name && <span style={{ color: 'var(--error)', fontSize: '11px', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
               </div>
 
               <div className="form-group">
                 <label>Associated Customer *</label>
                 <select
                   value={formData.customerSelection}
-                  onChange={(e) => setFormData({ ...formData, customerSelection: e.target.value })}
-                  className="invoice-form-item-input"
+                  onChange={(e) => {
+                    setFormData({ ...formData, customerSelection: e.target.value });
+                    if (errors.customerSelection) setErrors(prev => ({ ...prev, customerSelection: null }));
+                  }}
+                  className={`invoice-form-item-input ${errors.customerSelection ? 'error' : ''}`}
                   style={{ height: '36px' }}
                   required
                 >
@@ -322,17 +459,22 @@ export default function CrmDeals() {
                     <option key={`${c.model}:${c.id}`} value={`${c.model}:${c.id}`}>{c.name}</option>
                   ))}
                 </select>
+                {errors.customerSelection && <span style={{ color: 'var(--error)', fontSize: '11px', marginTop: '4px', display: 'block' }}>{errors.customerSelection}</span>}
               </div>
 
               <div className="form-group">
                 <label>Deal Value (₹) *</label>
                 <input
                   type="number"
-                  className="invoice-form-item-input"
+                  className={`invoice-form-item-input ${errors.value ? 'error' : ''}`}
                   value={formData.value}
-                  onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, value: Number(e.target.value) || 0 });
+                    if (errors.value) setErrors(prev => ({ ...prev, value: null }));
+                  }}
                   required
                 />
+                {errors.value && <span style={{ color: 'var(--error)', fontSize: '11px', marginTop: '4px', display: 'block' }}>{errors.value}</span>}
               </div>
 
               <div className="form-group">
@@ -347,13 +489,17 @@ export default function CrmDeals() {
 
               <div className="form-group">
                 <label>Assigned Staff Member</label>
-                <input
-                  type="text"
+                <select
                   className="invoice-form-item-input"
+                  style={{ height: '36px' }}
                   value={formData.assignedUser}
                   onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
-                  placeholder="e.g. Akhil"
-                />
+                >
+                  <option value="">Unassigned</option>
+                  {users.map(u => (
+                    <option key={u._id} value={u.username}>{u.username} ({u.role})</option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group">
@@ -368,7 +514,7 @@ export default function CrmDeals() {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group" style={{ gridColumn: 'span 2' }}>
                 <label>Notes (separated by |)</label>
                 <textarea
                   className="invoice-form-item-input"

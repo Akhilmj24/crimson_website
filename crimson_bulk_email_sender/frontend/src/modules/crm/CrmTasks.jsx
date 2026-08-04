@@ -5,12 +5,16 @@ import { Plus, Edit, Trash2, X, Loader2, Calendar, CheckSquare, Square, Filter }
 export default function CrmTasks() {
   const {
     tasks,
+    users = [],
     isLoading,
     fetchTasks,
     createTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    fetchUsers
   } = useCrm();
+
+  const [errors, setErrors] = useState({});
 
   // Filters
   const [statusFilter, setStatusFilter] = useState('');
@@ -30,10 +34,12 @@ export default function CrmTasks() {
 
   useEffect(() => {
     fetchTasks({ status: statusFilter, priority: priorityFilter });
+    if (fetchUsers) fetchUsers();
   }, [statusFilter, priorityFilter]);
 
   const handleOpenCreate = () => {
     setCurrentTask(null);
+    setErrors({});
     setFormData({
       title: '',
       description: '',
@@ -47,6 +53,7 @@ export default function CrmTasks() {
 
   const handleOpenEdit = (task) => {
     setCurrentTask(task);
+    setErrors({});
     setFormData({
       title: task.title || '',
       description: task.description || '',
@@ -60,8 +67,14 @@ export default function CrmTasks() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    
+    const validationErrors = {};
     if (!formData.title.trim()) {
-      alert('Task Title is required');
+      validationErrors.title = 'Task Title is required';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -227,12 +240,16 @@ export default function CrmTasks() {
                 <label>Task Title *</label>
                 <input
                   type="text"
-                  className="invoice-form-item-input"
+                  className={`invoice-form-item-input ${errors.title ? 'error' : ''}`}
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, title: e.target.value });
+                    if (errors.title) setErrors(prev => ({ ...prev, title: null }));
+                  }}
                   placeholder="e.g. Call Client Compay regarding pricing"
                   required
                 />
+                {errors.title && <span style={{ color: 'var(--error)', fontSize: '11px', marginTop: '4px', display: 'block' }}>{errors.title}</span>}
               </div>
 
               <div className="form-group">
@@ -258,13 +275,17 @@ export default function CrmTasks() {
 
               <div className="form-group">
                 <label>Assigned User</label>
-                <input
-                  type="text"
+                <select
                   className="invoice-form-item-input"
+                  style={{ height: '36px' }}
                   value={formData.assignedUser}
                   onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
-                  placeholder="e.g. Akhil"
-                />
+                >
+                  <option value="">Unassigned</option>
+                  {users.map(u => (
+                    <option key={u._id} value={u.username}>{u.username} ({u.role})</option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group">

@@ -15,6 +15,56 @@ const getHeaders = () => {
   return headers;
 };
 
+const originalFetch = window.fetch;
+
+const fetch = async (url, options = {}) => {
+  // Ensure headers exist and merge getHeaders()
+  options.headers = {
+    ...getHeaders(),
+    ...options.headers
+  };
+
+  let res = await originalFetch(url, options);
+
+  // If expired token (401), try refresh
+  if (res.status === 401) {
+    const refreshToken = localStorage.getItem('crm_refresh_token');
+    if (refreshToken) {
+      try {
+        const refreshRes = await originalFetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ refreshToken })
+        });
+
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          if (refreshData.token) {
+            localStorage.setItem('crm_token', refreshData.token);
+            if (refreshData.refreshToken) {
+              localStorage.setItem('crm_refresh_token', refreshData.refreshToken);
+            }
+            // Retry the original request with the new token
+            options.headers['Authorization'] = `Bearer ${refreshData.token}`;
+            res = await originalFetch(url, options);
+          }
+        } else {
+          // Refresh token failed/expired -> log user out
+          localStorage.removeItem('crm_token');
+          localStorage.removeItem('crm_refresh_token');
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error('Error refreshing token:', err);
+      }
+    }
+  }
+
+  return res;
+};
+
 export const crmService = {
   // Dashboard & Reports
   async getDashboard() {
@@ -354,6 +404,104 @@ export const crmService = {
       headers: getHeaders()
     });
     if (!res.ok) throw new Error('Failed to delete user account');
+    return res.json();
+  },
+
+  // Orders
+  async getOrders(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/crm/orders?${query}`, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch Orders');
+    return res.json();
+  },
+
+  async getOrder(id) {
+    const res = await fetch(`/api/crm/orders/${id}`, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch Order details');
+    return res.json();
+  },
+
+  async createOrder(data) {
+    const res = await fetch('/api/crm/orders', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to create Order');
+    return res.json();
+  },
+
+  async updateOrder(id, data) {
+    const res = await fetch(`/api/crm/orders/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to update Order');
+    return res.json();
+  },
+
+  async deleteOrder(id) {
+    const res = await fetch(`/api/crm/orders/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to delete Order');
+    return res.json();
+  },
+
+  // Payments
+  async getPayments(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/crm/payments?${query}`, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch Payments');
+    return res.json();
+  },
+
+  async createPayment(data) {
+    const res = await fetch('/api/crm/payments', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to record Payment');
+    return res.json();
+  },
+
+  // Expenses
+  async getExpenses(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/crm/expenses?${query}`, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch Expenses');
+    return res.json();
+  },
+
+  async createExpense(data) {
+    const res = await fetch('/api/crm/expenses', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to create Expense');
+    return res.json();
+  },
+
+  async updateExpense(id, data) {
+    const res = await fetch(`/api/crm/expenses/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to update Expense');
+    return res.json();
+  },
+
+  async deleteExpense(id) {
+    const res = await fetch(`/api/crm/expenses/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to delete Expense');
     return res.json();
   }
 };

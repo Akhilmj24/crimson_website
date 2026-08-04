@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema({
   createdBy: { 
     type: String, 
     default: 'system' 
+  },
+  refreshToken: {
+    type: String
   }
 }, {
   timestamps: true

@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Public routes
 router.post('/auth/login', authController.login);
+router.post('/auth/refresh', authController.refresh);
 
 // Protected routes (Admin / Super Admin user management)
 router.get('/auth/users', auth, tenant, authController.getUsers);

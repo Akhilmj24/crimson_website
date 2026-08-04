@@ -9,6 +9,9 @@ const inMemoryActivities = [];
 const inMemoryNotifications = [];
 const inMemoryActivityLogs = [];
 const inMemorySettingsMap = new Map();
+const inMemoryOrders = [];
+const inMemoryPayments = [];
+const inMemoryExpenses = [];
 
 // Helper to log audit trail
 const logActivity = (tenantId, action, moduleName, referenceId, details, createdBy) => {
@@ -42,7 +45,7 @@ const getSettings = async (tenantId) => {
     inMemorySettingsMap.set(tenantId, {
       leadSources: ['Website', 'Referral', 'Social Media', 'Cold Reach', 'Other'],
       tags: ['Warm', 'Cold', 'Enterprise', 'SMB', 'Important'],
-      dealStages: ['New', 'Contacted', 'Proposal', 'Negotiation', 'Won', 'Lost'],
+      dealStages: ['New', 'Contacted', 'Proposal Sent', 'Follow Up', 'Negotiation', 'Order Confirmed', 'Lost', 'Closed'],
       customFields: [],
       tenantId
     });
@@ -76,9 +79,14 @@ const getLead = async (id, tenantId) => {
 
 const createLead = async (tenantId, data, userId) => {
   const id = 'lead_mem_' + Date.now();
+  const status = data.status || 'New';
   const lead = {
     _id: id,
     ...data,
+    address: data.address || '',
+    status,
+    statusHistory: [{ status, updatedBy: userId || 'system', createdAt: new Date() }],
+    quotation: data.quotation || { products: [], totalAmount: 0, expectedDeliveryDate: null, notes: '' },
     tenantId,
     isDeleted: false,
     createdAt: new Date(),
@@ -99,6 +107,18 @@ const updateLead = async (id, tenantId, data, userId) => {
   const oldStatus = lead.status;
   const oldAssigned = lead.assignedUser;
 
+  // Track status history
+  if (data.status && data.status !== oldStatus) {
+    if (!lead.statusHistory) lead.statusHistory = [];
+    lead.statusHistory.push({
+      status: data.status,
+      updatedBy: userId || 'system',
+      createdAt: new Date()
+    });
+  }
+
+  const becameConfirmed = data.status === 'Order Confirmed' && oldStatus !== 'Order Confirmed';
+
   Object.assign(lead, data, { updatedAt: new Date() });
 
   if (data.status && data.status !== oldStatus) {
@@ -109,6 +129,10 @@ const updateLead = async (id, tenantId, data, userId) => {
 
   if (data.assignedUser && data.assignedUser !== oldAssigned) {
     notifyUser(tenantId, data.assignedUser, `Lead assigned: ${lead.name}`);
+  }
+
+  if (becameConfirmed) {
+    await createOrderFromLeadInMemory(tenantId, lead, userId);
   }
 
   return lead;
@@ -434,19 +458,261 @@ const getActivityLogs = async (tenantId) => {
   return inMemoryActivityLogs.filter(a => a.tenantId === tenantId).sort((a, b) => b.createdAt - a.createdAt);
 };
 
+// Order from Lead Helper
+const createOrderFromLeadInMemory = async (tenantId, lead, userId) => {
+  const orderNumber = 'ORD-' + (1000 + inMemoryOrders.length + 1);
+  const products = lead.quotation?.products || [];
+  const totalAmount = lead.quotation?.totalAmount || 0;
+  const expectedDeliveryDate = lead.quotation?.expectedDeliveryDate || null;
+  const notes = lead.quotation?.notes || '';
+
+  const order = {
+    _id: 'ord_mem_' + Date.now(),
+    leadId: lead._id,
+    orderNumber,
+    customerName: lead.name,
+    companyName: lead.company || '',
+    email: lead.email || '',
+    phone: lead.phone || '',
+    status: 'Pending',
+    products,
+    totalAmount,
+    expectedDeliveryDate,
+    paymentStatus: 'Unpaid',
+    notes,
+    attachments: [],
+    statusHistory: [{ status: 'Pending', updatedBy: userId || 'system', notes: 'Order automatically created from Lead', createdAt: new Date() }],
+    tenantId,
+    isDeleted: false,
+    createdBy: userId || 'system',
+    updatedBy: userId || 'system',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  inMemoryOrders.push(order);
+  logActivity(tenantId, 'CREATE', 'Order', order._id, `Order ${orderNumber} created from Lead ${lead.name}`, userId);
+  return order;
+};
+
+// Orders
+const getOrders = async (tenantId, query = {}) => {
+  let filtered = inMemoryOrders.filter(o => o.tenantId === tenantId && !o.isDeleted);
+  if (query.status) filtered = filtered.filter(o => o.status === query.status);
+  if (query.paymentStatus) filtered = filtered.filter(o => o.paymentStatus === query.paymentStatus);
+  if (query.search) {
+    const s = query.search.toLowerCase();
+    filtered = filtered.filter(o =>
+      o.customerName.toLowerCase().includes(s) ||
+      (o.companyName && o.companyName.toLowerCase().includes(s)) ||
+      o.orderNumber.toLowerCase().includes(s)
+    );
+  }
+  return filtered;
+};
+
+const getOrder = async (id, tenantId) => {
+  return inMemoryOrders.find(o => o._id === id && o.tenantId === tenantId && !o.isDeleted) || null;
+};
+
+const createOrder = async (tenantId, data, userId) => {
+  const orderNumber = 'ORD-' + (1000 + inMemoryOrders.length + 1);
+  const order = {
+    _id: 'ord_mem_' + Date.now(),
+    orderNumber,
+    ...data,
+    status: data.status || 'Pending',
+    paymentStatus: data.paymentStatus || 'Unpaid',
+    statusHistory: [{ status: data.status || 'Pending', updatedBy: userId || 'system', notes: 'Order created manually', createdAt: new Date() }],
+    tenantId,
+    isDeleted: false,
+    createdBy: userId || 'system',
+    updatedBy: userId || 'system',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  inMemoryOrders.push(order);
+  logActivity(tenantId, 'CREATE', 'Order', order._id, `Order ${orderNumber} created`, userId);
+  return order;
+};
+
+const updateOrder = async (id, tenantId, data, userId) => {
+  const order = await getOrder(id, tenantId);
+  if (!order) return null;
+
+  if (data.status === 'Completed') {
+    const payments = inMemoryPayments.filter(p => p.orderId === id && p.tenantId === tenantId);
+    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    if (totalPaid < order.totalAmount - 0.01) {
+      throw new Error(`Cannot mark order as Completed. Payment is not fully received. (Paid: ₹${totalPaid.toFixed(2)} / Grand Total: ₹${order.totalAmount.toFixed(2)})`);
+    }
+  }
+
+  const oldStatus = order.status;
+
+  Object.assign(order, data, { updatedAt: new Date() });
+
+  if (data.status && data.status !== oldStatus) {
+    if (!order.statusHistory) order.statusHistory = [];
+    order.statusHistory.push({
+      status: data.status,
+      updatedBy: userId || 'system',
+      notes: data.statusNotes || 'Status updated',
+      createdAt: new Date()
+    });
+    logActivity(tenantId, 'STATUS_CHANGE', 'Order', id, `Order status updated to ${data.status}`, userId);
+  }
+
+  return order;
+};
+
+const deleteOrder = async (id, tenantId, userId) => {
+  const order = await getOrder(id, tenantId);
+  if (!order) return false;
+  order.isDeleted = true;
+  logActivity(tenantId, 'DELETE', 'Order', id, `Order ${order.orderNumber} soft-deleted`, userId);
+  return true;
+};
+
+// Payments
+const getPayments = async (tenantId, query = {}) => {
+  let filtered = inMemoryPayments.filter(p => p.tenantId === tenantId);
+  if (query.orderId) filtered = filtered.filter(p => p.orderId === query.orderId);
+  return filtered;
+};
+
+const createPayment = async (tenantId, data, userId) => {
+  const payment = {
+    _id: 'pay_mem_' + Date.now(),
+    ...data,
+    amount: Number(data.amount) || 0,
+    paymentDate: data.paymentDate ? new Date(data.paymentDate) : new Date(),
+    tenantId,
+    createdBy: userId || 'system',
+    createdAt: new Date()
+  };
+  inMemoryPayments.push(payment);
+
+  // Update order outstanding balance and paymentStatus
+  const order = await getOrder(data.orderId, tenantId);
+  if (order) {
+    const orderPayments = inMemoryPayments.filter(p => p.orderId === data.orderId && p.tenantId === tenantId);
+    const totalPaid = orderPayments.reduce((sum, p) => sum + p.amount, 0);
+    const balance = order.totalAmount - totalPaid;
+
+    if (balance <= 0) {
+      order.paymentStatus = 'Paid';
+    } else if (totalPaid > 0) {
+      order.paymentStatus = 'Partially Paid';
+    } else {
+      order.paymentStatus = 'Unpaid';
+    }
+    order.updatedAt = new Date();
+  }
+
+  logActivity(tenantId, 'PAYMENT', 'Order', data.orderId, `Recorded payment of ${data.amount} for Order`, userId);
+  return payment;
+};
+
+// Expenses
+const getExpenses = async (tenantId, query = {}) => {
+  let filtered = inMemoryExpenses.filter(e => e.tenantId === tenantId && !e.isDeleted);
+  if (query.category) filtered = filtered.filter(e => e.category === query.category);
+  if (query.search) {
+    const s = query.search.toLowerCase();
+    filtered = filtered.filter(e =>
+      e.description.toLowerCase().includes(s) ||
+      (e.vendor && e.vendor.toLowerCase().includes(s))
+    );
+  }
+  return filtered;
+};
+
+const createExpense = async (tenantId, data, userId) => {
+  const expense = {
+    _id: 'exp_mem_' + Date.now(),
+    ...data,
+    amount: Number(data.amount) || 0,
+    date: data.date ? new Date(data.date) : new Date(),
+    tenantId,
+    isDeleted: false,
+    createdBy: userId || 'system',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  inMemoryExpenses.push(expense);
+  logActivity(tenantId, 'CREATE', 'Expense', expense._id, `Expense of ${expense.amount} under ${expense.category} created`, userId);
+  return expense;
+};
+
+const updateExpense = async (id, tenantId, data, userId) => {
+  const exp = inMemoryExpenses.find(e => e._id === id && e.tenantId === tenantId && !e.isDeleted);
+  if (!exp) return null;
+  Object.assign(exp, data, { updatedAt: new Date() });
+  logActivity(tenantId, 'UPDATE', 'Expense', id, `Expense updated`, userId);
+  return exp;
+};
+
+const deleteExpense = async (id, tenantId, userId) => {
+  const exp = inMemoryExpenses.find(e => e._id === id && e.tenantId === tenantId && !e.isDeleted);
+  if (!exp) return false;
+  exp.isDeleted = true;
+  logActivity(tenantId, 'DELETE', 'Expense', id, `Expense deleted`, userId);
+  return true;
+};
+
 // Dashboards & Reports
 const getDashboardStats = async (tenantId) => {
   const leads = inMemoryLeads.filter(l => l.tenantId === tenantId && !l.isDeleted);
   const deals = inMemoryDeals.filter(d => d.tenantId === tenantId && !d.isDeleted);
   const tasks = inMemoryTasks.filter(t => t.tenantId === tenantId && !t.isDeleted);
   const followUps = inMemoryFollowUps.filter(f => f.tenantId === tenantId && !f.isDeleted);
+  const orders = inMemoryOrders.filter(o => o.tenantId === tenantId && !o.isDeleted);
+  const payments = inMemoryPayments.filter(p => p.tenantId === tenantId);
+  const expenses = inMemoryExpenses.filter(e => e.tenantId === tenantId && !e.isDeleted);
 
   const totalValue = deals.filter(d => d.stage !== 'Lost').reduce((acc, d) => acc + (Number(d.value) || 0), 0);
   const openDeals = deals.filter(d => d.stage !== 'Won' && d.stage !== 'Lost').length;
-  const wonDeals = deals.filter(d => d.stage === 'Won').length;
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.status === 'Completed').length;
   const pendingTasks = totalTasks - completedTasks;
+
+  // Calculate Lead Metrics
+  const leadMetrics = {
+    totalLeads: leads.length,
+    newLeads: leads.filter(l => l.status === 'New').length,
+    contactedLeads: leads.filter(l => l.status === 'Contacted').length,
+    proposalSentLeads: leads.filter(l => l.status === 'Proposal Sent').length,
+    convertedLeads: leads.filter(l => l.status === 'Order Confirmed').length,
+    lostLeads: leads.filter(l => l.status === 'Lost').length
+  };
+
+  // Calculate Order Metrics
+  const orderMetrics = {
+    totalOrders: orders.length,
+    pendingOrders: orders.filter(o => o.status === 'Pending').length,
+    processingOrders: orders.filter(o => o.status === 'Processing').length,
+    completedOrders: orders.filter(o => o.status === 'Completed').length
+  };
+
+  // Calculate Financial Metrics
+  const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const netProfit = totalRevenue - totalExpenses;
+
+  // Outstanding payments across all non-cancelled orders
+  let outstandingPayments = 0;
+  orders.filter(o => o.status !== 'Cancelled').forEach(o => {
+    const orderPayments = payments.filter(p => p.orderId === o._id);
+    const paid = orderPayments.reduce((sum, p) => sum + p.amount, 0);
+    outstandingPayments += Math.max(0, o.totalAmount - paid);
+  });
+
+  const financialMetrics = {
+    totalRevenue,
+    totalExpenses,
+    netProfit,
+    outstandingPayments
+  };
 
   const logs = inMemoryActivityLogs.filter(a => a.tenantId === tenantId).sort((a, b) => b.createdAt - a.createdAt).slice(0, 10);
 
@@ -457,6 +723,9 @@ const getDashboardStats = async (tenantId) => {
       openDeals,
       pendingTasks
     },
+    leadMetrics,
+    orderMetrics,
+    financialMetrics,
     upcomingFollowUps: followUps.slice(0, 5),
     recentLogs: logs
   };
@@ -543,5 +812,19 @@ module.exports = {
   getActivityLogs,
   
   getDashboardStats,
-  getReportsStats: getReports
+  getReportsStats: getReports,
+
+  getOrders,
+  getOrderById: getOrder,
+  createOrder,
+  updateOrder,
+  deleteOrder,
+
+  getPayments,
+  createPayment,
+
+  getExpenses,
+  createExpense,
+  updateExpense,
+  deleteExpense
 };

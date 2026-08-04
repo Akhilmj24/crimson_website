@@ -8,6 +8,9 @@ const FollowUp = require('../models/FollowUp');
 const ActivityLog = require('../models/ActivityLog');
 const CrmSettings = require('../models/CrmSettings');
 const Notification = require('../models/Notification');
+const Order = require('../models/Order');
+const Payment = require('../models/Payment');
+const Expense = require('../models/Expense');
 const AppError = require('../utils/AppError');
 const { isDBConnected } = require('../config/db');
 const crmInMemoryService = require('./crmInMemoryService');
@@ -98,7 +101,14 @@ const getLeadById = async (tenantId, id) => {
 };
 
 const createLead = async (tenantId, data, createdBy) => {
-  const lead = new Lead({ ...data, tenantId, createdBy, updatedBy: createdBy });
+  const status = data.status || 'New';
+  const lead = new Lead({
+    ...data,
+    tenantId,
+    createdBy,
+    updatedBy: createdBy,
+    statusHistory: [{ status, updatedBy: createdBy }]
+  });
   await lead.save();
 
   await logActivity(tenantId, 'CREATE', 'leads', lead._id, `Lead "${lead.name}" created`, createdBy);
@@ -114,16 +124,26 @@ const updateLead = async (tenantId, id, data, updatedBy) => {
   const oldLead = await Lead.findOne({ _id: id, tenantId, isDeleted: false });
   if (!oldLead) throw new AppError('Lead not found', 404);
 
+  const statusChanged = data.status && data.status !== oldLead.status;
+  const becameConfirmed = data.status === 'Order Confirmed' && oldLead.status !== 'Order Confirmed';
+
+  let updateQuery = { $set: { ...data, updatedBy } };
+  if (statusChanged) {
+    updateQuery.$push = {
+      statusHistory: { status: data.status, updatedBy }
+    };
+  }
+
   const lead = await Lead.findOneAndUpdate(
     { _id: id, tenantId, isDeleted: false },
-    { ...data, updatedBy },
+    updateQuery,
     { new: true, runValidators: true }
   );
 
   let details = `Lead "${lead.name}" updated`;
   let action = 'UPDATE';
 
-  if (oldLead.status !== lead.status) {
+  if (statusChanged) {
     action = 'STAGE_CHANGE';
     details = `Lead status changed from "${oldLead.status}" to "${lead.status}"`;
   }
@@ -137,6 +157,11 @@ const updateLead = async (tenantId, id, data, updatedBy) => {
   }
 
   await logActivity(tenantId, action, 'leads', lead._id, details, updatedBy);
+
+  if (becameConfirmed) {
+    await createOrderFromLeadDB(tenantId, lead, updatedBy);
+  }
+
   return lead;
 };
 
@@ -521,6 +546,244 @@ const markNotificationRead = async (tenantId, id) => {
 };
 
 // ==========================================
+// Orders Service
+// ==========================================
+const createOrderFromLeadDB = async (tenantId, lead, userId) => {
+  const count = await Order.countDocuments({ tenantId });
+  const orderNumber = 'ORD-' + (1000 + count + 1);
+
+  const products = lead.quotation?.products || [];
+  const totalAmount = lead.quotation?.totalAmount || 0;
+  const expectedDeliveryDate = lead.quotation?.expectedDeliveryDate || null;
+  const notes = lead.quotation?.notes || '';
+
+  const order = new Order({
+    leadId: lead._id,
+    orderNumber,
+    customerName: lead.name,
+    companyName: lead.company || '',
+    email: lead.email || '',
+    phone: lead.phone || '',
+    status: 'Pending',
+    products,
+    totalAmount,
+    expectedDeliveryDate,
+    paymentStatus: 'Unpaid',
+    notes,
+    attachments: [],
+    statusHistory: [{ status: 'Pending', updatedBy: userId, notes: 'Order automatically created from Lead' }],
+    tenantId,
+    createdBy: userId,
+    updatedBy: userId
+  });
+  await order.save();
+
+  await logActivity(tenantId, 'CREATE', 'orders', order._id, `Order ${orderNumber} created from Lead "${lead.name}"`, userId);
+  return order;
+};
+
+const getOrders = async (tenantId, queryParams = {}) => {
+  const { status, paymentStatus, search, page = 1, limit = 50 } = queryParams;
+  const filter = { tenantId, isDeleted: false };
+
+  if (status) filter.status = status;
+  if (paymentStatus) filter.paymentStatus = paymentStatus;
+  if (search) {
+    filter.$or = [
+      { customerName: { $regex: search, $options: 'i' } },
+      { companyName: { $regex: search, $options: 'i' } },
+      { orderNumber: { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const total = await Order.countDocuments(filter);
+  const data = await Order.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  return { data, total, page: parseInt(page), limit: parseInt(limit) };
+};
+
+const getOrderById = async (tenantId, id) => {
+  const order = await Order.findOne({ _id: id, tenantId, isDeleted: false }).populate('leadId');
+  if (!order) throw new AppError('Order not found', 404);
+  return order;
+};
+
+const createOrder = async (tenantId, data, createdBy) => {
+  const count = await Order.countDocuments({ tenantId });
+  const orderNumber = 'ORD-' + (1000 + count + 1);
+
+  const order = new Order({
+    ...data,
+    orderNumber,
+    tenantId,
+    createdBy,
+    updatedBy: createdBy,
+    statusHistory: [{ status: data.status || 'Pending', updatedBy: createdBy, notes: 'Order created manually' }]
+  });
+  await order.save();
+
+  await logActivity(tenantId, 'CREATE', 'orders', order._id, `Order "${orderNumber}" created`, createdBy);
+  return order;
+};
+
+const updateOrder = async (tenantId, id, data, updatedBy) => {
+  const oldOrder = await Order.findOne({ _id: id, tenantId, isDeleted: false });
+  if (!oldOrder) throw new AppError('Order not found', 404);
+
+  if (data.status === 'Completed') {
+    const payments = await Payment.find({ orderId: id, tenantId });
+    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    if (totalPaid < oldOrder.totalAmount - 0.01) {
+      throw new AppError(`Cannot mark order as Completed. Payment is not fully received. (Paid: ₹${totalPaid.toFixed(2)} / Grand Total: ₹${oldOrder.totalAmount.toFixed(2)})`, 400);
+    }
+  }
+
+  const statusChanged = data.status && data.status !== oldOrder.status;
+
+  let updateQuery = { $set: { ...data, updatedBy } };
+  if (statusChanged) {
+    updateQuery.$push = {
+      statusHistory: { status: data.status, updatedBy, notes: data.statusNotes || 'Status updated' }
+    };
+  }
+
+  const order = await Order.findOneAndUpdate(
+    { _id: id, tenantId, isDeleted: false },
+    updateQuery,
+    { new: true, runValidators: true }
+  );
+
+  let details = `Order "${order.orderNumber}" updated`;
+  let action = 'UPDATE';
+
+  if (statusChanged) {
+    action = 'STAGE_CHANGE';
+    details = `Order status changed from "${oldOrder.status}" to "${order.status}"`;
+  }
+
+  await logActivity(tenantId, action, 'orders', order._id, details, updatedBy);
+  return order;
+};
+
+const deleteOrder = async (tenantId, id, updatedBy) => {
+  const order = await Order.findOneAndUpdate(
+    { _id: id, tenantId, isDeleted: false },
+    { isDeleted: true, updatedBy },
+    { new: true }
+  );
+  if (!order) throw new AppError('Order not found', 404);
+
+  await logActivity(tenantId, 'DELETE', 'orders', order._id, `Order "${order.orderNumber}" soft-deleted`, updatedBy);
+  return order;
+};
+
+// ==========================================
+// Payments Service
+// ==========================================
+const getPayments = async (tenantId, queryParams = {}) => {
+  const filter = { tenantId };
+  if (queryParams.orderId) filter.orderId = queryParams.orderId;
+
+  return await Payment.find(filter).sort({ paymentDate: -1 });
+};
+
+const createPayment = async (tenantId, data, createdBy) => {
+  const payment = new Payment({
+    ...data,
+    amount: Number(data.amount) || 0,
+    tenantId,
+    createdBy
+  });
+  await payment.save();
+
+  // Recalculate outstanding balance on the order
+  const order = await Order.findOne({ _id: data.orderId, tenantId, isDeleted: false });
+  if (order) {
+    const orderPayments = await Payment.find({ orderId: data.orderId, tenantId });
+    const totalPaid = orderPayments.reduce((sum, p) => sum + p.amount, 0);
+    const balance = order.totalAmount - totalPaid;
+
+    if (balance <= 0) {
+      order.paymentStatus = 'Paid';
+    } else if (totalPaid > 0) {
+      order.paymentStatus = 'Partially Paid';
+    } else {
+      order.paymentStatus = 'Unpaid';
+    }
+    await order.save();
+  }
+
+  await logActivity(tenantId, 'PAYMENT', 'orders', data.orderId, `Recorded payment of ${data.amount} for Order`, createdBy);
+  return payment;
+};
+
+// ==========================================
+// Expenses Service
+// ==========================================
+const getExpenses = async (tenantId, queryParams = {}) => {
+  const { category, search, page = 1, limit = 50 } = queryParams;
+  const filter = { tenantId, isDeleted: false };
+
+  if (category) filter.category = category;
+  if (search) {
+    filter.$or = [
+      { description: { $regex: search, $options: 'i' } },
+      { vendor: { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const total = await Expense.countDocuments(filter);
+  const data = await Expense.find(filter)
+    .sort({ date: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  return { data, total, page: parseInt(page), limit: parseInt(limit) };
+};
+
+const createExpense = async (tenantId, data, createdBy) => {
+  const expense = new Expense({
+    ...data,
+    amount: Number(data.amount) || 0,
+    tenantId,
+    createdBy
+  });
+  await expense.save();
+
+  await logActivity(tenantId, 'CREATE', 'expenses', expense._id, `Expense of ${expense.amount} under ${expense.category} created`, createdBy);
+  return expense;
+};
+
+const updateExpense = async (tenantId, id, data, updatedBy) => {
+  const expense = await Expense.findOneAndUpdate(
+    { _id: id, tenantId, isDeleted: false },
+    { ...data, updatedBy },
+    { new: true, runValidators: true }
+  );
+  if (!expense) throw new AppError('Expense not found', 404);
+
+  await logActivity(tenantId, 'UPDATE', 'expenses', expense._id, `Expense updated`, updatedBy);
+  return expense;
+};
+
+const deleteExpense = async (tenantId, id, updatedBy) => {
+  const expense = await Expense.findOneAndUpdate(
+    { _id: id, tenantId, isDeleted: false },
+    { isDeleted: true, updatedBy },
+    { new: true }
+  );
+  if (!expense) throw new AppError('Expense not found', 404);
+
+  await logActivity(tenantId, 'DELETE', 'expenses', expense._id, `Expense deleted`, updatedBy);
+  return expense;
+};
+
+// ==========================================
 // 10. Dashboard & Reports Analytics
 // ==========================================
 const getDashboardStats = async (tenantId) => {
@@ -528,19 +791,60 @@ const getDashboardStats = async (tenantId) => {
   const totalLeads = await Lead.countDocuments({ tenantId, isDeleted: false });
   const totalContacts = await Contact.countDocuments({ tenantId, isDeleted: false });
   const totalCompanies = await Company.countDocuments({ tenantId, isDeleted: false });
-  
-  // Deals metrics
-  const openDeals = await Deal.countDocuments({ 
-    tenantId, 
-    isDeleted: false, 
-    stage: { $nin: ['Won', 'Lost'] } 
+
+  // Lead stages counts
+  const leadMetrics = {
+    totalLeads,
+    newLeads: await Lead.countDocuments({ tenantId, isDeleted: false, status: 'New' }),
+    contactedLeads: await Lead.countDocuments({ tenantId, isDeleted: false, status: 'Contacted' }),
+    proposalSentLeads: await Lead.countDocuments({ tenantId, isDeleted: false, status: 'Proposal Sent' }),
+    convertedLeads: await Lead.countDocuments({ tenantId, isDeleted: false, status: 'Order Confirmed' }),
+    lostLeads: await Lead.countDocuments({ tenantId, isDeleted: false, status: 'Lost' })
+  };
+
+  // Orders metrics
+  const orderMetrics = {
+    totalOrders: await Order.countDocuments({ tenantId, isDeleted: false }),
+    pendingOrders: await Order.countDocuments({ tenantId, isDeleted: false, status: 'Pending' }),
+    processingOrders: await Order.countDocuments({ tenantId, isDeleted: false, status: 'Processing' }),
+    completedOrders: await Order.countDocuments({ tenantId, isDeleted: false, status: 'Completed' })
+  };
+
+  // Financial metrics
+  const payments = await Payment.find({ tenantId });
+  const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+
+  const expenses = await Expense.find({ tenantId, isDeleted: false });
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  const netProfit = totalRevenue - totalExpenses;
+
+  // Outstanding payments across all non-cancelled orders
+  const orders = await Order.find({ tenantId, isDeleted: false, status: { $ne: 'Cancelled' } });
+  let outstandingPayments = 0;
+  orders.forEach(o => {
+    const orderPayments = payments.filter(p => p.orderId.toString() === o._id.toString());
+    const paid = orderPayments.reduce((sum, p) => sum + p.amount, 0);
+    outstandingPayments += Math.max(0, o.totalAmount - paid);
+  });
+
+  const financialMetrics = {
+    totalRevenue,
+    totalExpenses,
+    netProfit,
+    outstandingPayments
+  };
+
+  // Deals metrics (legacy support)
+  const openDeals = await Deal.countDocuments({
+    tenantId,
+    isDeleted: false,
+    stage: { $nin: ['Won', 'Lost'] }
   });
   const wonDealsCount = await Deal.countDocuments({ tenantId, isDeleted: false, stage: 'Won' });
   const lostDealsCount = await Deal.countDocuments({ tenantId, isDeleted: false, stage: 'Lost' });
-
-  // Sum revenue
   const wonDeals = await Deal.find({ tenantId, isDeleted: false, stage: 'Won' });
-  const revenue = wonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+  const legacyRevenue = wonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
 
   // Recent system activity logs
   const recentActivities = await ActivityLog.find({ tenantId })
@@ -550,10 +854,10 @@ const getDashboardStats = async (tenantId) => {
   // Upcoming followups (today and future)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const upcomingFollowUps = await FollowUp.find({ 
-    tenantId, 
-    isDeleted: false, 
-    date: { $gte: today } 
+  const upcomingFollowUps = await FollowUp.find({
+    tenantId,
+    isDeleted: false,
+    date: { $gte: today }
   })
     .populate('customer')
     .sort({ date: 1, time: 1 })
@@ -565,9 +869,12 @@ const getDashboardStats = async (tenantId) => {
     openDeals,
     wonDeals: wonDealsCount,
     lostDeals: lostDealsCount,
-    revenue,
+    revenue: legacyRevenue,
     recentActivities,
-    upcomingFollowUps
+    upcomingFollowUps,
+    leadMetrics,
+    orderMetrics,
+    financialMetrics
   };
 };
 
@@ -582,7 +889,7 @@ const getReportsStats = async (tenantId) => {
 
   // Conversion rates (leads to won deals/customers)
   const totalLeads = await Lead.countDocuments({ tenantId, isDeleted: false });
-  const convertedLeads = await Lead.countDocuments({ tenantId, isDeleted: false, status: 'Won' });
+  const convertedLeads = await Lead.countDocuments({ tenantId, isDeleted: false, status: 'Order Confirmed' });
   const leadConversionRate = totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
 
   // Win/Lost ratio
@@ -690,5 +997,19 @@ module.exports = {
   markNotificationRead: wrapService('markNotificationRead', markNotificationRead),
   
   getDashboardStats: wrapService('getDashboardStats', getDashboardStats),
-  getReportsStats: wrapService('getReportsStats', getReportsStats)
+  getReportsStats: wrapService('getReportsStats', getReportsStats),
+
+  getOrders: wrapService('getOrders', getOrders),
+  getOrderById: wrapService('getOrderById', getOrderById),
+  createOrder: wrapService('createOrder', createOrder),
+  updateOrder: wrapService('updateOrder', updateOrder),
+  deleteOrder: wrapService('deleteOrder', deleteOrder),
+
+  getPayments: wrapService('getPayments', getPayments),
+  createPayment: wrapService('createPayment', createPayment),
+
+  getExpenses: wrapService('getExpenses', getExpenses),
+  createExpense: wrapService('createExpense', createExpense),
+  updateExpense: wrapService('updateExpense', updateExpense),
+  deleteExpense: wrapService('deleteExpense', deleteExpense)
 };

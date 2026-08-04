@@ -11,7 +11,10 @@ const {
   validateDeal,
   validateTask,
   validateFollowUp,
-  validateSettings
+  validateSettings,
+  validateOrder,
+  validatePayment,
+  validateExpense
 } = require('../validators/crmValidator');
 
 const router = express.Router();
@@ -77,5 +80,22 @@ router.post('/crm/activities', checkPermission('crm.activities', 'create'), crmC
 // 10. Notifications
 router.get('/crm/notifications', crmController.getNotifications);
 router.patch('/crm/notifications/:id/read', crmController.markNotificationRead);
+
+// 11. Orders
+router.get('/crm/orders', checkPermission('crm.orders', 'view'), crmController.getOrders);
+router.get('/crm/orders/:id', checkPermission('crm.orders', 'view'), crmController.getOrder);
+router.post('/crm/orders', checkPermission('crm.orders', 'create'), validate(validateOrder), crmController.createOrder);
+router.put('/crm/orders/:id', checkPermission('crm.orders', 'edit'), validate(validateOrder), crmController.updateOrder);
+router.delete('/crm/orders/:id', checkPermission('crm.orders', 'delete'), crmController.deleteOrder);
+
+// 12. Payments
+router.get('/crm/payments', checkPermission('crm.accounts', 'view'), crmController.getPayments);
+router.post('/crm/payments', checkPermission('crm.accounts', 'create'), validate(validatePayment), crmController.createPayment);
+
+// 13. Expenses
+router.get('/crm/expenses', checkPermission('crm.expenses', 'view'), crmController.getExpenses);
+router.post('/crm/expenses', checkPermission('crm.expenses', 'create'), validate(validateExpense), crmController.createExpense);
+router.put('/crm/expenses/:id', checkPermission('crm.expenses', 'edit'), validate(validateExpense), crmController.updateExpense);
+router.delete('/crm/expenses/:id', checkPermission('crm.expenses', 'delete'), crmController.deleteExpense);
 
 module.exports = router;

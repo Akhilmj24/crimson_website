@@ -29,7 +29,7 @@ export function ProposalProvider({ children }) {
     name: 'Mr Akhil',
     title: 'Manager ISL & Marketing',
     company: 'Client Compay',
-    address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+    address: 'Trivandrum, Kerala'
   });
 
   const [meta, setMeta] = useState({
@@ -117,7 +117,7 @@ export function ProposalProvider({ children }) {
               name: 'Mr Akhil',
               title: 'Manager ISL & Marketing',
               company: 'Client Compay',
-              address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+              address: 'Trivandrum, Kerala'
             },
             meta: localStorage.getItem('proposal_meta') ? JSON.parse(localStorage.getItem('proposal_meta')) : {
               proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),
@@ -180,7 +180,7 @@ export function ProposalProvider({ children }) {
               name: 'Mr Akhil',
               title: 'Manager ISL & Marketing',
               company: 'Client Compay',
-              address: 'Athen Gardens, Chakka, Anayara, Trivandrum, Kerala'
+              address: 'Trivandrum, Kerala'
             },
             meta: {
               proposalId: 'SP-PR-' + Math.floor(1000 + Math.random() * 9000),

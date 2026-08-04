@@ -11,6 +11,7 @@ export function CrmProvider({ children }) {
   const [dashboardStats, setDashboardStats] = useState(null);
   const [reportsStats, setReportsStats] = useState(null);
   const [leads, setLeads] = useState([]);
+  const [users, setUsers] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [deals, setDeals] = useState([]);
@@ -23,6 +24,12 @@ export function CrmProvider({ children }) {
   const [leadsTotal, setLeadsTotal] = useState(0);
   const [contactsTotal, setContactsTotal] = useState(0);
   const [companiesTotal, setCompaniesTotal] = useState(0);
+  
+  const [orders, setOrders] = useState([]);
+  const [ordersTotal, setOrdersTotal] = useState(0);
+  const [payments, setPayments] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [expensesTotal, setExpensesTotal] = useState(0);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -271,18 +278,101 @@ export function CrmProvider({ children }) {
     return readItem;
   });
 
-  // Poll for notifications periodically
+  // Orders
+  const fetchOrders = (params = {}) => runAsync(async () => {
+    const res = await crmService.getOrders(params);
+    setOrders(res.data);
+    setOrdersTotal(res.total);
+    return res;
+  });
+
+  const fetchOrder = (id) => runAsync(async () => {
+    return await crmService.getOrder(id);
+  });
+
+  const createOrder = (data) => runAsync(async () => {
+    const order = await crmService.createOrder(data);
+    setOrders(prev => [order, ...prev]);
+    fetchDashboard();
+    return order;
+  });
+
+  const updateOrder = (id, data) => runAsync(async () => {
+    const order = await crmService.updateOrder(id, data);
+    setOrders(prev => prev.map(o => o._id === id ? order : o));
+    fetchDashboard();
+    return order;
+  });
+
+  const deleteOrder = (id) => runAsync(async () => {
+    await crmService.deleteOrder(id);
+    setOrders(prev => prev.filter(o => o._id !== id));
+    fetchDashboard();
+  });
+
+  // Payments
+  const fetchPayments = (params = {}) => runAsync(async () => {
+    const data = await crmService.getPayments(params);
+    setPayments(data);
+    return data;
+  });
+
+  const createPayment = (data) => runAsync(async () => {
+    const payment = await crmService.createPayment(data);
+    setPayments(prev => [payment, ...prev]);
+    fetchDashboard();
+    return payment;
+  });
+
+  // Expenses
+  const fetchExpenses = (params = {}) => runAsync(async () => {
+    const res = await crmService.getExpenses(params);
+    setExpenses(res.data);
+    setExpensesTotal(res.total);
+    return res;
+  });
+
+  const createExpense = (data) => runAsync(async () => {
+    const expense = await crmService.createExpense(data);
+    setExpenses(prev => [expense, ...prev]);
+    fetchDashboard();
+    return expense;
+  });
+
+  const updateExpense = (id, data) => runAsync(async () => {
+    const expense = await crmService.updateExpense(id, data);
+    setExpenses(prev => prev.map(e => e._id === id ? expense : e));
+    fetchDashboard();
+    return expense;
+  });
+
+  const deleteExpense = (id) => runAsync(async () => {
+    await crmService.deleteExpense(id);
+    setExpenses(prev => prev.filter(e => e._id !== id));
+    fetchDashboard();
+  });
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 15000); // Check every 15 seconds
     return () => clearInterval(interval);
   }, [currentTenant, currentUser]);
 
+  const fetchUsers = () => runAsync(async () => {
+    try {
+      const data = await crmService.getUsers();
+      setUsers(data);
+      return data;
+    } catch (err) {
+      console.warn('Failed to load users list in context:', err.message);
+    }
+  });
+
   return (
     <CrmContext.Provider value={{
       dashboardStats,
       reportsStats,
       leads,
+      users,
       contacts,
       companies,
       deals,
@@ -294,6 +384,11 @@ export function CrmProvider({ children }) {
       leadsTotal,
       contactsTotal,
       companiesTotal,
+      orders,
+      ordersTotal,
+      payments,
+      expenses,
+      expensesTotal,
       isLoading,
       error,
       
@@ -335,7 +430,20 @@ export function CrmProvider({ children }) {
       fetchActivities,
       createActivity,
       fetchNotifications,
-      markNotificationRead
+      markNotificationRead,
+      fetchUsers,
+
+      fetchOrders,
+      fetchOrder,
+      createOrder,
+      updateOrder,
+      deleteOrder,
+      fetchPayments,
+      createPayment,
+      fetchExpenses,
+      createExpense,
+      updateExpense,
+      deleteExpense
     }}>
       {children}
     </CrmContext.Provider>

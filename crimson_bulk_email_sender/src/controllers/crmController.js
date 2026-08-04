@@ -221,6 +221,70 @@ const markNotificationRead = catchAsync(async (req, res, next) => {
   res.json(notification);
 });
 
+// ==========================================
+// Orders Controller
+// ==========================================
+const getOrders = catchAsync(async (req, res, next) => {
+  const result = await crmService.getOrders(req.tenantId, req.query);
+  res.json(result);
+});
+
+const getOrder = catchAsync(async (req, res, next) => {
+  const order = await crmService.getOrderById(req.tenantId, req.params.id);
+  res.json(order);
+});
+
+const createOrder = catchAsync(async (req, res, next) => {
+  const order = await crmService.createOrder(req.tenantId, req.body, req.userId);
+  res.status(201).json(order);
+});
+
+const updateOrder = catchAsync(async (req, res, next) => {
+  const order = await crmService.updateOrder(req.tenantId, req.params.id, req.body, req.userId);
+  res.json(order);
+});
+
+const deleteOrder = catchAsync(async (req, res, next) => {
+  await crmService.deleteOrder(req.tenantId, req.params.id, req.userId);
+  res.json({ success: true, message: 'Order deleted successfully' });
+});
+
+// ==========================================
+// Payments Controller
+// ==========================================
+const getPayments = catchAsync(async (req, res, next) => {
+  const payments = await crmService.getPayments(req.tenantId, req.query);
+  res.json(payments);
+});
+
+const createPayment = catchAsync(async (req, res, next) => {
+  const payment = await crmService.createPayment(req.tenantId, req.body, req.userId);
+  res.status(201).json(payment);
+});
+
+// ==========================================
+// Expenses Controller
+// ==========================================
+const getExpenses = catchAsync(async (req, res, next) => {
+  const result = await crmService.getExpenses(req.tenantId, req.query);
+  res.json(result);
+});
+
+const createExpense = catchAsync(async (req, res, next) => {
+  const expense = await crmService.createExpense(req.tenantId, req.body, req.userId);
+  res.status(201).json(expense);
+});
+
+const updateExpense = catchAsync(async (req, res, next) => {
+  const expense = await crmService.updateExpense(req.tenantId, req.params.id, req.body, req.userId);
+  res.json(expense);
+});
+
+const deleteExpense = catchAsync(async (req, res, next) => {
+  await crmService.deleteExpense(req.tenantId, req.params.id, req.userId);
+  res.json({ success: true, message: 'Expense deleted successfully' });
+});
+
 module.exports = {
   getDashboardStats,
   getReportsStats,
@@ -267,5 +331,19 @@ module.exports = {
   createActivity,
   
   getNotifications,
-  markNotificationRead
+  markNotificationRead,
+  
+  getOrders,
+  getOrder,
+  createOrder,
+  updateOrder,
+  deleteOrder,
+
+  getPayments,
+  createPayment,
+
+  getExpenses,
+  createExpense,
+  updateExpense,
+  deleteExpense
 };

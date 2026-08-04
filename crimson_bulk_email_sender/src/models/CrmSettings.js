@@ -16,7 +16,7 @@ const crmSettingsSchema = new mongoose.Schema({
   },
   dealStages: { 
     type: [String], 
-    default: ['New', 'Contacted', 'Proposal', 'Negotiation', 'Won', 'Lost'] 
+    default: ['New', 'Contacted', 'Proposal Sent', 'Follow Up', 'Negotiation', 'Order Confirmed', 'Lost', 'Closed'] 
   },
   customFields: [customFieldSchema],
   tenantId: { type: String, required: true, unique: true, index: true }

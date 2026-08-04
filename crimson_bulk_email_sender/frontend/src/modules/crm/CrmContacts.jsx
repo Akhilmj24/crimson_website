@@ -263,7 +263,7 @@ export default function CrmContacts() {
                   className="invoice-form-item-input"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  placeholder="e.g. Athen Gardens"
+                  placeholder="e.g. Company"
                 />
               </div>
 

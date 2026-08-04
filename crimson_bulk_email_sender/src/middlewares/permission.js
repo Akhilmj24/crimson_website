@@ -17,7 +17,10 @@ const rolePermissions = {
     'crm.tasks': ['view', 'create', 'edit', 'delete'],
     'crm.activities': ['view', 'create', 'edit', 'delete'],
     'crm.reports': ['view'],
-    'crm.settings': ['view', 'edit']
+    'crm.settings': ['view', 'edit'],
+    'crm.orders': ['view', 'create', 'edit', 'delete'],
+    'crm.accounts': ['view', 'create', 'edit'],
+    'crm.expenses': ['view', 'create', 'edit', 'delete']
   },
   Agent: {
     'crm.dashboard': ['view'],
@@ -28,7 +31,10 @@ const rolePermissions = {
     'crm.tasks': ['view', 'create', 'edit'],
     'crm.activities': ['view', 'create', 'edit'],
     'crm.reports': [],
-    'crm.settings': []
+    'crm.settings': [],
+    'crm.orders': ['view', 'create', 'edit'],
+    'crm.accounts': ['view'],
+    'crm.expenses': ['view', 'create']
   }
 };
 

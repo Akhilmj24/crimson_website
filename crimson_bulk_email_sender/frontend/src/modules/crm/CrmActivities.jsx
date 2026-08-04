@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Phone, Mail, Users, MessageSquare, Plus, Clock, MessageCircle, AlertCircle, Loader2 } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmActivities() {
   const {
@@ -113,34 +114,33 @@ export default function CrmActivities() {
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
                 <label>Interaction Type</label>
-                <select
+                <Dropdown
+                  options={[
+                    { value: 'Call', label: '📞 Call / Telephone' },
+                    { value: 'Meeting', label: '🤝 Meeting' },
+                    { value: 'Email', label: '📧 E-mail Sent' },
+                    { value: 'WhatsApp', label: '💬 WhatsApp Message' },
+                    { value: 'Note', label: '📝 General Notes / Internal Log' },
+                    { value: 'Task', label: '⏱️ Task update' }
+                  ]}
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                >
-                  <option value="Call">📞 Call / Telephone</option>
-                  <option value="Meeting">🤝 Meeting</option>
-                  <option value="Email">📧 E-mail Sent</option>
-                  <option value="WhatsApp">💬 WhatsApp Message</option>
-                  <option value="Note">📝 General Notes / Internal Log</option>
-                  <option value="Task">⏱️ Task update</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, type: val })}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">
                 <label>Associated Client (Optional)</label>
-                <select
+                <Dropdown
+                  placeholder="No associated client"
+                  options={customerOptions.map(c => ({ value: `${c.model}:${c.id}`, label: c.name }))}
                   value={formData.customerSelection}
-                  onChange={(e) => setFormData({ ...formData, customerSelection: e.target.value })}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                >
-                  <option value="">No associated client</option>
-                  {customerOptions.map(c => (
-                    <option key={`${c.model}:${c.id}`} value={`${c.model}:${c.id}`}>{c.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, customerSelection: val })}
+                  searchable={true}
+                  clearable={true}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">

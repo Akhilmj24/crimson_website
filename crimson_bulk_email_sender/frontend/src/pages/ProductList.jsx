@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Tag } from 'lucide-react';
 import { useInvoice } from '../context/InvoiceContext';
+import Dropdown from '../components/Dropdown';
 
 export default function ProductList() {
   const { masterProducts, setMasterProducts } = useInvoice();
@@ -135,17 +136,18 @@ export default function ProductList() {
             </div>
             <div className="form-group">
               <label>GST Rate (%)</label>
-              <select
-                style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '10px', fontSize: '13px' }}
+              <Dropdown
+                options={[
+                  { value: 0, label: '0%' },
+                  { value: 5, label: '5%' },
+                  { value: 12, label: '12%' },
+                  { value: 18, label: '18%' },
+                  { value: 28, label: '28%' }
+                ]}
                 value={newProduct.gstRate}
-                onChange={(e) => setNewProduct({ ...newProduct, gstRate: parseInt(e.target.value) })}
-              >
-                <option value="0">0%</option>
-                <option value="5">5%</option>
-                <option value="12">12%</option>
-                <option value="18">18%</option>
-                <option value="28">28%</option>
-              </select>
+                onChange={(val) => setNewProduct({ ...newProduct, gstRate: Number(val) })}
+                searchable={false}
+              />
             </div>
             <button type="submit" className="btn-add-item-row" style={{ marginTop: '10px', width: '100%', justifyContent: 'center' }}>
               <Plus size={16} />
@@ -219,17 +221,19 @@ export default function ProductList() {
                         </td>
                         <td style={{ padding: '12px 8px' }}>
                           {isEditing ? (
-                            <select
-                              style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-primary)', padding: '6px' }}
-                              value={editProduct.gstRate}
-                              onChange={(e) => setEditProduct({ ...editProduct, gstRate: parseInt(e.target.value) })}
-                            >
-                              <option value="0">0%</option>
-                              <option value="5">5%</option>
-                              <option value="12">12%</option>
-                              <option value="18">18%</option>
-                              <option value="28">28%</option>
-                            </select>
+                             <Dropdown
+                               options={[
+                                 { value: 0, label: '0%' },
+                                 { value: 5, label: '5%' },
+                                 { value: 12, label: '12%' },
+                                 { value: 18, label: '18%' },
+                                 { value: 28, label: '28%' }
+                               ]}
+                               value={editProduct.gstRate}
+                               onChange={(val) => setEditProduct({ ...editProduct, gstRate: Number(val) })}
+                               searchable={false}
+                               selectStyle={{ padding: '6px' }}
+                             />
                           ) : (
                             <span>{p.gstRate}%</span>
                           )}

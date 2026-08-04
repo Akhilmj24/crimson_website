@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Search, Edit, Trash2, X, Filter, Loader2, ShoppingBag, Eye, Calendar, DollarSign, Clock, FileText, CheckCircle, Plus, Trash } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmOrders() {
   const {
@@ -168,25 +169,27 @@ export default function CrmOrders() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Filter size={14} style={{ color: 'var(--text-muted)' }} />
-          <select
+          <Dropdown
+            placeholder="All Statuses"
+            options={orderStatuses}
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 10px', fontSize: '13px' }}
-          >
-            <option value="">All Statuses</option>
-            {orderStatuses.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+            onChange={(val) => { setStatusFilter(val); setPage(1); }}
+            searchable={false}
+            clearable={true}
+            style={{ width: '150px' }}
+            selectStyle={{ height: '32px', padding: '4px 10px', background: 'rgba(0,0,0,0.2)' }}
+          />
 
-          <select
+          <Dropdown
+            placeholder="All Payments"
+            options={['Unpaid', 'Partially Paid', 'Paid']}
             value={paymentFilter}
-            onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
-            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 10px', fontSize: '13px' }}
-          >
-            <option value="">All Payments</option>
-            <option value="Unpaid">Unpaid</option>
-            <option value="Partially Paid">Partially Paid</option>
-            <option value="Paid">Paid</option>
-          </select>
+            onChange={(val) => { setPaymentFilter(val); setPage(1); }}
+            searchable={false}
+            clearable={true}
+            style={{ width: '150px' }}
+            selectStyle={{ height: '32px', padding: '4px 10px', background: 'rgba(0,0,0,0.2)' }}
+          />
         </div>
       </div>
 
@@ -423,13 +426,12 @@ export default function CrmOrders() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div>
                       <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Select Stage</label>
-                      <select
-                        style={{ width: '100%', padding: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border)', color: '#fff', borderRadius: '6px', fontSize: '13px' }}
+                      <Dropdown
+                        options={orderStatuses}
                         value={selectedOrder.status}
-                        onChange={(e) => handleUpdateStatus(e.target.value)}
-                      >
-                        {orderStatuses.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                        onChange={(val) => handleUpdateStatus(val)}
+                        searchable={false}
+                      />
                     </div>
                     <div>
                       <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Timeline Notes / Reason</label>
@@ -526,19 +528,13 @@ export default function CrmOrders() {
 
               <div className="form-group">
                 <label>Payment Method</label>
-                <select
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
+                <Dropdown
+                  options={['Cash', 'Bank Transfer', 'Card', 'UPI', 'Check', 'Other']}
                   value={paymentForm.paymentMethod}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
-                >
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Card">Card</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Check">Check</option>
-                  <option value="Other">Other</option>
-                </select>
+                  onChange={(val) => setPaymentForm({ ...paymentForm, paymentMethod: val })}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">

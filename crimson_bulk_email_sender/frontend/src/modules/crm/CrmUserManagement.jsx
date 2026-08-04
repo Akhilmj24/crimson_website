@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { crmService } from '../../services/crmService';
 import { Plus, Trash2, Key, Loader2, Users, ShieldAlert } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmUserManagement() {
   const [users, setUsers] = useState([]);
@@ -136,19 +137,19 @@ export default function CrmUserManagement() {
 
               <div className="form-group">
                 <label>Role *</label>
-                <select
+                <Dropdown
+                  options={[
+                    ...(currentUserRole === 'super_admin' || currentUserRole === 'Admin' ? [
+                      { value: 'Admin', label: 'Admin (All features except managing other super_admins)' }
+                    ] : []),
+                    { value: 'Manager', label: 'Manager (CRM CRUD + settings, no reports)' },
+                    { value: 'Agent', label: 'Agent (CRM CRUD only, no settings or reports)' }
+                  ]}
                   value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                  required
-                >
-                  {(currentUserRole === 'super_admin' || currentUserRole === 'Admin') && (
-                    <option value="Admin">Admin (All features except managing other super_admins)</option>
-                  )}
-                  <option value="Manager">Manager (CRM CRUD + settings, no reports)</option>
-                  <option value="Agent">Agent (CRM CRUD only, no settings or reports)</option>
-                </select>
+                  onChange={(val) => setRole(val)}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               {currentUserRole === 'super_admin' && (

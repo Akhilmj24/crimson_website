@@ -696,7 +696,7 @@ const getDashboardStats = async (tenantId) => {
 
   // Calculate Financial Metrics
   const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0);
   const netProfit = totalRevenue - totalExpenses;
 
   // Outstanding payments across all non-cancelled orders

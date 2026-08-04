@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Plus, Edit, Trash2, X, Loader2, Calendar, DollarSign, MessageSquare, Clock } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmDeals() {
   const {
@@ -444,21 +445,19 @@ export default function CrmDeals() {
 
               <div className="form-group">
                 <label>Associated Customer *</label>
-                <select
+                <Dropdown
+                  placeholder="Select Lead, Contact, or Company"
+                  options={customerOptions.map(c => ({ value: `${c.model}:${c.id}`, label: c.name }))}
                   value={formData.customerSelection}
-                  onChange={(e) => {
-                    setFormData({ ...formData, customerSelection: e.target.value });
+                  onChange={(val) => {
+                    setFormData({ ...formData, customerSelection: val });
                     if (errors.customerSelection) setErrors(prev => ({ ...prev, customerSelection: null }));
                   }}
-                  className={`invoice-form-item-input ${errors.customerSelection ? 'error' : ''}`}
-                  style={{ height: '36px' }}
-                  required
-                >
-                  <option value="">Select Lead, Contact, or Company</option>
-                  {customerOptions.map(c => (
-                    <option key={`${c.model}:${c.id}`} value={`${c.model}:${c.id}`}>{c.name}</option>
-                  ))}
-                </select>
+                  error={errors.customerSelection}
+                  searchable={true}
+                  required={true}
+                  selectStyle={{ height: '36px' }}
+                />
                 {errors.customerSelection && <span style={{ color: 'var(--error)', fontSize: '11px', marginTop: '4px', display: 'block' }}>{errors.customerSelection}</span>}
               </div>
 
@@ -489,29 +488,26 @@ export default function CrmDeals() {
 
               <div className="form-group">
                 <label>Assigned Staff Member</label>
-                <select
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
+                <Dropdown
+                  placeholder="Unassigned"
+                  options={users.map(u => ({ value: u.username, label: `${u.username} (${u.role})` }))}
                   value={formData.assignedUser}
-                  onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
-                >
-                  <option value="">Unassigned</option>
-                  {users.map(u => (
-                    <option key={u._id} value={u.username}>{u.username} ({u.role})</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, assignedUser: val })}
+                  searchable={true}
+                  clearable={true}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">
                 <label>Pipeline Stage</label>
-                <select
+                <Dropdown
+                  options={stagesList}
                   value={formData.stage}
-                  onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                >
-                  {stagesList.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, stage: val })}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group" style={{ gridColumn: 'span 2' }}>

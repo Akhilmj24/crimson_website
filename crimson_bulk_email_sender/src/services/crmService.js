@@ -815,7 +815,7 @@ const getDashboardStats = async (tenantId) => {
   const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
 
   const expenses = await Expense.find({ tenantId, isDeleted: false });
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0);
 
   const netProfit = totalRevenue - totalExpenses;
 

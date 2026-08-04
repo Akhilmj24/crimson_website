@@ -117,47 +117,63 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '8px' }}>
+      <div className="sidebar-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '8px' }}>
         {/* Logged in User Profile Info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 16px', marginBottom: '4px' }}>
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '13px', textTransform: 'uppercase' }}>
-              {(localStorage.getItem('crm_user_id') || 'User').substring(0, 2)}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 12px 4px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '13px', textTransform: 'uppercase' }}>
+                {(localStorage.getItem('crm_user_id') || 'User').substring(0, 2)}
+              </div>
+              {/* Connection Status Dot Indicator */}
+              <span
+                style={{
+                  position: 'absolute',
+                  bottom: '-1px',
+                  right: '-1px',
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  background: serverSmtp.dbConnected ? 'var(--success)' : 'var(--warning)',
+                  border: '2px solid #1a1815', // matching var(--bg-card) hex value exactly
+                  boxShadow: serverSmtp.dbConnected ? '0 0 6px var(--success)' : '0 0 6px var(--warning)'
+                }}
+                title={serverSmtp.dbConnected ? "MongoDB Connected" : "In-Memory Fallback Mode"}
+              ></span>
             </div>
-            {/* Connection Status Dot Indicator */}
-            <span
-              style={{
-                position: 'absolute',
-                bottom: '-1px',
-                right: '-1px',
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                background: serverSmtp.dbConnected ? 'var(--success)' : 'var(--warning)',
-                border: '2px solid #1a1815', // matching var(--bg-card) hex value exactly
-                boxShadow: serverSmtp.dbConnected ? '0 0 6px var(--success)' : '0 0 6px var(--warning)'
-              }}
-              title={serverSmtp.dbConnected ? "MongoDB Connected" : "In-Memory Fallback Mode"}
-            ></span>
+            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                {localStorage.getItem('crm_user_id') || 'User'}
+              </span>
+              <span style={{ fontSize: '10px', color: 'var(--secondary)', textTransform: 'capitalize', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                {currentUserRole || 'Agent'}
+              </span>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-              {localStorage.getItem('crm_user_id') || 'User'}
-            </span>
-            <span style={{ fontSize: '10px', color: 'var(--secondary)', textTransform: 'capitalize' }}>
-              {currentUserRole || 'Agent'}
-            </span>
-          </div>
-        </div>
 
-        <button
-          onClick={handleLogout}
-          className="sidebar-nav-item"
-          style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 16px', color: 'var(--text-muted)', marginTop: 0 }}
-        >
-          <LogOut size={16} />
-          Sign Out
-        </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px',
+              borderRadius: '6px',
+              transition: 'all 0.2s',
+              marginLeft: '4px',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--error)'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+            title="Sign Out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
     </aside>
   );

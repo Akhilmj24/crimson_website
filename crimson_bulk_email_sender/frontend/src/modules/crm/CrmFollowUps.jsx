@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Plus, Trash2, Calendar, Clock, Loader2, Sparkles, Bell } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmFollowUps() {
   const {
@@ -108,18 +109,15 @@ export default function CrmFollowUps() {
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
                 <label>Target Customer *</label>
-                <select
+                <Dropdown
+                  placeholder="Select Lead, Contact, or Company"
+                  options={customerOptions.map(c => ({ value: `${c.model}:${c.id}`, label: c.name }))}
                   value={formData.customerSelection}
-                  onChange={(e) => setFormData({ ...formData, customerSelection: e.target.value })}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                  required
-                >
-                  <option value="">Select Lead, Contact, or Company</option>
-                  {customerOptions.map(c => (
-                    <option key={`${c.model}:${c.id}`} value={`${c.model}:${c.id}`}>{c.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, customerSelection: val })}
+                  searchable={true}
+                  required={true}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">

@@ -3,6 +3,7 @@ import { useCrm } from '../../context/CrmContext';
 import { Search, Plus, FileSpreadsheet, Download, Upload, Edit, Trash2, X, Filter, Loader2, Sparkles, Calendar, DollarSign, Clock, Trash } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { product as defaultProducts } from '../../context/data';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmLeads() {
   const {
@@ -306,25 +307,27 @@ export default function CrmLeads() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Filter size={14} style={{ color: 'var(--text-muted)' }} />
 
-          <select
+          <Dropdown
+            placeholder="All Statuses"
+            options={stagesList}
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 10px', fontSize: '13px' }}
-          >
-            <option value="">All Statuses</option>
-            {stagesList.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+            onChange={(val) => { setStatusFilter(val); setPage(1); }}
+            searchable={false}
+            clearable={true}
+            style={{ width: '150px' }}
+            selectStyle={{ height: '32px', padding: '4px 10px', background: 'rgba(0,0,0,0.2)' }}
+          />
 
-          <select
+          <Dropdown
+            placeholder="All Priorities"
+            options={['Low', 'Medium', 'High']}
             value={priorityFilter}
-            onChange={(e) => { setPriorityFilter(e.target.value); setPage(1); }}
-            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 10px', fontSize: '13px' }}
-          >
-            <option value="">All Priorities</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
+            onChange={(val) => { setPriorityFilter(val); setPage(1); }}
+            searchable={false}
+            clearable={true}
+            style={{ width: '150px' }}
+            selectStyle={{ height: '32px', padding: '4px 10px', background: 'rgba(0,0,0,0.2)' }}
+          />
         </div>
       </div>
 
@@ -521,17 +524,15 @@ export default function CrmLeads() {
 
                   <div className="form-group">
                     <label>Assigned User</label>
-                    <select
-                      className="invoice-form-item-input"
-                      style={{ height: '36px' }}
+                    <Dropdown
+                      placeholder="Unassigned"
+                      options={users.map(u => ({ value: u.username, label: `${u.username} (${u.role})` }))}
                       value={formData.assignedUser}
-                      onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
-                    >
-                      <option value="">Unassigned</option>
-                      {users.map(u => (
-                        <option key={u._id} value={u.username}>{u.username} ({u.role})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFormData({ ...formData, assignedUser: val })}
+                      searchable={true}
+                      clearable={true}
+                      selectStyle={{ height: '36px' }}
+                    />
                   </div>
 
                   <div className="form-group">
@@ -577,40 +578,35 @@ export default function CrmLeads() {
 
                   <div className="form-group">
                     <label>Lead Source</label>
-                    <select
+                    <Dropdown
+                      options={sourcesList}
                       value={formData.source}
-                      onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                      className="invoice-form-item-input"
-                      style={{ height: '36px' }}
-                    >
-                      {sourcesList.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
+                      onChange={(val) => setFormData({ ...formData, source: val })}
+                      searchable={false}
+                      selectStyle={{ height: '36px' }}
+                    />
                   </div>
 
                   <div className="form-group">
                     <label>Priority</label>
-                    <select
+                    <Dropdown
+                      options={['Low', 'Medium', 'High']}
                       value={formData.priority}
-                      onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                      className="invoice-form-item-input"
-                      style={{ height: '36px' }}
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                    </select>
+                      onChange={(val) => setFormData({ ...formData, priority: val })}
+                      searchable={false}
+                      selectStyle={{ height: '36px' }}
+                    />
                   </div>
 
                   <div className="form-group">
                     <label>Status / Stage</label>
-                    <select
+                    <Dropdown
+                      options={stagesList}
                       value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="invoice-form-item-input"
-                      style={{ height: '36px' }}
-                    >
-                      {stagesList.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
+                      onChange={(val) => setFormData({ ...formData, status: val })}
+                      searchable={false}
+                      selectStyle={{ height: '36px' }}
+                    />
                   </div>
 
                   <div className="form-group">
@@ -692,10 +688,13 @@ export default function CrmLeads() {
                               <tr key={index} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                                 <td style={{ padding: '6px' }}>
                                   <div style={{ display: 'flex', gap: '4px', flexDirection: 'column' }}>
-                                    <select
-                                      style={{ padding: '4px', background: 'rgba(0,0,0,0.3)', color: '#fff', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '12px' }}
-                                      onChange={(e) => {
-                                        const val = e.target.value;
+                                    <Dropdown
+                                      placeholder="-- Quick Select Product --"
+                                      options={defaultProducts.map(d => ({
+                                        value: d.id,
+                                        label: `${d.description} (${d.size})`
+                                      }))}
+                                      onChange={(val) => {
                                         if (val) {
                                           const selected = defaultProducts.find(x => x.id === parseInt(val));
                                           if (selected) {
@@ -711,12 +710,16 @@ export default function CrmLeads() {
                                           }
                                         }
                                       }}
-                                    >
-                                      <option value="">-- Quick Select Product --</option>
-                                      {defaultProducts.map(d => (
-                                        <option key={d.id} value={d.id}>{d.description} ({d.size})</option>
-                                      ))}
-                                    </select>
+                                      searchable={true}
+                                      selectStyle={{
+                                        padding: '4px',
+                                        background: 'rgba(0,0,0,0.3)',
+                                        color: '#fff',
+                                        border: '1px solid var(--border)',
+                                        fontSize: '12px',
+                                        height: '28px'
+                                      }}
+                                    />
                                     <input
                                       type="text"
                                       className="invoice-form-item-input"

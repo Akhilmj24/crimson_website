@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Save, Plus, Trash2, Key, Settings, RefreshCw, Shield, Users } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmSettings() {
   const {
@@ -164,16 +165,17 @@ export default function CrmSettings() {
 
               <div className="form-group">
                 <label>Simulated Permission Role</label>
-                <select
+                <Dropdown
+                  options={[
+                    { value: 'Admin', label: 'Admin (Full Access to Dashboard, Leads, Contacts, Deals, Reports, Settings)' },
+                    { value: 'Manager', label: 'Manager (Access to CRM CRUDs, read reports, read/edit settings)' },
+                    { value: 'Agent', label: 'Agent (Can only view/edit owned leads/deals. No Settings or Reports)' }
+                  ]}
                   value={testRole}
-                  onChange={(e) => setTestRole(e.target.value)}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                >
-                  <option value="Admin">Admin (Full Access to Dashboard, Leads, Contacts, Deals, Reports, Settings)</option>
-                  <option value="Manager">Manager (Access to CRM CRUDs, read reports, read/edit settings)</option>
-                  <option value="Agent">Agent (Can only view/edit owned leads/deals. No Settings or Reports)</option>
-                </select>
+                  onChange={(val) => setTestRole(val)}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <button type="submit" className="btn-add-item-row" style={{ marginTop: '10px', width: 'auto', display: 'inline-flex', alignSelf: 'flex-start', padding: '10px 24px', borderColor: 'var(--secondary)' }}>

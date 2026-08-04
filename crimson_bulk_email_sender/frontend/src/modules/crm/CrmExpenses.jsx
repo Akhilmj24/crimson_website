@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Search, Plus, Edit, Trash2, X, Filter, Loader2, DollarSign, Calendar, FileText, ArrowDownRight } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmExpenses() {
   const {
@@ -107,7 +108,7 @@ export default function CrmExpenses() {
 
   const categories = ['Office Expenses', 'Travel', 'Marketing', 'Salary', 'Utilities', 'Miscellaneous'];
 
-  const totalExpenseSum = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalExpenseSum = expenses?.reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
@@ -139,15 +140,13 @@ export default function CrmExpenses() {
 
             <div className="form-group">
               <label>Category *</label>
-              <select
-                className="invoice-form-item-input"
-                style={{ height: '36px' }}
+              <Dropdown
+                options={categories}
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                required
-              >
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+                onChange={(val) => setFormData({ ...formData, category: val })}
+                searchable={false}
+                selectStyle={{ height: '36px' }}
+              />
             </div>
 
             <div className="form-group">
@@ -168,19 +167,13 @@ export default function CrmExpenses() {
 
             <div className="form-group">
               <label>Payment Method</label>
-              <select
-                className="invoice-form-item-input"
-                style={{ height: '36px' }}
+              <Dropdown
+                options={['Cash', 'Bank Transfer', 'Card', 'UPI', 'Check', 'Other']}
                 value={formData.paymentMethod}
-                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-              >
-                <option value="Cash">Cash</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Card">Card</option>
-                <option value="UPI">UPI</option>
-                <option value="Check">Check</option>
-                <option value="Other">Other</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, paymentMethod: val })}
+                searchable={false}
+                selectStyle={{ height: '36px' }}
+              />
             </div>
 
             <div className="form-group">
@@ -250,25 +243,27 @@ export default function CrmExpenses() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Filter size={12} style={{ color: 'var(--text-muted)' }} />
-              <select
+              <Dropdown
+                placeholder="All Categories"
+                options={categories}
                 value={categoryFilter}
-                onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-                style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 10px', fontSize: '12px' }}
-              >
-                <option value="">All Categories</option>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+                onChange={(val) => { setCategoryFilter(val); setPage(1); }}
+                searchable={false}
+                clearable={true}
+                style={{ width: '150px' }}
+                selectStyle={{ height: '32px', padding: '4px 10px', background: 'rgba(0,0,0,0.2)' }}
+              />
             </div>
           </div>
 
           {/* Table list card */}
           <div className="card" style={{ padding: '0px', overflow: 'hidden' }}>
-            {isLoading && expenses.length === 0 ? (
+            {isLoading && expenses?.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center' }}>
                 <Loader2 size={24} className="spin" style={{ color: 'var(--secondary)', margin: '0 auto 8px' }} />
                 <p>Loading expense logs...</p>
               </div>
-            ) : expenses.length === 0 ? (
+            ) : expenses?.length === 0 ? (
               <div style={{ padding: '45px', textAlign: 'center', color: 'var(--text-muted)' }}>
                 No expenses logged matching search criteria.
               </div>

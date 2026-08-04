@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { CreditCard, DollarSign, Clock, CheckCircle, Plus, Search, X, Loader2, FileText, ArrowUpRight } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmAccounts() {
   const {
@@ -375,19 +376,13 @@ export default function CrmAccounts() {
 
               <div className="form-group">
                 <label>Payment Method</label>
-                <select
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
+                <Dropdown
+                  options={['Cash', 'Bank Transfer', 'Card', 'UPI', 'Check', 'Other']}
                   value={paymentForm.paymentMethod}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
-                >
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Card">Card</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Check">Check</option>
-                  <option value="Other">Other</option>
-                </select>
+                  onChange={(val) => setPaymentForm({ ...paymentForm, paymentMethod: val })}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">

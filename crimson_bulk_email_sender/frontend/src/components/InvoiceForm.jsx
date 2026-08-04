@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Users, Settings, Calendar, Database, Trash2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { useInvoice } from '../context/InvoiceContext';
+import { useCrm } from '../context/CrmContext';
+import Dropdown from './Dropdown';
 
 export default function InvoiceForm() {
   const {
@@ -29,6 +31,46 @@ export default function InvoiceForm() {
     setShowGstin,
     masterProducts
   } = useInvoice();
+
+  const crm = useCrm();
+  const leads = crm?.leads || [];
+  const safeLeads = (leads || []).filter(Boolean);
+
+  const handleLoadFromLead = (leadId) => {
+    if (!leadId) return;
+    const lead = safeLeads.find(l => l._id === leadId);
+    if (lead) {
+      // 1. Populate Customer details
+      setCustomerDetails({
+        name: lead.name || '',
+        attn: lead.company || '',
+        phone: lead.phone || '',
+        destination: lead.address || ''
+      });
+
+      // 2. Populate Quotation products list if present
+      if (lead.quotation?.products && lead.quotation.products.length > 0) {
+        const mappedItems = lead.quotation.products.map((p, idx) => {
+          const matchedProd = masterProducts?.find(mp => mp.description === p.name);
+          return {
+            id: idx + 1,
+            description: p.name || '',
+            size: matchedProd ? matchedProd.size : '',
+            qty: p.quantity || 1,
+            price: p.unitPrice || 0,
+            gstRate: p.tax || 18
+          };
+        });
+        setInvoiceItems(mappedItems);
+        
+        // Auto-enable GST if any items have a tax percentage
+        const hasTax = lead.quotation.products.some(p => p.tax > 0);
+        if (hasTax) {
+          setGstEnabled(true);
+        }
+      }
+    }
+  };
 
   const [isOpen, setIsOpen] = useState({
     customer: false,
@@ -72,6 +114,27 @@ export default function InvoiceForm() {
         
         {isOpen.customer && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px', animation: 'fadeIn 0.2s ease-out' }}>
+            <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '5px' }}>
+              <label style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 'bold' }}>
+                <Database size={12} />
+                Auto-fill from CRM Lead
+              </label>
+              <Dropdown
+                placeholder="-- Choose a Lead to import customer info & quotation items --"
+                options={safeLeads.map(l => ({
+                  value: l._id,
+                  label: `${l.name} ${l.company ? `(${l.company})` : ''} ${l.quotation?.products?.length > 0 ? `[${l.quotation.products.length} items]` : '[No items]'}`
+                }))}
+                onChange={(val) => handleLoadFromLead(val)}
+                searchable={true}
+                selectStyle={{
+                  background: 'rgba(255, 199, 44, 0.05)',
+                  border: '1px dashed var(--secondary)',
+                  color: 'var(--text-primary)'
+                }}
+              />
+            </div>
+            
             <div className="form-group">
               <label>Customer/Client Name</label>
               <input
@@ -373,25 +436,14 @@ export default function InvoiceForm() {
                     <tr key={item.id}>
                       <td>
                         {masterProducts && masterProducts.length > 0 && (
-                          <select
-                            className="invoice-form-item-input"
-                            style={{ 
-                              marginBottom: '6px', 
-                              fontSize: '10px', 
-                              padding: '4px 8px', 
-                              height: 'auto', 
-                              background: 'rgba(255, 199, 44, 0.06)', 
-                              border: '1px solid rgba(255, 199, 44, 0.2)', 
-                              borderRadius: '4px',
-                              color: 'var(--secondary)',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              width: '100%',
-                              textOverflow: 'ellipsis'
-                            }}
+                          <Dropdown
+                            placeholder="-- Pick from Product List --"
+                            options={masterProducts.map(p => ({
+                              value: p.id,
+                              label: `${p.description} ${p.size ? `(${p.size})` : ''}`
+                            }))}
                             value={masterProducts.find(p => p.description === item.description && p.size === item.size)?.id || ""}
-                            onChange={(e) => {
-                              const prodId = e.target.value;
+                            onChange={(prodId) => {
                               if (prodId) {
                                 const selected = masterProducts.find(p => p.id === parseInt(prodId));
                                 if (selected) {
@@ -410,14 +462,18 @@ export default function InvoiceForm() {
                                 }
                               }
                             }}
-                          >
-                            <option value="" style={{ color: '#000000' }}>-- Pick from Product List --</option>
-                            {masterProducts.map(p => (
-                              <option key={p.id} value={p.id} style={{ color: '#000000' }}>
-                                {p.description} {p.size ? `(${p.size})` : ''}
-                              </option>
-                            ))}
-                          </select>
+                            searchable={true}
+                            style={{ marginBottom: '6px' }}
+                            selectStyle={{
+                              fontSize: '11px',
+                              height: '28px',
+                              padding: '2px 8px',
+                              background: 'rgba(255, 199, 44, 0.06)',
+                              border: '1px solid rgba(255, 199, 44, 0.2)',
+                              color: 'var(--secondary)',
+                              fontWeight: '600'
+                            }}
+                          />
                         )}
                         <textarea
                           className="invoice-form-item-input"
@@ -454,17 +510,23 @@ export default function InvoiceForm() {
                         />
                       </td>
                       <td>
-                        <select
-                          className="invoice-form-item-input"
+                        <Dropdown
+                          options={[
+                            { value: 0, label: '0%' },
+                            { value: 5, label: '5%' },
+                            { value: 12, label: '12%' },
+                            { value: 18, label: '18%' },
+                            { value: 28, label: '28%' }
+                          ]}
                           value={item.gstRate}
-                          onChange={(e) => handleInvoiceItemChange(item.id, 'gstRate', e.target.value)}
-                        >
-                          <option value="0">0%</option>
-                          <option value="5">5%</option>
-                          <option value="12">12%</option>
-                          <option value="18">18%</option>
-                          <option value="28">28%</option>
-                        </select>
+                          onChange={(val) => handleInvoiceItemChange(item.id, 'gstRate', Number(val))}
+                          searchable={false}
+                          selectStyle={{
+                            height: '28px',
+                            fontSize: '11px',
+                            padding: '2px 8px'
+                          }}
+                        />
                       </td>
                       <td>
                         <button

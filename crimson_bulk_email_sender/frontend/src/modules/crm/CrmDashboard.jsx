@@ -241,7 +241,7 @@ export default function CrmDashboard() {
             Recent Activity Logs
           </div>
 
-          {stats.recentActivities.length === 0 ? (
+          {stats.recentActivities?.length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
               No activity logs recorded. Actions will be logged here.
             </div>
@@ -250,7 +250,7 @@ export default function CrmDashboard() {
               {/* Timeline line */}
               <div style={{ position: 'absolute', top: '8px', bottom: '8px', left: '12px', width: '1px', background: 'var(--border)' }}></div>
 
-              {stats.recentActivities.map((act) => {
+              {stats.recentActivities?.map((act) => {
                 const actTime = new Date(act.timestamp || act.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
                 const actDate = new Date(act.timestamp || act.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
 

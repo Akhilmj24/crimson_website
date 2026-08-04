@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Plus, Edit, Trash2, X, Loader2, Calendar, CheckSquare, Square, Filter } from 'lucide-react';
+import Dropdown from '../../components/Dropdown';
 
 export default function CrmTasks() {
   const {
@@ -134,26 +135,27 @@ export default function CrmTasks() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Filter size={14} style={{ color: 'var(--text-muted)' }} />
 
-          <select
+          <Dropdown
+            placeholder="All Statuses"
+            options={['Pending', 'Completed']}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 10px', fontSize: '13px' }}
-          >
-            <option value="">All Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="Completed">Completed</option>
-          </select>
+            onChange={(val) => setStatusFilter(val)}
+            searchable={false}
+            clearable={true}
+            style={{ width: '150px' }}
+            selectStyle={{ height: '32px', padding: '4px 10px', background: 'rgba(0,0,0,0.2)' }}
+          />
 
-          <select
+          <Dropdown
+            placeholder="All Priorities"
+            options={['Low', 'Medium', 'High']}
             value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 10px', fontSize: '13px' }}
-          >
-            <option value="">All Priorities</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
+            onChange={(val) => setPriorityFilter(val)}
+            searchable={false}
+            clearable={true}
+            style={{ width: '150px' }}
+            selectStyle={{ height: '32px', padding: '4px 10px', background: 'rgba(0,0,0,0.2)' }}
+          />
         </div>
       </div>
 
@@ -275,44 +277,37 @@ export default function CrmTasks() {
 
               <div className="form-group">
                 <label>Assigned User</label>
-                <select
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
+                <Dropdown
+                  placeholder="Unassigned"
+                  options={users.map(u => ({ value: u.username, label: `${u.username} (${u.role})` }))}
                   value={formData.assignedUser}
-                  onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
-                >
-                  <option value="">Unassigned</option>
-                  {users.map(u => (
-                    <option key={u._id} value={u.username}>{u.username} ({u.role})</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, assignedUser: val })}
+                  searchable={true}
+                  clearable={true}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">
                 <label>Priority</label>
-                <select
+                <Dropdown
+                  options={['Low', 'Medium', 'High']}
                   value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, priority: val })}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div className="form-group">
                 <label>Status</label>
-                <select
+                <Dropdown
+                  options={['Pending', 'Completed']}
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="invoice-form-item-input"
-                  style={{ height: '36px' }}
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Completed">Completed</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, status: val })}
+                  searchable={false}
+                  selectStyle={{ height: '36px' }}
+                />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>

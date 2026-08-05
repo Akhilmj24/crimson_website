@@ -23,6 +23,7 @@ const leadQuotationSchema = new mongoose.Schema({
 });
 
 const leadSchema = new mongoose.Schema({
+  salutation: { type: String, default: '' },
   name: { type: String, required: true },
   company: { type: String, default: '' },
   email: { type: String, default: '' },

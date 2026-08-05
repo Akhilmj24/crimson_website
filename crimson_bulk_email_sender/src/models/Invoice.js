@@ -22,6 +22,7 @@ const masterProductSchema = new mongoose.Schema({
 const invoiceSchema = new mongoose.Schema({
   customerDetails: {
     name: { type: String, default: '' },
+    attnSalutation: { type: String, default: '' },
     attn: { type: String, default: '' },
     phone: { type: String, default: '' },
     destination: { type: String, default: '' }

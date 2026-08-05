@@ -16,12 +16,13 @@ const defaultSender = {
   title: 'Manager',
   company: 'Crimson Eats LLP',
   address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
-  email: 'crimsongroupllp@gmail.com',
+  email: 'crimsoneatsllp@gmail.com',
   phone: '+91 99467 99457'
 };
 
 const defaultRecipient = {
-  name: 'Mr Satheesh V S',
+  salutation: 'Mr.',
+  name: 'Satheesh V S',
   title: 'Manager ISL & Marketing',
   company: 'Client Company',
   address: 'Trivandrum, Kerala'
@@ -37,7 +38,7 @@ const defaultMeta = {
     return `${yyyy}-${mm}-${dd}`;
   })(),
   subject: 'PREMIUM ONAM CORPORATE GIFT COMBO - A Taste of Tradition. A Gift of Happiness.',
-  salutation: 'Dear Mr Satheesh V S,',
+  salutation: 'Dear Mr. Satheesh V S,',
   intro: 'Greetings from Crimson Eats LLP. This Onam, we are pleased to present a premium corporate gifting solution that combines authentic Kerala flavours, dependable quality, hygienic packing and elegant festive presentation. Designed for organizations that value thoughtful gifting, the Crimson Onam Combo is a convenient and memorable way to appreciate employees, customers, clients and business associates.'
 };
 
@@ -254,7 +255,7 @@ export function ProposalProvider({ children }) {
       const contentWidth = element.scrollWidth;
 
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 4,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -438,7 +439,7 @@ export function ProposalProvider({ children }) {
                   }),
                   recipient.name && recipient.name.trim() ? new Paragraph({
                     children: [new TextRun({
-                      text: recipient.name.toLowerCase().startsWith('attn') ? recipient.name : `${recipient.name}`,
+                      text: recipient.name.toLowerCase().startsWith('attn') ? recipient.name : `${recipient.salutation ? `${recipient.salutation} ` : ''}${recipient.name}`,
                       bold: true,
                       font: 'Inter',
                       size: 18,
@@ -571,7 +572,7 @@ export function ProposalProvider({ children }) {
           spacing: { after: 40 },
         }),
         new Paragraph({
-          children: [new TextRun({ text: 'Email: crimsongroupllp@gmail.com', font: 'Inter', size: 16, color: '6b7280' })],
+          children: [new TextRun({ text: 'Email: crimsoneatsllp@gmail.com', font: 'Inter', size: 16, color: '6b7280' })],
           spacing: { after: 20 },
         }),
         new Paragraph({

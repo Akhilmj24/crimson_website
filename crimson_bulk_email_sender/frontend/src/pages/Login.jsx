@@ -38,6 +38,7 @@ export default function Login({ onLoginSuccess }) {
         localStorage.setItem('crm_refresh_token', data.refreshToken);
       }
       localStorage.setItem('crm_user_id', data.user.username);
+      localStorage.setItem('crm_user_name', data.user.name || data.user.username);
       localStorage.setItem('crm_user_role', data.user.role);
       localStorage.setItem('crm_tenant_id', data.user.tenantId);
 

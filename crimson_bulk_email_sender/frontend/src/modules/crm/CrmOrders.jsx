@@ -224,7 +224,7 @@ export default function CrmOrders() {
                     <tr key={o._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }}>
                       <td style={{ padding: '14px 16px', fontWeight: 'bold', color: 'var(--secondary)' }}>{o.orderNumber}</td>
                       <td style={{ padding: '14px 16px' }}>
-                        <div style={{ fontWeight: '600' }}>{o.customerName}</div>
+                        <div style={{ fontWeight: '600' }}>{o.customerSalutation ? `${o.customerSalutation} ${o.customerName}` : o.customerName}</div>
                         {o.companyName && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{o.companyName}</div>}
                       </td>
                       <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>
@@ -317,7 +317,7 @@ export default function CrmOrders() {
                 <div style={{ marginBottom: '20px' }}>
                   <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid var(--border)', paddingBottom: '6px', marginBottom: '10px' }}>Customer Information</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '12px' }}>
-                    <div><strong>Customer Name:</strong> {selectedOrder.customerName}</div>
+                    <div><strong>Customer Name:</strong> {selectedOrder.customerSalutation ? `${selectedOrder.customerSalutation} ${selectedOrder.customerName}` : selectedOrder.customerName}</div>
                     <div><strong>Company Name:</strong> {selectedOrder.companyName || '-'}</div>
                     <div><strong>Email:</strong> {selectedOrder.email || '-'}</div>
                     <div><strong>Phone:</strong> {selectedOrder.phone || '-'}</div>

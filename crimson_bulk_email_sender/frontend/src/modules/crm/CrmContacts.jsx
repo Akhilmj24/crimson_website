@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Search, Plus, Edit, Trash2, X, Loader2, Linkedin, Twitter, Facebook } from 'lucide-react';
+import SalutationDropdown from '../../components/SalutationDropdown';
 
 export default function CrmContacts() {
   const {
@@ -21,6 +22,7 @@ export default function CrmContacts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentContact, setCurrentContact] = useState(null);
   const [formData, setFormData] = useState({
+    salutation: '',
     name: '',
     company: '',
     email: '',
@@ -39,6 +41,7 @@ export default function CrmContacts() {
   const handleOpenCreate = () => {
     setCurrentContact(null);
     setFormData({
+      salutation: '',
       name: '',
       company: '',
       email: '',
@@ -55,6 +58,7 @@ export default function CrmContacts() {
   const handleOpenEdit = (contact) => {
     setCurrentContact(contact);
     setFormData({
+      salutation: contact.salutation || '',
       name: contact.name || '',
       company: contact.company || '',
       email: contact.email || '',
@@ -76,6 +80,7 @@ export default function CrmContacts() {
     }
 
     const payload = {
+      salutation: formData.salutation,
       name: formData.name,
       company: formData.company,
       email: formData.email,
@@ -165,7 +170,7 @@ export default function CrmContacts() {
                 <tbody>
                   {contacts.map((contact) => (
                     <tr key={contact._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }}>
-                      <td style={{ padding: '14px 16px', fontWeight: '600' }}>{contact.name}</td>
+                      <td style={{ padding: '14px 16px', fontWeight: '600' }}>{contact.salutation ? `${contact.salutation} ${contact.name}` : contact.name}</td>
                       <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>{contact.company || '-'}</td>
                       <td style={{ padding: '14px 16px' }}>{contact.email || '-'}</td>
                       <td style={{ padding: '14px 16px' }}>{contact.phone || '-'}</td>
@@ -246,14 +251,24 @@ export default function CrmContacts() {
             <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div className="form-group" style={{ gridColumn: 'span 2' }}>
                 <label>Contact Name *</label>
-                <input
-                  type="text"
-                  className="invoice-form-item-input"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Akhil"
-                  required
-                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ width: '120px', flexShrink: 0 }}>
+                    <SalutationDropdown
+                      value={formData.salutation}
+                      onChange={(val) => setFormData({ ...formData, salutation: val })}
+                    />
+                  </div>
+                  <div style={{ flexGrow: 1 }}>
+                    <input
+                      type="text"
+                      className="invoice-form-item-input"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="e.g. Akhil"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="form-group">

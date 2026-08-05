@@ -19,6 +19,7 @@ const proposalSchema = new mongoose.Schema({
   recipient: {
     company: { type: String, default: '' },
     contactPerson: { type: String, default: '' },
+    salutation: { type: String, default: '' },
     name: { type: String, default: '' },
     title: { type: String, default: '' },
     phone: { type: String, default: '' },

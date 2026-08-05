@@ -58,7 +58,7 @@ const sendEmails = async (req, res) => {
   const user = smtpConfig?.user || process.env.SMTP_USER;
   const pass = smtpConfig?.pass || process.env.SMTP_PASS;
   const fromName = smtpConfig?.fromName || process.env.SMTP_FROM_NAME || 'Crimson Eats LLP';
-  const fromEmail = smtpConfig?.fromEmail || process.env.SMTP_FROM_EMAIL || 'crimsongroupllp@gmail.com';
+  const fromEmail = smtpConfig?.fromEmail || process.env.SMTP_FROM_EMAIL || 'crimsoneatsllp@gmail.com';
 
   // Initialize DB Campaign Record
   const campaignInfo = await campaignService.createCampaignRecord({

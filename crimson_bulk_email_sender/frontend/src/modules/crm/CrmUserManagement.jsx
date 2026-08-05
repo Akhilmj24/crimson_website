@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { crmService } from '../../services/crmService';
 import { Plus, Trash2, Key, Loader2, Users, ShieldAlert } from 'lucide-react';
 import Dropdown from '../../components/Dropdown';
+import SalutationDropdown from '../../components/SalutationDropdown';
 
 export default function CrmUserManagement() {
   const [users, setUsers] = useState([]);
@@ -10,6 +11,8 @@ export default function CrmUserManagement() {
 
   // Form State
   const [username, setUsername] = useState('');
+  const [salutation, setSalutation] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Agent');
   const [tenantId, setTenantId] = useState('default-tenant');
@@ -46,6 +49,8 @@ export default function CrmUserManagement() {
     try {
       const payload = {
         username: username.trim(),
+        salutation: salutation,
+        name: name.trim(),
         password,
         role
       };
@@ -59,6 +64,8 @@ export default function CrmUserManagement() {
 
       // Clear form
       setUsername('');
+      setSalutation('');
+      setName('');
       setPassword('');
       setRole('Agent');
 
@@ -111,6 +118,27 @@ export default function CrmUserManagement() {
               Create Staff Account
             </div>
             <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="form-group">
+                <label>Full Name</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ width: '120px', flexShrink: 0 }}>
+                    <SalutationDropdown
+                      value={salutation}
+                      onChange={(val) => setSalutation(val)}
+                    />
+                  </div>
+                  <div style={{ flexGrow: 1 }}>
+                    <input
+                      type="text"
+                      className="invoice-form-item-input"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Akhil M J"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="form-group">
                 <label>Username *</label>
                 <input
@@ -200,6 +228,7 @@ export default function CrmUserManagement() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ padding: '12px 20px', textAlign: 'left', color: 'var(--text-secondary)' }}>Name</th>
                       <th style={{ padding: '12px 20px', textAlign: 'left', color: 'var(--text-secondary)' }}>Username</th>
                       <th style={{ padding: '12px 20px', textAlign: 'center', color: 'var(--text-secondary)' }}>Access Role</th>
                       <th style={{ padding: '12px 20px', textAlign: 'left', color: 'var(--text-secondary)' }}>Tenant ID</th>
@@ -210,6 +239,7 @@ export default function CrmUserManagement() {
                   <tbody>
                     {users.map((user) => (
                       <tr key={user._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                        <td style={{ padding: '12px 20px', color: 'var(--text-primary)' }}>{user.salutation ? `${user.salutation} ${user.name}` : (user.name || 'N/A')}</td>
                         <td style={{ padding: '12px 20px', fontWeight: 'bold' }}>{user.username}</td>
                         <td style={{ padding: '12px 20px', textAlign: 'center' }}>
                           <span className={`badge ${user.role === 'super_admin' ? 'sending' : user.role === 'Admin' ? 'success' : 'completed'}`}>

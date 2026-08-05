@@ -19,6 +19,7 @@ const orderStatusHistorySchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   leadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' },
   orderNumber: { type: String, required: true, unique: true, index: true },
+  customerSalutation: { type: String, default: '' },
   customerName: { type: String, required: true },
   companyName: { type: String, default: '' },
   email: { type: String, default: '' },

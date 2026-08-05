@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const contactSchema = new mongoose.Schema({
+  salutation: { type: String, default: '' },
   name: { type: String, required: true },
   company: { type: String, default: '' }, // Company name or ID
   email: { type: String, default: '' },

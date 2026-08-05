@@ -29,7 +29,7 @@ export default function CampaignPreview() {
               <strong>
                 {smtpMode === 'custom' && customSmtp.fromName ? customSmtp.fromName : 'Crimson Eats LLP'}
               </strong>{' '}
-              &lt;{smtpMode === 'custom' && customSmtp.fromEmail ? customSmtp.fromEmail : 'crimsongroupllp@gmail.com'}&gt;
+              &lt;{smtpMode === 'custom' && customSmtp.fromEmail ? customSmtp.fromEmail : 'crimsoneatsllp@gmail.com'}&gt;
             </span>
           </div>
           <div className="email-header-line">

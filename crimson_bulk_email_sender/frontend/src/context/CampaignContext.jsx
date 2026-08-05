@@ -28,7 +28,7 @@ export function CampaignProvider({ children }) {
     user: '',
     pass: '',
     fromName: 'Crimson Eats LLP',
-    fromEmail: 'crimsongroupllp@gmail.com'
+    fromEmail: 'crimsoneatsllp@gmail.com'
   });
 
   // Email queue input state

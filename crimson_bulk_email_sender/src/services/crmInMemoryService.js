@@ -470,6 +470,7 @@ const createOrderFromLeadInMemory = async (tenantId, lead, userId) => {
     _id: 'ord_mem_' + Date.now(),
     leadId: lead._id,
     orderNumber,
+    customerSalutation: lead.salutation || '',
     customerName: lead.name,
     companyName: lead.company || '',
     email: lead.email || '',

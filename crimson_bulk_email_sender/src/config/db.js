@@ -11,6 +11,7 @@ const seedAdmin = async () => {
       const hashedPassword = await bcrypt.hash('admin@123', 10);
       await User.create({
         username: 'admin',
+        name: 'Administrator',
         password: hashedPassword,
         role: 'super_admin',
         tenantId: 'default-tenant',

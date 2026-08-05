@@ -81,11 +81,12 @@ export default function InvoicePreview({ hideToolbar = false }) {
                 src="/logo.png"
                 alt="Sprinpak Logo"
                 className="invoice-preview-logo"
+                crossOrigin="anonymous"
                 onError={(e) => { e.target.src = 'https://via.placeholder.com/150x50?text=Sprinpak'; }}
               />
             </div>
             <div className="invoice-preview-title-area">
-              <div className="invoice-preview-title">Pre-Quotation</div>
+              <div className="invoice-preview-title">Proforma Invoice</div>
               <table className="invoice-preview-meta-table">
                 <tbody>
                   <tr>
@@ -108,7 +109,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
             <div className="invoice-preview-address-box">
               <div className="invoice-preview-section-title">Quotation For</div>
               <div className="invoice-preview-client-name">{customerDetails.name}</div>
-              <div className="invoice-preview-text-line"> {customerDetails.attn}</div>
+              <div className="invoice-preview-text-line">{customerDetails.attnSalutation ? `${customerDetails.attnSalutation} ` : ''}{customerDetails.attn}</div>
               <div className="invoice-preview-text-line">Phone: {customerDetails.phone}</div>
               <div className="invoice-preview-text-line">Destination: {customerDetails.destination}</div>
             </div>
@@ -158,6 +159,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
                           <img
                             src={item.image}
                             alt={item.description}
+                            crossOrigin="anonymous"
                             style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0', display: 'inline-block' }}
                           />
                         ) : (
@@ -187,31 +189,45 @@ export default function InvoicePreview({ hideToolbar = false }) {
 
           {/* Summary and totals */}
           <div className="invoice-preview-summary-section">
-            <table className="invoice-preview-summary-table">
-              <tbody>
-                {gstEnabled ? (
-                  <>
-                    <tr>
-                      <td>Subtotal (excl. GST):</td>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <table className="invoice-preview-summary-table">
+                <tbody>
+                  {gstEnabled ? (
+                    <>
+                      <tr>
+                        <td>Subtotal (excl. GST):</td>
+                        <td>{formatCurrency(subtotal)}</td>
+                      </tr>
+                      <tr>
+                        <td>GST Amount:</td>
+                        <td>{formatCurrency(gstAmount)}</td>
+                      </tr>
+                      <tr className="grand-total-row">
+                        <td>Total (incl. GST):</td>
+                        <td>{formatCurrency(grandTotal)}</td>
+                      </tr>
+                    </>
+                  ) : (
+                    <tr className="grand-total-row">
+                      <td>Total:</td>
                       <td>{formatCurrency(subtotal)}</td>
                     </tr>
-                    <tr>
-                      <td>GST Amount:</td>
-                      <td>{formatCurrency(gstAmount)}</td>
-                    </tr>
-                    <tr className="grand-total-row">
-                      <td>Total (incl. GST):</td>
-                      <td>{formatCurrency(grandTotal)}</td>
-                    </tr>
-                  </>
-                ) : (
-                  <tr className="grand-total-row">
-                    <td>Total:</td>
-                    <td>{formatCurrency(subtotal)}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+              {!gstEnabled && (
+                <div style={{
+                  marginTop: '8px',
+                  color: '#475569',
+                  fontSize: '12px',
+                  fontStyle: 'italic',
+                  fontWeight: '500',
+                  textAlign: 'right'
+                }}>
+                  5% GST will be charged extra.
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Footer */}
@@ -237,7 +253,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
             )}
 
             <div className="invoice-preview-footer-note">
-              This is a pre-quotation. Prices are indicative and subject to final confirmation.
+              This is a proforma invoice. Prices are indicative and subject to final confirmation.
             </div>
           </div>
         </div>

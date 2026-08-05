@@ -560,6 +560,7 @@ const createOrderFromLeadDB = async (tenantId, lead, userId) => {
   const order = new Order({
     leadId: lead._id,
     orderNumber,
+    customerSalutation: lead.salutation || '',
     customerName: lead.name,
     companyName: lead.company || '',
     email: lead.email || '',

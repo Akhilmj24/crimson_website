@@ -14,6 +14,7 @@ bcrypt.hash('admin@123', 10).then(hashed => {
   inMemoryUsers.push({
     _id: 'fallback-admin-id',
     username: 'admin',
+    name: 'Administrator',
     password: hashed,
     role: 'super_admin',
     tenantId: 'default-tenant',
@@ -90,6 +91,7 @@ const login = catchAsync(async (req, res, next) => {
     user: {
       id: user._id,
       username: user.username,
+      name: user.name || '',
       role: user.role,
       tenantId: user.tenantId
     }
@@ -128,7 +130,7 @@ const createUser = catchAsync(async (req, res, next) => {
     return next(new AppError('Forbidden: Only admins can manage users', 403));
   }
 
-  const { username, password, role, tenantId } = req.body;
+  const { username, password, role, tenantId, name } = req.body;
 
   if (!username || !password || !role) {
     return next(new AppError('Please provide username, password, and role', 400));
@@ -168,6 +170,7 @@ const createUser = catchAsync(async (req, res, next) => {
     try {
       const newUser = await User.create({
         username,
+        name: name || '',
         password: hashedPassword,
         role,
         tenantId: userTenant,
@@ -179,6 +182,7 @@ const createUser = catchAsync(async (req, res, next) => {
         user: {
           id: newUser._id,
           username: newUser.username,
+          name: newUser.name || '',
           role: newUser.role,
           tenantId: newUser.tenantId
         }
@@ -193,6 +197,7 @@ const createUser = catchAsync(async (req, res, next) => {
   const newUser = {
     _id: id,
     username,
+    name: name || '',
     password: hashedPassword,
     role,
     tenantId: userTenant,
@@ -207,6 +212,7 @@ const createUser = catchAsync(async (req, res, next) => {
     user: {
       id: newUser._id,
       username: newUser.username,
+      name: newUser.name || '',
       role: newUser.role,
       tenantId: newUser.tenantId
     }

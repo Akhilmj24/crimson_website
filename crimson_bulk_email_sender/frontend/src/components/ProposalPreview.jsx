@@ -50,6 +50,7 @@ export default function ProposalPreview({ hideToolbar = false }) {
               <img
                 src="/logo.png"
                 alt="Logo"
+                crossOrigin="anonymous"
                 style={{ height: '54px', maxWidth: '200px', objectFit: 'contain' }}
                 onError={(e) => { e.target.src = 'https://via.placeholder.com/150x50?text=Crimson'; }}
               />
@@ -90,7 +91,7 @@ export default function ProposalPreview({ hideToolbar = false }) {
               </div>
               {recipient.name && recipient.name.trim() ? (
                 <div style={{ fontSize: '12px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
-                  {recipient.name.toLowerCase().startsWith('attn') ? recipient.name : `${recipient.name}`}
+                  {recipient.name.toLowerCase().startsWith('attn') ? recipient.name : `${recipient.salutation ? `${recipient.salutation} ` : ''}${recipient.name}`}
                 </div>
               ) : null}
               {recipient.title && recipient.title.trim() ? (

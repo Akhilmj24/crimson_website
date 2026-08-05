@@ -10,11 +10,13 @@ export default function Sidebar() {
   const unreadCount = crmContext?.notifications?.filter(n => !n.read).length || 0;
 
   const currentUserRole = localStorage.getItem('crm_user_role');
+  const currentUserName = localStorage.getItem('crm_user_name') || localStorage.getItem('crm_user_id') || 'User';
   const showUserMgmt = currentUserRole === 'super_admin' || currentUserRole === 'Admin';
 
   const handleLogout = () => {
     localStorage.removeItem('crm_token');
     localStorage.removeItem('crm_user_id');
+    localStorage.removeItem('crm_user_name');
     localStorage.removeItem('crm_user_role');
     localStorage.removeItem('crm_tenant_id');
     window.location.reload();
@@ -123,7 +125,7 @@ export default function Sidebar() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '13px', textTransform: 'uppercase' }}>
-                {(localStorage.getItem('crm_user_id') || 'User').substring(0, 2)}
+                {currentUserName.substring(0, 2)}
               </div>
               {/* Connection Status Dot Indicator */}
               <span
@@ -143,7 +145,7 @@ export default function Sidebar() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                {localStorage.getItem('crm_user_id') || 'User'}
+                {currentUserName}
               </span>
               <span style={{ fontSize: '10px', color: 'var(--secondary)', textTransform: 'capitalize', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                 {currentUserRole || 'Agent'}

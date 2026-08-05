@@ -3,6 +3,7 @@ import { Users, User, Settings, Calendar, Database, Trash2, FileText, ChevronDow
 import { useProposal } from '../context/ProposalContext';
 import { useCrm } from '../context/CrmContext';
 import Dropdown from './Dropdown';
+import SalutationDropdown from './SalutationDropdown';
 
 export default function ProposalForm() {
   const {
@@ -20,7 +21,14 @@ export default function ProposalForm() {
 
   const crm = useCrm();
   const leads = crm?.leads || [];
+  const fetchLeads = crm?.fetchLeads;
   const safeLeads = (leads || []).filter(Boolean);
+
+  React.useEffect(() => {
+    if (fetchLeads) {
+      fetchLeads({ limit: 100 }).catch(err => console.warn('Failed to fetch leads for proposal selector:', err));
+    }
+  }, []);
 
   const handleLoadFromLead = (leadId, targetSection) => {
     if (!leadId) return;
@@ -36,6 +44,7 @@ export default function ProposalForm() {
       } else if (targetSection === 'recipient') {
         setRecipient({
           company: lead.company || '',
+          salutation: lead.salutation || '',
           name: lead.name || '',
           title: lead.title || 'Client',
           address: lead.address || '',
@@ -43,7 +52,8 @@ export default function ProposalForm() {
           phone: lead.phone || ''
         });
         if (lead.name) {
-          setMeta(prev => ({ ...prev, salutation: `Dear ${lead.name},` }));
+          const sal = lead.salutation ? lead.salutation + ' ' : '';
+          setMeta(prev => ({ ...prev, salutation: `Dear ${sal}${lead.name},` }));
         }
       }
     }
@@ -181,19 +191,42 @@ export default function ProposalForm() {
             </div>
             <div className="form-group">
               <label>Recipient Name</label>
-              <input
-                type="text"
-                value={recipient.name}
-                onChange={(e) => {
-                  const newName = e.target.value;
-                  setRecipient({ ...recipient, name: newName });
-                  if (newName.trim()) {
-                    setMeta(prev => ({ ...prev, salutation: `Dear ${newName},` }));
-                  } else {
-                    setMeta(prev => ({ ...prev, salutation: 'Dear Sir/Madam,' }));
-                  }
-                }}
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ width: '120px', flexShrink: 0 }}>
+                  <SalutationDropdown
+                    value={recipient.salutation}
+                    onChange={(val) => {
+                      setRecipient(prev => {
+                        const updated = { ...prev, salutation: val };
+                        const sal = val ? val + ' ' : '';
+                        if (updated.name.trim()) {
+                          setMeta(m => ({ ...m, salutation: `Dear ${sal}${updated.name},` }));
+                        }
+                        return updated;
+                      });
+                    }}
+                  />
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <input
+                    type="text"
+                    value={recipient.name}
+                    onChange={(e) => {
+                      const newName = e.target.value;
+                      setRecipient(prev => {
+                        const updated = { ...prev, name: newName };
+                        const sal = updated.salutation ? updated.salutation + ' ' : '';
+                        if (newName.trim()) {
+                          setMeta(m => ({ ...m, salutation: `Dear ${sal}${newName},` }));
+                        } else {
+                          setMeta(m => ({ ...m, salutation: 'Dear Sir/Madam,' }));
+                        }
+                        return updated;
+                      });
+                    }}
+                  />
+                </div>
+              </div>
             </div>
             <div className="form-group">
               <label>Recipient Title / Position</label>

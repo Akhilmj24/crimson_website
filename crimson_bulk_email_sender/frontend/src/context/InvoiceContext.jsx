@@ -22,7 +22,8 @@ export function InvoiceProvider({ children }) {
   const [activeInvoiceId, setActiveInvoiceId] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({
     name: 'Client Company',
-    attn: 'Mr Satheesh V S',
+    attnSalutation: 'Mr.',
+    attn: 'Satheesh V S',
     phone: '+91 9744050505',
     destination: 'Trivandrum, Kerala'
   });
@@ -37,34 +38,44 @@ export function InvoiceProvider({ children }) {
     const recipient = proposalContext.recipient;
     const isRecipientChanged =
       recipient.company !== prevRecipientRef.current?.company ||
+      recipient.salutation !== prevRecipientRef.current?.salutation ||
       recipient.name !== prevRecipientRef.current?.name ||
-      recipient.address !== prevRecipientRef.current?.address;
+      recipient.address !== prevRecipientRef.current?.address ||
+      recipient.phone !== prevRecipientRef.current?.phone;
 
     const isCustomerDetailsChanged =
       customerDetails.name !== prevCustomerDetailsRef.current?.name ||
+      customerDetails.attnSalutation !== prevCustomerDetailsRef.current?.attnSalutation ||
       customerDetails.attn !== prevCustomerDetailsRef.current?.attn ||
-      customerDetails.destination !== prevCustomerDetailsRef.current?.destination;
+      customerDetails.destination !== prevCustomerDetailsRef.current?.destination ||
+      customerDetails.phone !== prevCustomerDetailsRef.current?.phone;
 
     const companyDiff = recipient.company !== customerDetails.name;
+    const salutationDiff = recipient.salutation !== customerDetails.attnSalutation;
     const nameDiff = recipient.name !== customerDetails.attn;
     const addressDiff = recipient.address !== customerDetails.destination;
+    const phoneDiff = recipient.phone !== customerDetails.phone;
 
     if (isRecipientChanged && !isCustomerDetailsChanged) {
-      if (companyDiff || nameDiff || addressDiff) {
+      if (companyDiff || salutationDiff || nameDiff || addressDiff || phoneDiff) {
         setCustomerDetails(prev => ({
           ...prev,
           name: recipient.company || '',
+          attnSalutation: recipient.salutation || '',
           attn: recipient.name || '',
-          destination: recipient.address || ''
+          destination: recipient.address || '',
+          phone: recipient.phone || ''
         }));
       }
     } else if (isCustomerDetailsChanged && !isRecipientChanged) {
-      if (companyDiff || nameDiff || addressDiff) {
+      if (companyDiff || salutationDiff || nameDiff || addressDiff || phoneDiff) {
         proposalContext.setRecipient(prev => ({
           ...prev,
           company: customerDetails.name || '',
+          salutation: customerDetails.attnSalutation || '',
           name: customerDetails.attn || '',
-          address: customerDetails.destination || ''
+          address: customerDetails.destination || '',
+          phone: customerDetails.phone || ''
         }));
       }
     }
@@ -90,7 +101,7 @@ export function InvoiceProvider({ children }) {
     office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
     gstin: '06ADMTEST',
     phone: '+91 99467 99457',
-    email: 'crimsongroupllp@gmail.com'
+    email: 'crimsoneatsllp@gmail.com'
   });
 
   const [invoiceItems, setInvoiceItems] = useState(product);
@@ -128,7 +139,12 @@ export function InvoiceProvider({ children }) {
             setInvoiceItems(hasOldProducts || loadedItems.length === 0 ? product : loadedItems);
 
             setTermsAndConditions(res.terms && res.terms.length > 0 ? res.terms : terms);
-            setInvoiceMeta(res.meta || {});
+            const loadedMeta = res.meta || {};
+            setInvoiceMeta({
+              quoteNo: loadedMeta.quoteNo || '',
+              date: loadedMeta.date || '',
+              preparedBy: loadedMeta.preparedBy || (localStorage.getItem('crm_user_name') || localStorage.getItem('crm_user_id') || 'Akhil')
+            });
             setGstEnabled(res.gstEnabled !== undefined ? res.gstEnabled : true);
             setShowGstin(res.showGstin !== undefined ? res.showGstin : true);
 
@@ -170,14 +186,14 @@ export function InvoiceProvider({ children }) {
             meta: localStorage.getItem('invoice_meta') ? JSON.parse(localStorage.getItem('invoice_meta')) : {
               quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
               date: new Date().toISOString().split('T')[0],
-              preparedBy: 'Akhil'
+              preparedBy: localStorage.getItem('crm_user_name') || localStorage.getItem('crm_user_id') || 'Akhil'
             },
             sellerDetails: localStorage.getItem('invoice_sellerDetails') ? JSON.parse(localStorage.getItem('invoice_sellerDetails')) : {
               name: 'Crimson Eats LLP',
               office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
               gstin: '06ADMTEST',
               phone: '+91 99467 99457',
-              email: 'crimsongroupllp@gmail.com'
+              email: 'crimsoneatsllp@gmail.com'
             },
             items: localStorage.getItem('invoice_items') ? JSON.parse(localStorage.getItem('invoice_items')) : product,
             terms: localStorage.getItem('invoice_terms') ? JSON.parse(localStorage.getItem('invoice_terms')) : terms,
@@ -248,7 +264,12 @@ export function InvoiceProvider({ children }) {
           setInvoiceItems(hasOldProducts || loadedItems.length === 0 ? product : loadedItems);
 
           setTermsAndConditions(latest.terms && latest.terms.length > 0 ? latest.terms : terms);
-          setInvoiceMeta(latest.meta || {});
+          const loadedMeta = latest.meta || {};
+          setInvoiceMeta({
+            quoteNo: loadedMeta.quoteNo || '',
+            date: loadedMeta.date || '',
+            preparedBy: loadedMeta.preparedBy || (localStorage.getItem('crm_user_name') || localStorage.getItem('crm_user_id') || 'Akhil')
+          });
           setGstEnabled(latest.gstEnabled !== undefined ? latest.gstEnabled : true);
           setShowGstin(latest.showGstin !== undefined ? latest.showGstin : true);
 
@@ -274,14 +295,14 @@ export function InvoiceProvider({ children }) {
             meta: {
               quoteNo: 'SP-PQ-' + Math.floor(1000 + Math.random() * 9000),
               date: new Date().toISOString().split('T')[0],
-              preparedBy: 'Akhil'
+              preparedBy: localStorage.getItem('crm_user_name') || localStorage.getItem('crm_user_id') || 'Akhil'
             },
             sellerDetails: {
               name: 'Crimson Eats LLP',
               office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
               gstin: '06ADMTEST',
               phone: '+91 99467 99457',
-              email: 'crimsongroupllp@gmail.com'
+              email: 'crimsoneatsllp@gmail.com'
             },
             items: product,
             terms: terms,
@@ -346,7 +367,7 @@ export function InvoiceProvider({ children }) {
         office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
         gstin: '06ADMTEST',
         phone: '+91 99467 99457',
-        email: 'crimsongroupllp@gmail.com'
+        email: 'crimsoneatsllp@gmail.com'
       });
     }
   };
@@ -418,7 +439,7 @@ export function InvoiceProvider({ children }) {
       const contentWidth = element.scrollWidth;
 
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 4,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -512,7 +533,7 @@ export function InvoiceProvider({ children }) {
       const proposalHeight = proposalElement.scrollHeight;
       const proposalWidth = proposalElement.scrollWidth;
       const proposalCanvas = await html2canvas(proposalElement, {
-        scale: 2,
+        scale: 4,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -530,7 +551,7 @@ export function InvoiceProvider({ children }) {
       const invoiceHeight = invoiceElement.scrollHeight;
       const invoiceWidth = invoiceElement.scrollWidth;
       const invoiceCanvas = await html2canvas(invoiceElement, {
-        scale: 2,
+        scale: 4,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -689,7 +710,7 @@ export function InvoiceProvider({ children }) {
                 },
                 children: [
                   new Paragraph({
-                    children: [new TextRun({ text: 'PRE-QUOTATION', bold: true, color: '990f02', font: 'Inter', size: 24 })],
+                    children: [new TextRun({ text: 'PROFORMA INVOICE', bold: true, color: '990f02', font: 'Inter', size: 24 })],
                     alignment: AlignmentType.RIGHT,
                   }),
                   new Paragraph({
@@ -777,7 +798,7 @@ export function InvoiceProvider({ children }) {
                     spacing: { after: 40 },
                   }),
                   new Paragraph({
-                    children: [new TextRun({ text: `${customerDetails.attn}`, font: 'Inter', size: 18, color: '4b5563' })],
+                    children: [new TextRun({ text: `${customerDetails.attnSalutation ? `${customerDetails.attnSalutation} ` : ''}${customerDetails.attn}`, font: 'Inter', size: 18, color: '4b5563' })],
                     spacing: { after: 20 },
                   }),
                   new Paragraph({
@@ -1162,28 +1183,52 @@ export function InvoiceProvider({ children }) {
       }
 
       const paragraphFooterNote = new Paragraph({
-        children: [new TextRun({ text: 'This is a pre-quotation. Prices are indicative and subject to final confirmation.', font: 'Inter', size: 16, color: '94a3b8' })],
+        children: [new TextRun({ text: 'This is a proforma invoice. Prices are indicative and subject to final confirmation.', font: 'Inter', size: 16, color: '94a3b8' })],
         alignment: AlignmentType.CENTER,
         spacing: { before: 400 }
       });
 
       // Assemble doc
+      const docChildren = [
+        tableHeader,
+        dividerLine,
+        tableAddresses,
+        new Paragraph({ spacing: { after: 200 } }),
+        tableProducts,
+      ];
+
+      if (!gstEnabled) {
+        docChildren.push(
+          new Paragraph({
+            alignment: AlignmentType.RIGHT,
+            children: [
+              new TextRun({
+                text: '5% GST will be charged extra.',
+                italic: true,
+                font: 'Inter',
+                size: 14,
+                color: '475569'
+              })
+            ],
+            spacing: { before: 100, after: 100 }
+          })
+        );
+      } else {
+        docChildren.push(new Paragraph({ spacing: { after: 100 } }));
+      }
+
+      docChildren.push(
+        tableSummary,
+        paragraphFooter,
+        paragraphElectronically,
+        ...listTerms,
+        paragraphFooterNote
+      );
+
       const doc = new Document({
         sections: [{
           properties: {},
-          children: [
-            tableHeader,
-            dividerLine,
-            tableAddresses,
-            new Paragraph({ spacing: { after: 200 } }),
-            tableProducts,
-            new Paragraph({ spacing: { after: 100 } }),
-            tableSummary,
-            paragraphFooter,
-            paragraphElectronically,
-            ...listTerms,
-            paragraphFooterNote
-          ],
+          children: docChildren,
         }],
       });
 

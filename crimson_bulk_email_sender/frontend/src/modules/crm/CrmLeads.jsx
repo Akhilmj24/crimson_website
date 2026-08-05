@@ -4,6 +4,7 @@ import { Search, Plus, FileSpreadsheet, Download, Upload, Edit, Trash2, X, Filte
 import * as XLSX from 'xlsx';
 import { product as defaultProducts } from '../../context/data';
 import Dropdown from '../../components/Dropdown';
+import SalutationDropdown from '../../components/SalutationDropdown';
 
 export default function CrmLeads() {
   const {
@@ -42,6 +43,7 @@ export default function CrmLeads() {
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
 
   const [formData, setFormData] = useState({
+    salutation: '',
     name: '',
     company: '',
     email: '',
@@ -68,6 +70,7 @@ export default function CrmLeads() {
     setCurrentLead(null);
     setErrors({});
     setFormData({
+      salutation: '',
       name: '',
       company: '',
       email: '',
@@ -93,6 +96,7 @@ export default function CrmLeads() {
     setCurrentLead(lead);
     setErrors({});
     setFormData({
+      salutation: lead.salutation || '',
       name: lead.name || '',
       company: lead.company || '',
       email: lead.email || '',
@@ -190,6 +194,7 @@ export default function CrmLeads() {
   // Export to Excel/CSV using xlsx
   const handleExport = () => {
     const dataToExport = leads.map(l => ({
+      'Salutation': l.salutation || '',
       'Lead Name': l.name,
       'Company': l.company,
       'Email': l.email,
@@ -228,6 +233,7 @@ export default function CrmLeads() {
           if (!leadName) continue;
 
           await createLead({
+            salutation: String(row['Salutation'] || row['salutation'] || ''),
             name: String(leadName),
             company: String(row['Company'] || row['company'] || ''),
             email: String(row['Email'] || row['email'] || ''),
@@ -366,7 +372,7 @@ export default function CrmLeads() {
 
                     return (
                       <tr key={lead._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }}>
-                        <td style={{ padding: '14px 16px', fontWeight: '600' }}>{lead.name}</td>
+                        <td style={{ padding: '14px 16px', fontWeight: '600' }}>{lead.salutation ? `${lead.salutation} ${lead.name}` : lead.name}</td>
                         <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>{lead.company || '-'}</td>
                         <td style={{ padding: '14px 16px' }}>
                           <div>{lead.email || '-'}</div>
@@ -497,17 +503,27 @@ export default function CrmLeads() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                   <div className="form-group" style={{ gridColumn: 'span 2' }}>
                     <label>Lead Name *</label>
-                    <input
-                      type="text"
-                      className={`invoice-form-item-input ${errors.name ? 'error' : ''}`}
-                      value={formData.name}
-                      onChange={(e) => {
-                        setFormData({ ...formData, name: e.target.value });
-                        if (errors.name) setErrors(prev => ({ ...prev, name: null }));
-                      }}
-                      placeholder="e.g. Akhil"
-                      required
-                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ width: '120px', flexShrink: 0 }}>
+                        <SalutationDropdown
+                          value={formData.salutation}
+                          onChange={(val) => setFormData({ ...formData, salutation: val })}
+                        />
+                      </div>
+                      <div style={{ flexGrow: 1 }}>
+                        <input
+                          type="text"
+                          className={`invoice-form-item-input ${errors.name ? 'error' : ''}`}
+                          value={formData.name}
+                          onChange={(e) => {
+                            setFormData({ ...formData, name: e.target.value });
+                            if (errors.name) setErrors(prev => ({ ...prev, name: null }));
+                          }}
+                          placeholder="e.g. Akhil"
+                          required
+                        />
+                      </div>
+                    </div>
                     {errors.name && <span style={{ color: 'var(--error)', fontSize: '11px', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
                   </div>
 

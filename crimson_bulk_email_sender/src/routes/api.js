@@ -5,6 +5,7 @@ const invoiceRoutes = require('./invoiceRoutes');
 const proposalRoutes = require('./proposalRoutes');
 const crmRoutes = require('./crmRoutes');
 const authRoutes = require('./authRoutes');
+const productRoutes = require('./productRoutes');
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.use('/', invoiceRoutes);
 router.use('/', proposalRoutes);
 router.use('/', crmRoutes);
 router.use('/', authRoutes);
+router.use('/', productRoutes);
 
 module.exports = router;

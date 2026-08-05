@@ -1,18 +1,20 @@
 export const product = [{
     id: 1,
-    description: 'Kerala Banana Chips',
-    size: '200 gm',
+    description: 'Chips & Upperi Combo',
+    size: 'Standup Pouch',
     qty: 200,
     price: 160,
-    gstRate: 5
+    gstRate: 5,
+    image: '/standup_pouch_combo.png'
 },
 {
     id: 2,
-    description: 'Sharkara Upperi',
-    size: '100 gm',
+    description: 'Chips & Upperi Combo',
+    size: 'Container',
     qty: 200,
-    price: 100,
-    gstRate: 5
+    price: 250,
+    gstRate: 5,
+    image: '/container_combo.png'
 }]
 
 export const terms = [
@@ -30,9 +32,9 @@ export const terms = [
 
     'Delivery Timeline: The estimated delivery timeline will be confirmed after final order quantity, packaging requirements and payment are approved.',
 
-    'Payment Terms: Advance payment may be required to confirm and initiate bulk orders. The remaining balance, if applicable, must be cleared before dispatch.',
+    'Payment Terms: A 50% advance payment is required at the time of order confirmation. The remaining 50% payment is due upon delivery of the products.',
 
     'Shelf Life & Storage: Products should be stored in a cool, dry place away from direct sunlight. Once opened, the pack should be properly resealed or consumed promptly for best freshness.',
 
-    'Price Validity: Prices mentioned in this quotation are valid for 8 days from the date of issue.'
+    'Price Validity: Prices mentioned in this quotation are valid for 7 days from the date of issue.'
 ]

@@ -54,7 +54,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
       <div className="invoice-preview-card">
         {!hideToolbar && (
           <div className="invoice-preview-toolbar">
-            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Live A4 Quotation Preview</span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Live A4 Preview</span>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
                 <ExternalLink size={14} />
@@ -135,7 +135,8 @@ export default function InvoicePreview({ hideToolbar = false }) {
               <thead>
                 <tr>
                   <th style={{ width: '5%', textAlign: 'center' }}>Sr</th>
-                  <th style={{ width: '52%' }}>Goods & Service Description</th>
+                  <th style={{ width: '12%', textAlign: 'center' }}>Image</th>
+                  <th style={{ width: '40%' }}>Goods & Service Description</th>
                   <th style={{ width: '11%', textAlign: 'center' }}>Quantity</th>
                   <th style={{ width: '11%', textAlign: 'right' }}>Rate</th>
                   {gstEnabled && (
@@ -152,6 +153,17 @@ export default function InvoicePreview({ hideToolbar = false }) {
                   return (
                     <tr key={item.id}>
                       <td className="center" style={{ color: '#64748b' }}>{idx + 1}</td>
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '6px' }}>
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.description}
+                            style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0', display: 'inline-block' }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '10px', color: '#94a3b8' }}>No image</span>
+                        )}
+                      </td>
                       <td>
                         <div className="invoice-preview-item-title">{item.description}</div>
                         {item.size && (

@@ -27,7 +27,7 @@ export default function CampaignPreview() {
             <span className="email-header-label">From:</span>
             <span className="email-header-value">
               <strong>
-                {smtpMode === 'custom' && customSmtp.fromName ? customSmtp.fromName : 'Crimson Group LLP'}
+                {smtpMode === 'custom' && customSmtp.fromName ? customSmtp.fromName : 'Crimson Eats LLP'}
               </strong>{' '}
               &lt;{smtpMode === 'custom' && customSmtp.fromEmail ? customSmtp.fromEmail : 'crimsongroupllp@gmail.com'}&gt;
             </span>

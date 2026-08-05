@@ -6,6 +6,7 @@ import { useCampaign } from './CampaignContext';
 import { useProposal } from './ProposalContext';
 import { product, terms } from './data';
 import { invoiceService } from '../services/invoiceService';
+import { productService } from '../services/productService';
 
 const InvoiceContext = createContext();
 
@@ -20,8 +21,8 @@ export function InvoiceProvider({ children }) {
 
   const [activeInvoiceId, setActiveInvoiceId] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({
-    name: 'Client Compay',
-    attn: 'Mr Akhil',
+    name: 'Client Company',
+    attn: 'Mr Satheesh V S',
     phone: '+91 9744050505',
     destination: 'Trivandrum, Kerala'
   });
@@ -85,7 +86,7 @@ export function InvoiceProvider({ children }) {
   });
 
   const [sellerDetails, setSellerDetails] = useState({
-    name: 'Crimson Group LLP',
+    name: 'Crimson Eats LLP',
     office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
     gstin: '06ADMTEST',
     phone: '+91 99467 99457',
@@ -103,6 +104,13 @@ export function InvoiceProvider({ children }) {
   // Initialize draft: Load from DB, Migrate legacy, or create a default document
   useEffect(() => {
     const initializeInvoiceDraft = async () => {
+      let fetchedProducts = [];
+      try {
+        fetchedProducts = await productService.getProducts();
+      } catch (err) {
+        console.warn('Failed to load global products from database:', err.message);
+      }
+
       let activeId = localStorage.getItem('active_invoice_id');
 
       if (activeId) {
@@ -111,12 +119,30 @@ export function InvoiceProvider({ children }) {
           if (res) {
             setCustomerDetails(res.customerDetails || {});
             setSellerDetails(res.sellerDetails || {});
-            setInvoiceItems(res.items || []);
-            setTermsAndConditions(res.terms || []);
+
+            const loadedItems = res.items || [];
+            const hasOldProducts = loadedItems.some(item =>
+              item.description === 'Kerala Banana Chips' ||
+              item.description === 'Sharkara Upperi'
+            );
+            setInvoiceItems(hasOldProducts || loadedItems.length === 0 ? product : loadedItems);
+
+            setTermsAndConditions(res.terms && res.terms.length > 0 ? res.terms : terms);
             setInvoiceMeta(res.meta || {});
             setGstEnabled(res.gstEnabled !== undefined ? res.gstEnabled : true);
             setShowGstin(res.showGstin !== undefined ? res.showGstin : true);
-            setMasterProducts(res.masterProducts || []);
+
+            if (fetchedProducts && fetchedProducts.length > 0) {
+              setMasterProducts(fetchedProducts);
+            } else {
+              const loadedMaster = res.masterProducts || [];
+              const hasOldMaster = loadedMaster.some(item =>
+                item.description === 'Kerala Banana Chips' ||
+                item.description === 'Sharkara Upperi'
+              );
+              setMasterProducts(hasOldMaster || loadedMaster.length === 0 ? product : loadedMaster);
+            }
+
             setActiveInvoiceId(activeId);
             return;
           }
@@ -136,8 +162,8 @@ export function InvoiceProvider({ children }) {
         try {
           const legacyPayload = {
             customerDetails: localStorage.getItem('invoice_customerDetails') ? JSON.parse(localStorage.getItem('invoice_customerDetails')) : {
-              name: 'Client Compay',
-              attn: 'Mr Akhil',
+              name: 'Client Company',
+              attn: 'Mr Satheesh V S',
               phone: '+91 9744050505',
               destination: 'Trivandrum, Kerala'
             },
@@ -147,7 +173,7 @@ export function InvoiceProvider({ children }) {
               preparedBy: 'Akhil'
             },
             sellerDetails: localStorage.getItem('invoice_sellerDetails') ? JSON.parse(localStorage.getItem('invoice_sellerDetails')) : {
-              name: 'Crimson Group LLP',
+              name: 'Crimson Eats LLP',
               office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
               gstin: '06ADMTEST',
               phone: '+91 99467 99457',
@@ -165,12 +191,29 @@ export function InvoiceProvider({ children }) {
           setActiveInvoiceId(newInvoice._id);
           setCustomerDetails(newInvoice.customerDetails || {});
           setSellerDetails(newInvoice.sellerDetails || {});
-          setInvoiceItems(newInvoice.items || []);
-          setTermsAndConditions(newInvoice.terms || []);
+
+          const loadedItems = newInvoice.items || [];
+          const hasOldProducts = loadedItems.some(item =>
+            item.description === 'Kerala Banana Chips' ||
+            item.description === 'Sharkara Upperi'
+          );
+          setInvoiceItems(hasOldProducts || loadedItems.length === 0 ? product : loadedItems);
+
+          setTermsAndConditions(newInvoice.terms && newInvoice.terms.length > 0 ? newInvoice.terms : terms);
           setInvoiceMeta(newInvoice.meta || {});
           setGstEnabled(newInvoice.gstEnabled !== undefined ? newInvoice.gstEnabled : true);
           setShowGstin(newInvoice.showGstin !== undefined ? newInvoice.showGstin : true);
-          setMasterProducts(newInvoice.masterProducts || []);
+
+          if (fetchedProducts && fetchedProducts.length > 0) {
+            setMasterProducts(fetchedProducts);
+          } else {
+            const loadedMaster = newInvoice.masterProducts || [];
+            const hasOldMaster = loadedMaster.some(item =>
+              item.description === 'Kerala Banana Chips' ||
+              item.description === 'Sharkara Upperi'
+            );
+            setMasterProducts(hasOldMaster || loadedMaster.length === 0 ? product : loadedMaster);
+          }
 
           // Safe clean legacy keys after successful migration save
           localStorage.removeItem('invoice_customerDetails');
@@ -196,18 +239,35 @@ export function InvoiceProvider({ children }) {
           setActiveInvoiceId(latest._id);
           setCustomerDetails(latest.customerDetails || {});
           setSellerDetails(latest.sellerDetails || {});
-          setInvoiceItems(latest.items || []);
-          setTermsAndConditions(latest.terms || []);
+
+          const loadedItems = latest.items || [];
+          const hasOldProducts = loadedItems.some(item =>
+            item.description === 'Kerala Banana Chips' ||
+            item.description === 'Sharkara Upperi'
+          );
+          setInvoiceItems(hasOldProducts || loadedItems.length === 0 ? product : loadedItems);
+
+          setTermsAndConditions(latest.terms && latest.terms.length > 0 ? latest.terms : terms);
           setInvoiceMeta(latest.meta || {});
           setGstEnabled(latest.gstEnabled !== undefined ? latest.gstEnabled : true);
           setShowGstin(latest.showGstin !== undefined ? latest.showGstin : true);
-          setMasterProducts(latest.masterProducts || []);
+
+          if (fetchedProducts && fetchedProducts.length > 0) {
+            setMasterProducts(fetchedProducts);
+          } else {
+            const loadedMaster = latest.masterProducts || [];
+            const hasOldMaster = loadedMaster.some(item =>
+              item.description === 'Kerala Banana Chips' ||
+              item.description === 'Sharkara Upperi'
+            );
+            setMasterProducts(hasOldMaster || loadedMaster.length === 0 ? product : loadedMaster);
+          }
         } else {
           // Empty DB, create initial default document
           const newInvoice = await invoiceService.createInvoice({
             customerDetails: {
-              name: 'Client Compay',
-              attn: 'Mr Akhil',
+              name: 'Client Company',
+              attn: 'Mr Satheesh V S',
               phone: '+91 9744050505',
               destination: 'Trivandrum, Kerala'
             },
@@ -217,7 +277,7 @@ export function InvoiceProvider({ children }) {
               preparedBy: 'Akhil'
             },
             sellerDetails: {
-              name: 'Crimson Group LLP',
+              name: 'Crimson Eats LLP',
               office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
               gstin: '06ADMTEST',
               phone: '+91 99467 99457',
@@ -233,12 +293,17 @@ export function InvoiceProvider({ children }) {
           setActiveInvoiceId(newInvoice._id);
           setCustomerDetails(newInvoice.customerDetails || {});
           setSellerDetails(newInvoice.sellerDetails || {});
-          setInvoiceItems(newInvoice.items || []);
-          setTermsAndConditions(newInvoice.terms || []);
+          setInvoiceItems(newInvoice.items && newInvoice.items.length > 0 ? newInvoice.items : product);
+          setTermsAndConditions(newInvoice.terms && newInvoice.terms.length > 0 ? newInvoice.terms : terms);
           setInvoiceMeta(newInvoice.meta || {});
           setGstEnabled(newInvoice.gstEnabled !== undefined ? newInvoice.gstEnabled : true);
           setShowGstin(newInvoice.showGstin !== undefined ? newInvoice.showGstin : true);
-          setMasterProducts(newInvoice.masterProducts || []);
+
+          if (fetchedProducts && fetchedProducts.length > 0) {
+            setMasterProducts(fetchedProducts);
+          } else {
+            setMasterProducts(newInvoice.masterProducts && newInvoice.masterProducts.length > 0 ? newInvoice.masterProducts : product);
+          }
         }
       } catch (err) {
         console.error('Initialization invoice draft error:', err.message);
@@ -277,7 +342,7 @@ export function InvoiceProvider({ children }) {
     if (!val) {
       // Reset to default seller details
       setSellerDetails({
-        name: 'Crimson Group LLP',
+        name: 'Crimson Eats LLP',
         office: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
         gstin: '06ADMTEST',
         phone: '+91 99467 99457',
@@ -291,14 +356,7 @@ export function InvoiceProvider({ children }) {
     if (!val) {
       // Reset to default terms and conditions
       setTermsAndConditions([
-        'Minimum Order Quantity (MOQ): The minimum order quantity for digital printing is 2,000 pieces per variant and 5,000 pieces per variant for Flat Bottom Pouches.',
-        'Product Dimensions: All dimensions mentioned in this quotation are based on our standard sizes. The buyer is requested to verify and confirm the same before placing the final order.',
-        'Pricing Basis: Prices are calculated based on the number of variants and quantities communicated by the buyer. Any change in the number of variants or order quantity will result in a revised unit price.',
-        'Freight & Taxes: Freight and transportation charges will be billed at actuals and are not included in the quoted price unless explicitly stated otherwise. GST @ 18% will be applicable additionally.',
-        'Delivery Timeline: Estimated delivery is approximately 20 days from the date of final artwork approval and receipt of advance payment.',
-        'Payment Terms: 60% advance payment is required to initiate production. The remaining balance must be cleared before dispatch, as per the Final Invoice.',
-        'Production Tolerance: Final production quantities may vary by ±500 pieces or 20% of the ordered quantity, whichever is higher. The buyer agrees to accept and make payment for all quantities delivered within this tolerance range.',
-        'Price Validity: All prices mentioned in this quotation are valid for 15 days from the date of issue.'
+
       ]);
     }
   };
@@ -788,7 +846,18 @@ export function InvoiceProvider({ children }) {
           children: [new Paragraph({ children: [new TextRun({ text: 'Sr', bold: true, color: 'ffffff', font: 'Inter', size: 18 })], alignment: AlignmentType.CENTER })],
         }),
         new TableCell({
-          width: { size: 62, type: WidthType.PERCENTAGE },
+          width: { size: 12, type: WidthType.PERCENTAGE },
+          shading: { fill: '990f02' },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            left: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+            right: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
+          },
+          children: [new Paragraph({ children: [new TextRun({ text: 'Image', bold: true, color: 'ffffff', font: 'Inter', size: 18 })], alignment: AlignmentType.CENTER })],
+        }),
+        new TableCell({
+          width: { size: 50, type: WidthType.PERCENTAGE },
           shading: { fill: '990f02' },
           borders: {
             top: { style: BorderStyle.SINGLE, size: 6, color: '880e02' },
@@ -875,7 +944,17 @@ export function InvoiceProvider({ children }) {
             children: [new Paragraph({ children: [new TextRun({ text: (idx + 1).toString(), font: 'Inter', size: 18, color: '64748b' })], alignment: AlignmentType.CENTER })],
           }),
           new TableCell({
-            width: { size: 62, type: WidthType.PERCENTAGE },
+            width: { size: 12, type: WidthType.PERCENTAGE },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+              right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
+            },
+            children: [new Paragraph({ children: [new TextRun({ text: item.image ? '[Image Included]' : 'N/A', font: 'Inter', size: 16, color: '64748b' })], alignment: AlignmentType.CENTER })],
+          }),
+          new TableCell({
+            width: { size: 50, type: WidthType.PERCENTAGE },
             borders: {
               top: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
               bottom: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },

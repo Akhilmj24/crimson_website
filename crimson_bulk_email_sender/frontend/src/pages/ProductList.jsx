@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Tag } from 'lucide-react';
 import { useInvoice } from '../context/InvoiceContext';
 import Dropdown from '../components/Dropdown';
+import { productService } from '../services/productService';
 
 export default function ProductList() {
   const { masterProducts, setMasterProducts } = useInvoice();
@@ -23,36 +24,43 @@ export default function ProductList() {
     gstRate: 18
   });
 
-  const handleAddProduct = (e) => {
+  const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!newProduct.description.trim()) {
       alert('Description is required.');
       return;
     }
 
-    const nextId = masterProducts.length > 0 ? Math.max(...masterProducts.map(p => p.id)) + 1 : 1;
-    const addedProduct = {
-      id: nextId,
-      description: newProduct.description,
-      size: newProduct.size,
-      price: parseFloat(newProduct.price) || 0,
-      gstRate: parseFloat(newProduct.gstRate) || 0
-    };
-
-    setMasterProducts([...masterProducts, addedProduct]);
-    setNewProduct({
-      description: '',
-      size: '',
-      price: '',
-      gstRate: 18
-    });
+    try {
+      const added = await productService.createProduct({
+        description: newProduct.description,
+        size: newProduct.size,
+        price: parseFloat(newProduct.price) || 0,
+        gstRate: parseFloat(newProduct.gstRate) || 0,
+        image: ''
+      });
+      setMasterProducts([...masterProducts, added]);
+      setNewProduct({
+        description: '',
+        size: '',
+        price: '',
+        gstRate: 18
+      });
+    } catch (err) {
+      alert('Failed to save product in database: ' + err.message);
+    }
   };
 
-  const handleDeleteProduct = (id) => {
+  const handleDeleteProduct = async (id) => {
     if (window.confirm('Are you sure you want to delete this product from the master list?')) {
-      setMasterProducts(masterProducts.filter(p => p.id !== id));
-      if (editingId === id) {
-        setEditingId(null);
+      try {
+        await productService.deleteProduct(id);
+        setMasterProducts(masterProducts.filter(p => p.id !== id));
+        if (editingId === id) {
+          setEditingId(null);
+        }
+      } catch (err) {
+        alert('Failed to delete product from database: ' + err.message);
       }
     }
   };
@@ -67,25 +75,25 @@ export default function ProductList() {
     });
   };
 
-  const handleSaveEdit = (id) => {
+  const handleSaveEdit = async (id) => {
     if (!editProduct.description.trim()) {
       alert('Description is required.');
       return;
     }
 
-    setMasterProducts(masterProducts.map(p => {
-      if (p.id === id) {
-        return {
-          ...p,
-          description: editProduct.description,
-          size: editProduct.size,
-          price: parseFloat(editProduct.price) || 0,
-          gstRate: parseFloat(editProduct.gstRate) || 0
-        };
-      }
-      return p;
-    }));
-    setEditingId(null);
+    try {
+      const updated = await productService.updateProduct(id, {
+        description: editProduct.description,
+        size: editProduct.size,
+        price: parseFloat(editProduct.price) || 0,
+        gstRate: parseFloat(editProduct.gstRate) || 0,
+        image: masterProducts.find(p => p.id === id)?.image || ''
+      });
+      setMasterProducts(masterProducts.map(p => p.id === id ? updated : p));
+      setEditingId(null);
+    } catch (err) {
+      alert('Failed to update product in database: ' + err.message);
+    }
   };
 
   return (

@@ -62,7 +62,7 @@ export default function InvoiceForm() {
           };
         });
         setInvoiceItems(mappedItems);
-        
+
         // Auto-enable GST if any items have a tax percentage
         const hasTax = lead.quotation.products.some(p => p.tax > 0);
         if (hasTax) {
@@ -111,30 +111,11 @@ export default function InvoiceForm() {
           </span>
           {isOpen.customer ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
-        
+
         {isOpen.customer && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px', animation: 'fadeIn 0.2s ease-out' }}>
-            <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '5px' }}>
-              <label style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 'bold' }}>
-                <Database size={12} />
-                Auto-fill from CRM Lead
-              </label>
-              <Dropdown
-                placeholder="-- Choose a Lead to import customer info & quotation items --"
-                options={safeLeads.map(l => ({
-                  value: l._id,
-                  label: `${l.name} ${l.company ? `(${l.company})` : ''} ${l.quotation?.products?.length > 0 ? `[${l.quotation.products.length} items]` : '[No items]'}`
-                }))}
-                onChange={(val) => handleLoadFromLead(val)}
-                searchable={true}
-                selectStyle={{
-                  background: 'rgba(255, 199, 44, 0.05)',
-                  border: '1px dashed var(--secondary)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
-            
+
+
             <div className="form-group">
               <label>Customer/Client Name</label>
               <input
@@ -434,7 +415,17 @@ export default function InvoiceForm() {
                 <tbody>
                   {invoiceItems.map((item) => (
                     <tr key={item.id}>
-                      <td>
+                       <td>
+                        {item.image && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                            <img
+                              src={item.image}
+                              alt="thumbnail"
+                              style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }}
+                            />
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Variant Image Linked</span>
+                          </div>
+                        )}
                         {masterProducts && masterProducts.length > 0 && (
                           <Dropdown
                             placeholder="-- Pick from Product List --"
@@ -454,7 +445,8 @@ export default function InvoiceForm() {
                                         description: selected.description,
                                         size: selected.size,
                                         price: selected.price,
-                                        gstRate: selected.gstRate
+                                        gstRate: selected.gstRate,
+                                        image: selected.image || ''
                                       };
                                     }
                                     return invItem;
@@ -576,7 +568,7 @@ export default function InvoiceForm() {
         {isOpen.terms && (
           <div style={{ marginTop: '15px', animation: 'fadeIn 0.2s ease-out' }}>
             {/* Allow Custom Edit Radio Buttons */}
-            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px', borderBottom: '1px dashed var(--border)', paddingBottom: '10px' }}>
+            {/* <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px', borderBottom: '1px dashed var(--border)', paddingBottom: '10px' }}>
               <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Allow custom terms editing?
               </span>
@@ -602,7 +594,7 @@ export default function InvoiceForm() {
                   No
                 </label>
               </div>
-            </div>
+            </div> */}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', opacity: allowEditTerms ? 1 : 0.8 }}>
               {termsAndConditions.map((term, index) => (

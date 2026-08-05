@@ -27,7 +27,7 @@ export function CampaignProvider({ children }) {
     secure: false,
     user: '',
     pass: '',
-    fromName: 'Crimson Group LLP',
+    fromName: 'Crimson Eats LLP',
     fromEmail: 'crimsongroupllp@gmail.com'
   });
 

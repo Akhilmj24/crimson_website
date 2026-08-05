@@ -57,7 +57,7 @@ const sendEmails = async (req, res) => {
   const secure = smtpConfig?.secure !== undefined ? smtpConfig.secure : (process.env.SMTP_SECURE === 'true');
   const user = smtpConfig?.user || process.env.SMTP_USER;
   const pass = smtpConfig?.pass || process.env.SMTP_PASS;
-  const fromName = smtpConfig?.fromName || process.env.SMTP_FROM_NAME || 'Crimson Group LLP';
+  const fromName = smtpConfig?.fromName || process.env.SMTP_FROM_NAME || 'Crimson Eats LLP';
   const fromEmail = smtpConfig?.fromEmail || process.env.SMTP_FROM_EMAIL || 'crimsongroupllp@gmail.com';
 
   // Initialize DB Campaign Record

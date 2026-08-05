@@ -248,7 +248,7 @@ export default function CrmTasks() {
                     setFormData({ ...formData, title: e.target.value });
                     if (errors.title) setErrors(prev => ({ ...prev, title: null }));
                   }}
-                  placeholder="e.g. Call Client Compay regarding pricing"
+                  placeholder="e.g. Call Client Company regarding pricing"
                   required
                 />
                 {errors.title && <span style={{ color: 'var(--error)', fontSize: '11px', marginTop: '4px', display: 'block' }}>{errors.title}</span>}

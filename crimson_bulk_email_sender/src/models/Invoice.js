@@ -6,7 +6,8 @@ const invoiceItemSchema = new mongoose.Schema({
   size: { type: String, default: '' },
   qty: { type: Number, default: 0 },
   price: { type: Number, default: 0 },
-  gstRate: { type: Number, default: 18 }
+  gstRate: { type: Number, default: 18 },
+  image: { type: String, default: '' }
 });
 
 const masterProductSchema = new mongoose.Schema({
@@ -14,7 +15,8 @@ const masterProductSchema = new mongoose.Schema({
   description: { type: String, required: true },
   size: { type: String, default: '' },
   price: { type: Number, default: 0 },
-  gstRate: { type: Number, default: 18 }
+  gstRate: { type: Number, default: 18 },
+  image: { type: String, default: '' }
 });
 
 const invoiceSchema = new mongoose.Schema({

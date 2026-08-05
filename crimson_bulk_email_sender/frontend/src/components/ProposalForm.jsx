@@ -50,8 +50,8 @@ export default function ProposalForm() {
   };
 
   const [isOpen, setIsOpen] = useState({
-    sender: true,
-    recipient: false,
+    sender: false,
+    recipient: true,
     meta: false,
     sections: false
   });
@@ -90,24 +90,8 @@ export default function ProposalForm() {
 
         {isOpen.sender && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px', animation: 'fadeIn 0.2s ease-out' }}>
-            <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '5px' }}>
-              <label style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 'bold' }}>
-                <Database size={12} />
-                Auto-fill from CRM Lead
-              </label>
-              <Dropdown
-                placeholder="-- Choose a Lead to import details --"
-                options={safeLeads.map(l => ({ value: l._id, label: `${l.name} ${l.company ? `(${l.company})` : ''}` }))}
-                onChange={(val) => handleLoadFromLead(val, 'sender')}
-                searchable={true}
-                selectStyle={{
-                  background: 'rgba(255, 199, 44, 0.05)',
-                  border: '1px dashed var(--secondary)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
-            
+
+
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label>Company Name</label>
               <input

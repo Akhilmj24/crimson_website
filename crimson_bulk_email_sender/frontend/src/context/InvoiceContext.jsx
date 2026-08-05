@@ -110,6 +110,7 @@ export function InvoiceProvider({ children }) {
   const [allowEditTerms, setAllowEditTerms] = useState(false);
   const [gstEnabled, setGstEnabled] = useState(true);
   const [showGstin, setShowGstin] = useState(true);
+  const [showTotal, setShowTotal] = useState(true);
   const [masterProducts, setMasterProducts] = useState(product);
 
   // Initialize draft: Load from DB, Migrate legacy, or create a default document
@@ -147,6 +148,7 @@ export function InvoiceProvider({ children }) {
             });
             setGstEnabled(res.gstEnabled !== undefined ? res.gstEnabled : true);
             setShowGstin(res.showGstin !== undefined ? res.showGstin : true);
+            setShowTotal(res.showTotal !== undefined ? res.showTotal : true);
 
             if (fetchedProducts && fetchedProducts.length > 0) {
               setMasterProducts(fetchedProducts);
@@ -199,6 +201,7 @@ export function InvoiceProvider({ children }) {
             terms: localStorage.getItem('invoice_terms') ? JSON.parse(localStorage.getItem('invoice_terms')) : terms,
             gstEnabled: localStorage.getItem('invoice_gstEnabled') ? JSON.parse(localStorage.getItem('invoice_gstEnabled')) : true,
             showGstin: localStorage.getItem('invoice_showGstin') ? JSON.parse(localStorage.getItem('invoice_showGstin')) : true,
+            showTotal: localStorage.getItem('invoice_showTotal') ? JSON.parse(localStorage.getItem('invoice_showTotal')) : true,
             masterProducts: localStorage.getItem('invoice_masterProducts') ? JSON.parse(localStorage.getItem('invoice_masterProducts')) : product
           };
 
@@ -219,6 +222,7 @@ export function InvoiceProvider({ children }) {
           setInvoiceMeta(newInvoice.meta || {});
           setGstEnabled(newInvoice.gstEnabled !== undefined ? newInvoice.gstEnabled : true);
           setShowGstin(newInvoice.showGstin !== undefined ? newInvoice.showGstin : true);
+          setShowTotal(newInvoice.showTotal !== undefined ? newInvoice.showTotal : true);
 
           if (fetchedProducts && fetchedProducts.length > 0) {
             setMasterProducts(fetchedProducts);
@@ -239,6 +243,7 @@ export function InvoiceProvider({ children }) {
           localStorage.removeItem('invoice_terms');
           localStorage.removeItem('invoice_gstEnabled');
           localStorage.removeItem('invoice_showGstin');
+          localStorage.removeItem('invoice_showTotal');
           localStorage.removeItem('invoice_masterProducts');
           return;
         } catch (err) {
@@ -272,6 +277,7 @@ export function InvoiceProvider({ children }) {
           });
           setGstEnabled(latest.gstEnabled !== undefined ? latest.gstEnabled : true);
           setShowGstin(latest.showGstin !== undefined ? latest.showGstin : true);
+          setShowTotal(latest.showTotal !== undefined ? latest.showTotal : true);
 
           if (fetchedProducts && fetchedProducts.length > 0) {
             setMasterProducts(fetchedProducts);
@@ -308,6 +314,7 @@ export function InvoiceProvider({ children }) {
             terms: terms,
             gstEnabled: true,
             showGstin: true,
+            showTotal: true,
             masterProducts: product
           });
           localStorage.setItem('active_invoice_id', newInvoice._id);
@@ -319,6 +326,7 @@ export function InvoiceProvider({ children }) {
           setInvoiceMeta(newInvoice.meta || {});
           setGstEnabled(newInvoice.gstEnabled !== undefined ? newInvoice.gstEnabled : true);
           setShowGstin(newInvoice.showGstin !== undefined ? newInvoice.showGstin : true);
+          setShowTotal(newInvoice.showTotal !== undefined ? newInvoice.showTotal : true);
 
           if (fetchedProducts && fetchedProducts.length > 0) {
             setMasterProducts(fetchedProducts);
@@ -348,6 +356,7 @@ export function InvoiceProvider({ children }) {
           meta: invoiceMeta,
           gstEnabled,
           showGstin,
+          showTotal,
           masterProducts
         });
       } catch (err) {
@@ -427,6 +436,7 @@ export function InvoiceProvider({ children }) {
     if (data.termsAndConditions) setTermsAndConditions(data.termsAndConditions);
     if (data.gstEnabled !== undefined) setGstEnabled(data.gstEnabled);
     if (data.showGstin !== undefined) setShowGstin(data.showGstin);
+    if (data.showTotal !== undefined) setShowTotal(data.showTotal);
   };
 
   const handleDownloadPDF = async (options = { skipPrompt: false }) => {
@@ -490,7 +500,7 @@ export function InvoiceProvider({ children }) {
             type: 'invoice',
             clientName: customerDetails.name || 'Client',
             documentId: invoiceMeta.quoteNo,
-            invoiceData: { customerDetails, sellerDetails, invoiceMeta, invoiceItems, termsAndConditions, gstEnabled, showGstin }
+            invoiceData: { customerDetails, sellerDetails, invoiceMeta, invoiceItems, termsAndConditions, gstEnabled, showGstin, showTotal }
           })
         });
       } catch (historyErr) {
@@ -622,7 +632,7 @@ export function InvoiceProvider({ children }) {
               meta: proposalContext.meta,
               sections: proposalContext.sections
             } : null,
-            invoiceData: { customerDetails, sellerDetails, invoiceMeta, invoiceItems, termsAndConditions, gstEnabled, showGstin }
+            invoiceData: { customerDetails, sellerDetails, invoiceMeta, invoiceItems, termsAndConditions, gstEnabled, showGstin, showTotal }
           })
         });
       } catch (historyErr) {
@@ -1038,7 +1048,7 @@ export function InvoiceProvider({ children }) {
               left: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
               right: { style: BorderStyle.SINGLE, size: 4, color: 'cbd5e1' },
             },
-            children: [new Paragraph({ children: [new TextRun({ text: '₹' + itemTotal.toFixed(2), bold: true, font: 'Inter', size: 18, color: '111827' })], alignment: AlignmentType.RIGHT })],
+            children: [new Paragraph({ children: [new TextRun({ text: '₹' + itemTotal.toFixed(2), bold: true, font: 'Inter', size: 18, color: '990f02' })], alignment: AlignmentType.RIGHT })],
           })
         );
 
@@ -1213,12 +1223,17 @@ export function InvoiceProvider({ children }) {
             spacing: { before: 100, after: 100 }
           })
         );
+      } else if (showTotal) {
+        docChildren.push(new Paragraph({ spacing: { after: 100 } }));
+      }
+
+      if (showTotal) {
+        docChildren.push(tableSummary);
       } else {
         docChildren.push(new Paragraph({ spacing: { after: 100 } }));
       }
 
       docChildren.push(
-        tableSummary,
         paragraphFooter,
         paragraphElectronically,
         ...listTerms,
@@ -1291,6 +1306,8 @@ export function InvoiceProvider({ children }) {
       setGstEnabled,
       showGstin,
       setShowGstin,
+      showTotal,
+      setShowTotal,
       loadInvoiceData,
       invoiceConfirmModal,
       setInvoiceConfirmModal,

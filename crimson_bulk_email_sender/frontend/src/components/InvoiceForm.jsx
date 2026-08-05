@@ -30,6 +30,8 @@ export default function InvoiceForm() {
     setGstEnabled,
     showGstin,
     setShowGstin,
+    showTotal,
+    setShowTotal,
     masterProducts
   } = useInvoice();
 
@@ -402,6 +404,34 @@ export default function InvoiceForm() {
             Product Items List
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <label
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                color: showTotal ? 'var(--primary-light)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: `1px solid ${showTotal ? 'var(--primary-light)' : 'var(--border)'}`,
+                background: showTotal ? 'rgba(153,15,2,0.12)' : 'transparent',
+                transition: 'all 0.2s ease',
+                marginRight: '4px'
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={showTotal}
+                onChange={(e) => setShowTotal(e.target.checked)}
+                style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: '13px', height: '13px' }}
+              />
+              Total
+            </label>
             <label
               onClick={(e) => e.stopPropagation()}
               style={{

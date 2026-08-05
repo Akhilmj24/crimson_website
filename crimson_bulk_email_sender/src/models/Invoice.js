@@ -37,6 +37,7 @@ const invoiceSchema = new mongoose.Schema({
   items: [invoiceItemSchema],
   gstEnabled: { type: Boolean, default: true },
   showGstin: { type: Boolean, default: true },
+  showTotal: { type: Boolean, default: true },
   terms: [String],
   meta: {
     quoteNo: { type: String, default: '' },

@@ -13,7 +13,8 @@ export default function InvoicePreview({ hideToolbar = false }) {
     handleDownloadCombinedPDF,
     handleDownloadDocx,
     gstEnabled,
-    showGstin
+    showGstin,
+    showTotal
   } = useInvoice();
 
   const formatCurrency = (amount) => {
@@ -107,7 +108,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
           {/* Address boxes */}
           <div className="invoice-preview-addresses">
             <div className="invoice-preview-address-box">
-              <div className="invoice-preview-section-title">Quotation For</div>
+              <div className="invoice-preview-section-title">Proforma For</div>
               <div className="invoice-preview-client-name">{customerDetails.name}</div>
               <div className="invoice-preview-text-line">{customerDetails.attnSalutation ? `${customerDetails.attnSalutation} ` : ''}{customerDetails.attn}</div>
               <div className="invoice-preview-text-line">Phone: {customerDetails.phone}</div>
@@ -179,7 +180,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
                       {gstEnabled && (
                         <td className="center">{item.gstRate}%</td>
                       )}
-                      <td className="right" style={{ fontWeight: '600' }}>{formatCurrency(itemTotal)}</td>
+                      <td className="right" style={{ fontWeight: '700', color: '#990f02' }}>{formatCurrency(itemTotal)}</td>
                     </tr>
                   );
                 })}
@@ -188,47 +189,51 @@ export default function InvoicePreview({ hideToolbar = false }) {
           </div>
 
           {/* Summary and totals */}
-          <div className="invoice-preview-summary-section">
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <table className="invoice-preview-summary-table">
-                <tbody>
-                  {gstEnabled ? (
-                    <>
-                      <tr>
-                        <td>Subtotal (excl. GST):</td>
-                        <td>{formatCurrency(subtotal)}</td>
-                      </tr>
-                      <tr>
-                        <td>GST Amount:</td>
-                        <td>{formatCurrency(gstAmount)}</td>
-                      </tr>
-                      <tr className="grand-total-row">
-                        <td>Total (incl. GST):</td>
-                        <td>{formatCurrency(grandTotal)}</td>
-                      </tr>
-                    </>
-                  ) : (
-                    <tr className="grand-total-row">
-                      <td>Total:</td>
-                      <td>{formatCurrency(subtotal)}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              {!gstEnabled && (
-                <div style={{
-                  marginTop: '8px',
-                  color: '#475569',
-                  fontSize: '12px',
-                  fontStyle: 'italic',
-                  fontWeight: '500',
-                  textAlign: 'right'
-                }}>
-                  5% GST will be charged extra.
-                </div>
-              )}
+          {(showTotal || !gstEnabled) && (
+            <div className="invoice-preview-summary-section">
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                {showTotal && (
+                  <table className="invoice-preview-summary-table">
+                    <tbody>
+                      {gstEnabled ? (
+                        <>
+                          <tr>
+                            <td>Subtotal (excl. GST):</td>
+                            <td>{formatCurrency(subtotal)}</td>
+                          </tr>
+                          <tr>
+                            <td>GST Amount:</td>
+                            <td>{formatCurrency(gstAmount)}</td>
+                          </tr>
+                          <tr className="grand-total-row">
+                            <td>Total (incl. GST):</td>
+                            <td>{formatCurrency(grandTotal)}</td>
+                          </tr>
+                        </>
+                      ) : (
+                        <tr className="grand-total-row">
+                          <td>Total:</td>
+                          <td>{formatCurrency(subtotal)}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                )}
+                {!gstEnabled && (
+                  <div style={{
+                    marginTop: showTotal ? '8px' : '0px',
+                    color: '#475569',
+                    fontSize: '12px',
+                    fontStyle: 'italic',
+                    fontWeight: '500',
+                    textAlign: 'right'
+                  }}>
+                    5% GST will be charged extra.
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Footer */}
           <div className="invoice-preview-footer">

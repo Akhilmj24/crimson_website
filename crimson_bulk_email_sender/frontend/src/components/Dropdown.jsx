@@ -62,8 +62,8 @@ export default function Dropdown({
     const term = searchTerm.toLowerCase();
 
     return normalizedOptions.filter(opt => {
-      // Check main label
-      if (opt.label.toLowerCase().includes(term)) return true;
+      // Check main label safely
+      if (opt.label && String(opt.label).toLowerCase().includes(term)) return true;
 
       // Check searchFields if provided
       if (searchFields && searchFields.length > 0 && typeof opt.raw === 'object') {
@@ -84,7 +84,7 @@ export default function Dropdown({
     });
   }, [normalizedOptions, searchTerm, searchFields]);
 
-  // Reset search term when dropdown closes
+  // Handle dropdown opening/focus/highlight actions when isOpen changes
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm('');
@@ -96,11 +96,12 @@ export default function Dropdown({
         }
       }, 50);
       
-      // Set highlighted index to selected item or first item
-      const selectedIdx = filteredOptions.findIndex(opt => opt.value === value);
+      // Set highlighted index to selected item or first item initially on open
+      const selectedIdx = normalizedOptions.findIndex(opt => opt.value === value);
       setHighlightedIndex(selectedIdx >= 0 ? selectedIdx : 0);
     }
-  }, [isOpen, value, filteredOptions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // Close dropdown on outside click
   useEffect(() => {

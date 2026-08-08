@@ -622,7 +622,7 @@ const getExpenses = async (tenantId, query = {}) => {
     const s = query.search.toLowerCase();
     filtered = filtered.filter(e =>
       e.description.toLowerCase().includes(s) ||
-      (e.vendor && e.vendor.toLowerCase().includes(s))
+      (e.title && e.title.toLowerCase().includes(s))
     );
   }
   return filtered;

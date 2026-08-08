@@ -51,59 +51,35 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '80vh',
-      animation: 'fadeIn 0.5s ease-out'
-    }}>
-      <div className="card" style={{ width: '100%', maxWidth: '420px', padding: '40px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{
-            display: 'inline-flex',
-            background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-            padding: '10px 24px',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 199, 44, 0.3)',
-            marginBottom: '16px'
-          }}>
-            <div style={{ color: '#FFFFFF', fontSize: '24px', fontWeight: '800', fontStyle: 'italic', letterSpacing: '0.5px' }}>
-              Crimson
-            </div>
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <div className="card w-full max-w-[420px] p-10">
+        <div className="text-center mb-8">
+          <div className="">
+            <img src="/logo-op.png" alt="Logo" className="h-20 w-20 object-contain" />
           </div>
           <h1>System Authentication</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
+          <p className="text-text-secondary text-[13px] mt-1">
             Please sign in to access the email dispatcher & CRM
           </p>
         </div>
 
         {error && (
-          <div style={{
-            background: 'var(--error-glow)',
-            border: '1px solid var(--error)',
-            borderRadius: '8px',
-            padding: '12px',
-            color: 'var(--error)',
-            fontSize: '13px',
-            marginBottom: '20px',
-            textAlign: 'center'
-          }}>
+          <div className="bg-error-glow border border-error rounded-lg p-3 text-error text-[13px] mb-5 text-center">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="form-group">
             <label>Username</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px 12px' }}>
-              <User size={16} style={{ color: 'var(--text-muted)' }} />
+            <div className="flex items-center gap-2 bg-black/20 border border-border rounded-lg px-3 py-2">
+              <User size={16} className="text-text-muted" />
               <input
                 type="text"
                 placeholder="Enter username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', width: '100%', fontSize: '13px' }}
+                className="bg-transparent border-0 text-text-primary outline-none w-full text-[13px]"
                 required
               />
             </div>
@@ -111,14 +87,14 @@ export default function Login({ onLoginSuccess }) {
 
           <div className="form-group">
             <label>Password</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px 12px' }}>
-              <Lock size={16} style={{ color: 'var(--text-muted)' }} />
+            <div className="flex items-center gap-2 bg-black/20 border border-border rounded-lg px-3 py-2">
+              <Lock size={16} className="text-text-muted" />
               <input
                 type="password"
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', width: '100%', fontSize: '13px' }}
+                className="bg-transparent border-0 text-text-primary outline-none w-full text-[13px]"
                 required
               />
             </div>
@@ -126,16 +102,8 @@ export default function Login({ onLoginSuccess }) {
 
           <button
             type="submit"
-            className="btn-add-item-row"
+            className="btn-add-item-row mt-2.5 p-3 justify-center font-bold text-sm w-full"
             disabled={isLoading}
-            style={{
-              marginTop: '10px',
-              padding: '12px',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              width: '100%'
-            }}
           >
             {isLoading ? (
               <>
@@ -149,20 +117,11 @@ export default function Login({ onLoginSuccess }) {
         </form>
 
         {/* Demo Hint credentials */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px dashed var(--border)',
-          borderRadius: '8px',
-          padding: '12px',
-          marginTop: '24px',
-          fontSize: '11px',
-          color: 'var(--text-muted)',
-          textAlign: 'center'
-        }}>
+        {/* <div className="bg-white/[0.02] border border-dashed border-border rounded-lg p-3 mt-6 text-[11px] text-text-muted text-center">
           <div><strong>Demo Administrator Login:</strong></div>
-          <div style={{ marginTop: '4px' }}>Username: <span style={{ color: 'var(--secondary)' }}>admin</span></div>
-          <div>Password: <span style={{ color: 'var(--secondary)' }}>admin@123</span></div>
-        </div>
+          <div className="mt-1">Username: <span className="text-secondary">admin</span></div>
+          <div>Password: <span className="text-secondary">admin@123</span></div>
+        </div> */}
       </div>
     </div>
   );

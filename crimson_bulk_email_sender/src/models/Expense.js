@@ -8,7 +8,7 @@ const expenseSchema = new mongoose.Schema({
   },
   amount: { type: Number, required: true },
   date: { type: Date, required: true },
-  vendor: { type: String, default: '' },
+  title: { type: String, default: '' },
   paymentMethod: {
     type: String,
     enum: ['Cash', 'Bank Transfer', 'Card', 'UPI', 'Check', 'Other'],
@@ -16,6 +16,8 @@ const expenseSchema = new mongoose.Schema({
   },
   description: { type: String, default: '' },
   attachment: { type: String, default: '' }, // file name or URL for receipt/bill
+  spentBy: { type: String, default: '' },
+  attachmentName: { type: String, default: '' },
   tenantId: { type: String, required: true, index: true },
   isDeleted: { type: Boolean, default: false, index: true },
   createdBy: { type: String, default: 'system' }

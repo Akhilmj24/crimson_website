@@ -202,7 +202,10 @@ export const crmService = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Failed to create Company');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to create Company');
+    }
     return res.json();
   },
 
@@ -212,7 +215,10 @@ export const crmService = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Failed to update Company');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to update Company');
+    }
     return res.json();
   },
 
@@ -221,7 +227,10 @@ export const crmService = {
       method: 'DELETE',
       headers: getHeaders()
     });
-    if (!res.ok) throw new Error('Failed to delete Company');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete Company');
+    }
     return res.json();
   },
 
@@ -388,6 +397,12 @@ export const crmService = {
     return res.json();
   },
 
+  async getUsersList() {
+    const res = await fetch('/api/auth/users-list', { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch user list');
+    return res.json();
+  },
+
   async createUser(data) {
     const res = await fetch('/api/auth/users', {
       method: 'POST',
@@ -482,7 +497,10 @@ export const crmService = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Failed to create Expense');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to create Expense');
+    }
     return res.json();
   },
 
@@ -492,7 +510,10 @@ export const crmService = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Failed to update Expense');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to update Expense');
+    }
     return res.json();
   },
 
@@ -501,7 +522,18 @@ export const crmService = {
       method: 'DELETE',
       headers: getHeaders()
     });
-    if (!res.ok) throw new Error('Failed to delete Expense');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete Expense');
+    }
+    return res.json();
+  },
+
+  // Accounting
+  async getAccountingSummary(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/crm/accounting/summary?${query}`, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch Accounting Summary');
     return res.json();
   }
 };

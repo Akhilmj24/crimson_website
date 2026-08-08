@@ -138,6 +138,12 @@ const validateExpense = (data) => {
   if (!data.date) {
     return { error: 'Date is required' };
   }
+  if (data.spentBy && typeof data.spentBy !== 'string') {
+    return { error: 'spentBy must be a string' };
+  }
+  if (data.attachmentName && typeof data.attachmentName !== 'string') {
+    return { error: 'attachmentName must be a string' };
+  }
   return { error: null };
 };
 

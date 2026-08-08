@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --primary: #990F02;
   --primary-light: #C21807;
@@ -2287,4 +2291,14 @@ select option {
 .btn-delete-item-row:hover {
   color: var(--error);
   background: var(--error-glow);
+}
+
+/* Clickable table rows for previewing */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.clickable-row:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
 }

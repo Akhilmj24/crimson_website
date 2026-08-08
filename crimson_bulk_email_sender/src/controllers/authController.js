@@ -314,10 +314,33 @@ const refresh = catchAsync(async (req, res, next) => {
   }
 });
 
+// Get all users under the current tenant for selectors (all authenticated roles can access)
+const getUsersList = catchAsync(async (req, res, next) => {
+  const dbConnected = isDBConnected();
+  if (dbConnected) {
+    try {
+      const filter = { isDeleted: false };
+      if (req.userRole !== 'super_admin') {
+        filter.tenantId = req.tenantId;
+      }
+      const users = await User.find(filter).select('username name role').sort({ name: 1, username: 1 });
+      return res.json(users);
+    } catch (err) {
+      console.warn('MongoDB query failed for getUsersList, falling back to in-memory.', err.message);
+    }
+  }
+
+  // Fallback in-memory
+  const filtered = inMemoryUsers.filter(u => !u.isDeleted && (req.userRole === 'super_admin' || u.tenantId === req.tenantId));
+  const sanitized = filtered.map(({ _id, username, name, role }) => ({ _id, username, name, role }));
+  res.json(sanitized);
+});
+
 module.exports = {
   login,
   getUsers,
   createUser,
   deleteUser,
-  refresh
+  refresh,
+  getUsersList
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, History, FileText, Briefcase, FolderOpen, Package, UserCheck, Building, CheckSquare, Clock, Bell, BarChart3, Users, LogOut, ShoppingBag, CreditCard, Receipt } from 'lucide-react';
+import { LayoutDashboard, Settings, History, FileText, Briefcase, FolderOpen, Package, UserCheck, Building, CheckSquare, Clock, Bell, BarChart3, Users, LogOut, ShoppingBag, CreditCard, Receipt, Scale } from 'lucide-react';
 import { useCampaign } from '../context/CampaignContext';
 import { useCrm } from '../context/CrmContext';
 
@@ -51,6 +51,7 @@ export default function Sidebar() {
         { to: '/crm/orders', label: 'Orders', icon: ShoppingBag },
         { to: '/crm/income', label: 'Income', icon: CreditCard },
         { to: '/crm/expenses', label: 'Expenses log', icon: Receipt },
+        { to: '/crm/accounting', label: 'Accounting', icon: Scale },
         // { to: '/crm/contacts', label: 'Contacts', icon: UserCheck },
         // { to: '/crm/companies', label: 'Companies', icon: Building },
         { to: '/crm/tasks', label: 'Task Board', icon: CheckSquare },
@@ -64,26 +65,19 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="sidebar">
-      <div className="logo-container">
-        <div className="logo-text">Crimson</div>
-        <div className="subtitle">Bulk Email Sender</div>
+    <aside className="w-[220px] shrink-0 flex flex-col bg-bg-card backdrop-blur-md border border-border rounded-[14px] p-4 h-full shadow-[0_15px_35px_rgba(0,0,0,0.2)] max-[900px]:w-full max-[900px]:h-auto max-[900px]:p-5">
+      <div className="p-2 rounded-[10px] mb-2 flex justify-center">
+        <img src="/logo-op.png" alt="Logo" className="h-20 w-20 object-contain" />
       </div>
 
-      <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <nav className="flex flex-col gap-1 mt-4 grow overflow-y-auto pr-[2px] max-[900px]:flex-row max-[900px]:justify-around max-[900px]:mt-[15px] max-[900px]:overflow-visible">
         {menuSections.map((section, sectionIdx) => (
           <React.Fragment key={section.id}>
             <div
-              style={{
-                fontSize: '9px',
-                fontWeight: 'bold',
-                color: 'var(--text-muted)',
-                textTransform: 'uppercase',
-                letterSpacing: '1.5px',
-                padding: sectionIdx === 0 ? '12px 16px 4px 16px' : '16px 16px 4px 16px',
-                borderTop: sectionIdx === 0 ? 'none' : '1px solid rgba(255,255,255,0.03)',
-                marginTop: sectionIdx === 0 ? '0' : '8px'
-              }}
+              className={`text-[9px] font-bold text-text-muted uppercase tracking-[1.5px] ${sectionIdx === 0
+                ? 'pt-3 px-4 pb-1 mt-0 border-t-0'
+                : 'pt-4 px-4 pb-1 mt-2 border-t border-white/5'
+                }`}
             >
               {section.title}
             </div>
@@ -93,23 +87,17 @@ export default function Sidebar() {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 p-[10px_12px] rounded-lg text-text-secondary font-semibold text-[12.5px] cursor-pointer border border-transparent transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-white/5 hover:text-text-primary hover:translate-x-0.5 max-[900px]:hover:transform-none ${isActive
+                      ? 'bg-gradient-to-br from-primary to-primary-light text-white border-secondary/25 shadow-[0_8px_20px_rgba(153,15,2,0.2)]'
+                      : ''
+                    }`
+                  }
                 >
                   <item.icon size={18} />
                   {item.label}
                   {item.badge && (
-                    <span
-                      style={{
-                        marginLeft: 'auto',
-                        background: 'var(--primary)',
-                        color: '#fff',
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        padding: '2px 6px',
-                        borderRadius: '10px',
-                        animation: 'pulse 2s infinite'
-                      }}
-                    >
+                    <span className="ml-auto bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[10px] animate-pulse">
                       {item.badge}
                     </span>
                   )}
@@ -119,35 +107,28 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="sidebar-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '8px' }}>
+      <div className="border-t border-white/5 pt-3 mt-2">
         {/* Logged in User Profile Info */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 12px 4px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '13px', textTransform: 'uppercase' }}>
+        <div className="flex items-center justify-between py-1 pr-3 pl-4">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="relative shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white font-bold text-xs uppercase">
                 {currentUserName.substring(0, 2)}
               </div>
               {/* Connection Status Dot Indicator */}
               <span
-                style={{
-                  position: 'absolute',
-                  bottom: '-1px',
-                  right: '-1px',
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  background: serverSmtp.dbConnected ? 'var(--success)' : 'var(--warning)',
-                  border: '2px solid #1a1815', // matching var(--bg-card) hex value exactly
-                  boxShadow: serverSmtp.dbConnected ? '0 0 6px var(--success)' : '0 0 6px var(--warning)'
-                }}
+                className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#1a1815] ${serverSmtp.dbConnected
+                  ? 'bg-success shadow-[0_0_6px_#10B981]'
+                  : 'bg-warning shadow-[0_0_6px_#F59E0B]'
+                  }`}
                 title={serverSmtp.dbConnected ? "MongoDB Connected" : "In-Memory Fallback Mode"}
               ></span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-[13px] font-semibold text-text-primary truncate">
                 {currentUserName}
               </span>
-              <span style={{ fontSize: '10px', color: 'var(--secondary)', textTransform: 'capitalize', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              <span className="text-[10px] text-secondary capitalize truncate">
                 {currentUserRole || 'Agent'}
               </span>
             </div>
@@ -155,22 +136,7 @@ export default function Sidebar() {
 
           <button
             onClick={handleLogout}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '6px',
-              borderRadius: '6px',
-              transition: 'all 0.2s',
-              marginLeft: '4px',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--error)'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+            className="bg-transparent border-0 cursor-pointer text-text-muted flex items-center justify-center p-1.5 rounded-md transition-all duration-200 ml-1 shrink-0 hover:text-error hover:bg-error/10"
             title="Sign Out"
           >
             <LogOut size={16} />

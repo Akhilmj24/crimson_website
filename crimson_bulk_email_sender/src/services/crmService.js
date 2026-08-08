@@ -733,18 +733,25 @@ const getExpenses = async (tenantId, queryParams = {}) => {
   if (search) {
     filter.$or = [
       { description: { $regex: search, $options: 'i' } },
-      { vendor: { $regex: search, $options: 'i' } }
+      { title: { $regex: search, $options: 'i' } }
     ];
   }
 
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const total = await Expense.countDocuments(filter);
+
+  const sumResult = await Expense.aggregate([
+    { $match: filter },
+    { $group: { _id: null, totalAmount: { $sum: '$amount' } } }
+  ]);
+  const totalAmount = sumResult.length > 0 ? sumResult[0].totalAmount : 0;
+
   const data = await Expense.find(filter)
     .sort({ date: -1 })
     .skip(skip)
     .limit(parseInt(limit));
 
-  return { data, total, page: parseInt(page), limit: parseInt(limit) };
+  return { data, total, totalAmount, page: parseInt(page), limit: parseInt(limit) };
 };
 
 const createExpense = async (tenantId, data, createdBy) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { Search, Plus, Edit, Trash2, X, Loader2, Globe, Building } from 'lucide-react';
+import CustomConfirmModal from '../../components/CustomConfirmModal';
 
 export default function CrmCompanies() {
   const {
@@ -12,8 +13,11 @@ export default function CrmCompanies() {
     createCompany,
     updateCompany,
     deleteCompany,
-    fetchContacts
+    fetchContacts,
+    showToast
   } = useCrm();
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -81,22 +85,29 @@ export default function CrmCompanies() {
     try {
       if (currentCompany) {
         await updateCompany(currentCompany._id, payload);
+        showToast('Company updated successfully', 'success');
       } else {
         await createCompany(payload);
+        showToast('Company registered successfully', 'success');
       }
       setIsModalOpen(false);
     } catch (err) {
-      alert(err.message || 'Error saving company');
+      showToast(err.message || 'Error saving company', 'error');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this company?')) {
-      try {
-        await deleteCompany(id);
-      } catch (err) {
-        alert(err.message || 'Error deleting company');
-      }
+  const handleDeleteClick = (id) => {
+    setConfirmDeleteId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    const id = confirmDeleteId;
+    setConfirmDeleteId(null);
+    try {
+      await deleteCompany(id);
+      showToast('Company deleted successfully', 'success');
+    } catch (err) {
+      showToast(err.message || 'Error deleting company', 'error');
     }
   };
 
@@ -190,7 +201,7 @@ export default function CrmCompanies() {
                           <button onClick={() => handleOpenEdit(company)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                             <Edit size={16} />
                           </button>
-                          <button onClick={() => handleDelete(company._id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                          <button onClick={() => handleDeleteClick(company._id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -329,6 +340,13 @@ export default function CrmCompanies() {
           </div>
         </div>
       )}
+      <CustomConfirmModal
+        isOpen={!!confirmDeleteId}
+        title="Delete Company"
+        message="Are you sure you want to delete this company? All associated data will be archived."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 }

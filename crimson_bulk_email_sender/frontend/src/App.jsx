@@ -29,6 +29,7 @@ import CrmUserManagement from './modules/crm/CrmUserManagement';
 import CrmOrders from './modules/crm/CrmOrders';
 import CrmAccounts from './modules/crm/CrmAccounts';
 import CrmExpenses from './modules/crm/CrmExpenses';
+import CrmAccounting from './modules/crm/CrmAccounting';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('crm_token'));
@@ -44,13 +45,13 @@ export default function App() {
           <InvoiceProvider>
             <CrmProvider>
               {!isAuthenticated ? (
-                <div className="app-container" style={{ display: 'block', padding: '40px 20px' }}>
+                <div className="block py-10 px-5 bg-bg-dark min-h-screen">
                   <Login onLoginSuccess={handleLoginSuccess} />
                 </div>
               ) : (
-                <div className="app-container">
+                <div className="flex h-screen max-h-screen gap-5 p-5 overflow-hidden max-[900px]:flex-col max-[900px]:gap-[15px] max-[900px]:h-auto max-[900px]:max-h-none max-[900px]:overflow-visible max-[900px]:p-2.5 bg-bg-dark">
                   <Sidebar />
-                  <main className="main-content">
+                  <main className="flex-grow h-full overflow-y-auto pr-1 max-[900px]:h-auto max-[900px]:overflow-y-visible max-[900px]:pr-0">
                     <Routes>
                       <Route path="/dispatcher" element={<CampaignDispatcher />} />
                       <Route path="/settings" element={<SmtpSettings />} />
@@ -75,6 +76,7 @@ export default function App() {
                       <Route path="/crm/orders" element={<CrmOrders />} />
                       <Route path="/crm/income" element={<CrmAccounts />} />
                       <Route path="/crm/expenses" element={<CrmExpenses />} />
+                      <Route path="/crm/accounting" element={<CrmAccounting />} />
 
                       <Route path="*" element={<Navigate to="/crm/dashboard" replace />} />
                     </Routes>

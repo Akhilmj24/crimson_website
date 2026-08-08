@@ -98,4 +98,8 @@ router.post('/crm/expenses', checkPermission('crm.expenses', 'create'), validate
 router.put('/crm/expenses/:id', checkPermission('crm.expenses', 'edit'), validate(validateExpense), crmController.updateExpense);
 router.delete('/crm/expenses/:id', checkPermission('crm.expenses', 'delete'), crmController.deleteExpense);
 
+// 14. Accounting
+const accountingController = require('../controllers/accountingController');
+router.get('/crm/accounting/summary', checkPermission('crm.accounts', 'view'), accountingController.getAccountingSummary);
+
 module.exports = router;

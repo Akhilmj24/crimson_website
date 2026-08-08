@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { crmService } from '../services/crmService';
+import { X, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 
 const CrmContext = createContext();
 
@@ -30,6 +31,42 @@ export function CrmProvider({ children }) {
   const [payments, setPayments] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [expensesTotal, setExpensesTotal] = useState(0);
+  const [expensesTotalAmount, setExpensesTotalAmount] = useState(0);
+  
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
+
+  const hideToast = () => {
+    setToast(null);
+  };
+
+  useEffect(() => {
+    const originalAlert = window.alert;
+    window.alert = (message) => {
+      if (!message) return;
+      const lower = String(message).toLowerCase();
+      let type = 'success';
+      if (
+        lower.includes('error') || 
+        lower.includes('failed') || 
+        lower.includes('invalid') || 
+        lower.includes('required') || 
+        lower.includes('exceed') || 
+        lower.includes('cannot') ||
+        lower.includes('not')
+      ) {
+        type = 'error';
+      }
+      showToast(message, type);
+    };
+
+    return () => {
+      window.alert = originalAlert;
+    };
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -329,6 +366,7 @@ export function CrmProvider({ children }) {
     const res = await crmService.getExpenses(params);
     setExpenses(res.data);
     setExpensesTotal(res.total);
+    setExpensesTotalAmount(res.totalAmount || 0);
     return res;
   });
 
@@ -389,6 +427,7 @@ export function CrmProvider({ children }) {
       payments,
       expenses,
       expensesTotal,
+      expensesTotalAmount,
       isLoading,
       error,
       
@@ -443,9 +482,78 @@ export function CrmProvider({ children }) {
       fetchExpenses,
       createExpense,
       updateExpense,
-      deleteExpense
+      deleteExpense,
+      showToast,
+      toast
     }}>
       {children}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+      )}
     </CrmContext.Provider>
+  );
+}
+
+function Toast({ message, type = 'success', onClose }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const config = {
+    success: {
+      color: 'rgb(46, 204, 113)',
+      bg: 'rgba(46, 204, 113, 0.08)',
+      icon: CheckCircle
+    },
+    error: {
+      color: 'rgb(231, 76, 60)',
+      bg: 'rgba(231, 76, 60, 0.08)',
+      icon: AlertTriangle
+    },
+    info: {
+      color: 'rgb(255, 199, 44)',
+      bg: 'rgba(255, 199, 44, 0.08)',
+      icon: Info
+    }
+  };
+
+  const style = config[type] || config.info;
+  const Icon = style.icon;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '24px',
+      right: '24px',
+      zIndex: 99999,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      background: 'rgba(26, 24, 21, 0.95)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      border: `1px solid ${style.color}`,
+      borderRadius: '12px',
+      padding: '14px 18px',
+      color: '#fff',
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0,0,0,0.3)',
+      animation: 'fadeIn 0.25s ease-out',
+      maxWidth: '380px',
+      fontFamily: "'Outfit', sans-serif"
+    }}>
+      <div style={{ color: style.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon size={18} />
+      </div>
+      <div style={{ fontSize: '13px', fontWeight: '500', flexGrow: 1 }}>{message}</div>
+      <button 
+        onClick={onClose} 
+        style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', padding: '2px', display: 'flex', flexShrink: 0 }}
+        onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+      >
+        <X size={14} />
+      </button>
+    </div>
   );
 }

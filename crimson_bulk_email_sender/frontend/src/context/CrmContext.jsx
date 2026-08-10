@@ -153,6 +153,12 @@ export function CrmProvider({ children }) {
     fetchDashboard();
   });
 
+  const createOrderFromLead = (id) => runAsync(async () => {
+    const order = await crmService.createOrderFromLead(id);
+    fetchDashboard();
+    return order;
+  });
+
   // Fetch Contacts
   const fetchContacts = (params = {}) => runAsync(async () => {
     const res = await crmService.getContacts(params);
@@ -338,6 +344,7 @@ export function CrmProvider({ children }) {
     const order = await crmService.updateOrder(id, data);
     setOrders(prev => prev.map(o => o._id === id ? order : o));
     fetchDashboard();
+    fetchDeals();
     return order;
   });
 
@@ -397,7 +404,7 @@ export function CrmProvider({ children }) {
 
   const fetchUsers = () => runAsync(async () => {
     try {
-      const data = await crmService.getUsers();
+      const data = await crmService.getUsersList();
       setUsers(data);
       return data;
     } catch (err) {
@@ -446,6 +453,7 @@ export function CrmProvider({ children }) {
       createLead,
       updateLead,
       deleteLead,
+      createOrderFromLead,
       fetchContacts,
       createContact,
       updateContact,

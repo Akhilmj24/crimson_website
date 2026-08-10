@@ -22,6 +22,13 @@ const dealSchema = new mongoose.Schema({
   },
   assignedUser: { type: String, default: '' },
   notes: [{ type: String }],
+  products: [{
+    name: { type: String, required: true },
+    quantity: { type: Number, required: true, default: 1 },
+    unitPrice: { type: Number, required: true, default: 0 },
+    discount: { type: Number, default: 0 },
+    tax: { type: Number, default: 18 }
+  }],
   tenantId: { type: String, required: true, index: true },
   isDeleted: { type: Boolean, default: false, index: true },
   createdBy: { type: String, default: 'system' },

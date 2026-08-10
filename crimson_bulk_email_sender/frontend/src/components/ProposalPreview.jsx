@@ -2,6 +2,7 @@ import React from 'react';
 import { FileText, Download } from 'lucide-react';
 import { useProposal } from '../context/ProposalContext';
 import { useInvoice } from '../context/InvoiceContext';
+import { trackAsyncAction } from '../utils/apiButtonTracker';
 
 export default function ProposalPreview({ hideToolbar = false }) {
   const {
@@ -25,15 +26,15 @@ export default function ProposalPreview({ hideToolbar = false }) {
               Live A4 Proposal Preview
             </span>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="button" className="btn-download-pdf" onClick={handleDownloadPDF} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
+              <button type="button" className="btn-download-pdf" onClick={(e) => trackAsyncAction(e, handleDownloadPDF)} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: '#ffffff' }}>
                 <Download size={14} />
                 Download PDF
               </button>
-              <button type="button" className="btn-download-pdf" onClick={handleDownloadCombinedPDF} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#ffffff' }}>
+              <button type="button" className="btn-download-pdf" onClick={(e) => trackAsyncAction(e, handleDownloadCombinedPDF)} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#ffffff' }}>
                 <Download size={14} />
                 Download Proposal + Invoice PDF
               </button>
-              <button type="button" className="btn-download-pdf" onClick={handleDownloadDocx} style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff' }}>
+              <button type="button" className="btn-download-pdf" onClick={(e) => trackAsyncAction(e, handleDownloadDocx)} style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff' }}>
                 <FileText size={14} />
                 Download DOCX
               </button>

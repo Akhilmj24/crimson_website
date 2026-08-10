@@ -9,6 +9,8 @@ export default function CrmDeals() {
     leads: rawLeads = [],
     contacts: rawContacts = [],
     companies: rawCompanies = [],
+    orders: rawOrders = [],
+    payments: rawPayments = [],
     settings,
     users = [],
     isLoading,
@@ -19,6 +21,8 @@ export default function CrmDeals() {
     fetchLeads,
     fetchContacts,
     fetchCompanies,
+    fetchOrders,
+    fetchPayments,
     fetchSettings,
     fetchUsers,
     updateLead
@@ -28,6 +32,8 @@ export default function CrmDeals() {
   const leads = rawLeads.filter(Boolean);
   const contacts = rawContacts.filter(Boolean);
   const companies = rawCompanies.filter(Boolean);
+  const orders = rawOrders.filter(Boolean);
+  const payments = rawPayments.filter(Boolean);
 
   const [pipelineType, setPipelineType] = useState('Both');
   const [errors, setErrors] = useState({});
@@ -80,11 +86,43 @@ export default function CrmDeals() {
     return 'New';
   };
 
+  const checkOrderPaymentCompletion = (dealOrName, customerId) => {
+    const dealName = typeof dealOrName === 'string' ? dealOrName : dealOrName?.name || '';
+    const orderMatch = dealName.match(/ORD-\d+/i);
+    const orderNum = orderMatch ? orderMatch[0].toUpperCase() : null;
+
+    const matchingOrder = orders.find(o => 
+      (orderNum && o.orderNumber?.toUpperCase() === orderNum) ||
+      (customerId && (o.leadId === customerId || o._id === customerId))
+    );
+
+    if (!matchingOrder) {
+      return { isComplete: true, order: null, totalPaid: 0, totalAmount: 0 };
+    }
+
+    if (matchingOrder.paymentStatus === 'Paid' || matchingOrder.status === 'Completed') {
+      return { isComplete: true, order: matchingOrder, totalPaid: matchingOrder.totalAmount || 0, totalAmount: matchingOrder.totalAmount || 0 };
+    }
+
+    const orderPayments = payments.filter(p => p.orderId === matchingOrder._id);
+    const totalPaid = orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const isComplete = totalPaid >= (matchingOrder.totalAmount || 0) - 0.01;
+
+    return {
+      isComplete,
+      order: matchingOrder,
+      totalPaid,
+      totalAmount: matchingOrder.totalAmount || 0
+    };
+  };
+
   useEffect(() => {
     fetchDeals();
     fetchLeads({ limit: 100 });
     fetchContacts({ limit: 100 });
     fetchCompanies({ limit: 100 });
+    if (fetchOrders) fetchOrders({ limit: 200 });
+    if (fetchPayments) fetchPayments();
     fetchSettings();
     if (fetchUsers) fetchUsers();
   }, []);
@@ -111,11 +149,12 @@ export default function CrmDeals() {
     }
     setCurrentDeal(deal);
     setErrors({});
+    const customerId = deal.customer?._id || deal.customer || '';
     setFormData({
       name: deal.name || '',
-      customerSelection: deal.customer ? `${deal.customerModel}:${deal.customer._id || deal.customer}` : '',
+      customerSelection: deal.customerModel && customerId ? `${deal.customerModel}:${customerId}` : '',
       value: deal.value || 0,
-      closingDate: deal.closingDate ? new Date(deal.closingDate).toISOString().split('T')[0] : '',
+      closingDate: deal.closingDate ? new Date(deal.closingDate).toISOString().substring(0, 10) : '',
       stage: deal.stage || 'New',
       assignedUser: deal.assignedUser || '',
       notes: deal.notes ? deal.notes.join(' | ') : ''
@@ -144,6 +183,15 @@ export default function CrmDeals() {
     }
 
     const [customerModel, customerId] = formData.customerSelection.split(':');
+
+    if (formData.stage === 'Won') {
+      const { isComplete, order, totalPaid, totalAmount } = checkOrderPaymentCompletion(formData.name, customerId);
+      if (!isComplete && order) {
+        alert(`Cannot save deal in "Won" stage because payment is not completed.\nOrder: ${order.orderNumber}\nPaid: ₹${(totalPaid || 0).toFixed(2)} / Total: ₹${(totalAmount || 0).toFixed(2)}\nPlease record the full payment in Orders Management first.`);
+        return;
+      }
+    }
+
     const payload = {
       name: formData.name,
       customer: customerId,
@@ -194,6 +242,10 @@ export default function CrmDeals() {
       const leadId = dragId.replace('lead_', '');
       const lead = leads.find(l => l._id === leadId);
       if (lead) {
+        if (targetStage === 'Won') {
+          alert("A Lead cannot be moved to the 'Won' stage without placing an order and completing payment. Please click 'Place Order' inside the Lead details modal and record payment first.");
+          return;
+        }
         const targetLeadStatus = mapStageToLeadStatus(targetStage);
         if (lead.status !== targetLeadStatus) {
           try {
@@ -208,6 +260,15 @@ export default function CrmDeals() {
     } else {
       const deal = deals.find(d => d._id === dragId);
       if (deal && deal.stage !== targetStage) {
+        if (targetStage === 'Won') {
+          const customerId = deal.customer?._id || deal.customer;
+          const { isComplete, order, totalPaid, totalAmount } = checkOrderPaymentCompletion(deal, customerId);
+          if (!isComplete && order) {
+            alert(`Cannot move deal to "Won" stage because payment is not completed.\nOrder: ${order.orderNumber}\nPaid: ₹${(totalPaid || 0).toFixed(2)} / Grand Total: ₹${(totalAmount || 0).toFixed(2)}\nPlease record full payment in Orders Management first.`);
+            return;
+          }
+        }
+        
         try {
           // Strip immutable fields & nested populated objects (like customer) to match DB schema
           const { _id, id, createdAt, updatedAt, __v, createdBy, tenantId, customer, ...cleanDeal } = deal;
@@ -271,30 +332,46 @@ export default function CrmDeals() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${stagesList.length}, 1fr)`, gap: '16px', minHeight: '600px', overflowX: 'auto', paddingBottom: '20px' }}>
-          {stagesList.map(stage => {
-            const mappedLeadDeals = leads
-              .filter(l => l.quotation?.products?.length > 0 && mapLeadStatusToStage(l.status, stagesList) === stage)
-              .map(l => ({
-                _id: `lead_${l._id}`, // This matches the dragId format lead_id
-                name: `${l.name} - Order/Deal`,
-                customer: { name: l.company || l.name },
-                value: l.quotation.totalAmount || 0,
-                closingDate: l.quotation.expectedDeliveryDate,
-                stage: stage,
-                assignedUser: l.assignedUser,
-                notes: l.notes || [],
-                isLeadDeal: true,
-                leadId: l._id,
-                products: l.quotation.products
-              }));
+          {(() => {
+            const leadsWithDbDeals = new Set(
+              deals
+                .filter(d => d.customer)
+                .map(d => (d.customer?._id || d.customer).toString())
+            );
 
-            const dbDeals = deals.filter(d => d.stage === stage);
-            const stageDeals = pipelineType !== 'Leads' ? [...dbDeals, ...mappedLeadDeals] : [];
-            
-            // For stageLeads, exclude leads that have quotations (since they are now represented as deals)
-            const stageLeads = pipelineType !== 'Deals' 
-              ? leads.filter(l => l.status === stage && (!l.quotation?.products || l.quotation.products.length === 0)) 
-              : [];
+            return stagesList.map(stage => {
+              const mappedLeadDeals = leads
+                .filter(l => 
+                  l.quotation?.products?.length > 0 && 
+                  !leadsWithDbDeals.has(l._id.toString()) &&
+                  mapLeadStatusToStage(l.status, stagesList) === stage
+                )
+                .map(l => ({
+                  _id: `lead_${l._id}`, // This matches the dragId format lead_id
+                  name: `${l.name} - Order/Deal`,
+                  customer: { name: l.company || l.name },
+                  value: l.quotation.totalAmount || 0,
+                  closingDate: l.quotation.expectedDeliveryDate,
+                  stage: stage,
+                  assignedUser: l.assignedUser,
+                  notes: l.notes || [],
+                  isLeadDeal: true,
+                  leadId: l._id,
+                  products: l.quotation.products
+                }));
+
+              const dbDeals = deals.filter(d => d.stage === stage);
+              const stageDeals = pipelineType !== 'Leads' ? [...dbDeals, ...mappedLeadDeals] : [];
+              
+              // For stageLeads, exclude leads that have quotations (since they are now represented as deals)
+              // or already have a DB order/deal
+              const stageLeads = pipelineType !== 'Deals' 
+                ? leads.filter(l => 
+                    mapLeadStatusToStage(l.status, stagesList) === stage && 
+                    !leadsWithDbDeals.has(l._id.toString()) &&
+                    (!l.quotation?.products || l.quotation.products.length === 0)
+                  ) 
+                : [];
             
             const totalValue = stageDeals.reduce((sum, d) => sum + (d.value || 0), 0);
             const totalItemsCount = stageDeals.length + stageLeads.length;
@@ -370,7 +447,7 @@ export default function CrmDeals() {
                           {deal.customer?.name || 'Unknown Client'}
                         </div>
 
-                        {deal.isLeadDeal && deal.products && deal.products.length > 0 && (
+                        {deal.products && deal.products.length > 0 && (
                           <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', marginBottom: '4px' }}>
                             <div style={{ fontWeight: '600', color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '3px', marginBottom: '3px' }}>Items & Order Details:</div>
                             {deal.products.map((p, pIdx) => (
@@ -411,7 +488,8 @@ export default function CrmDeals() {
                 </div>
               </div>
             );
-          })}
+            });
+          })()}
         </div>
       )}
 

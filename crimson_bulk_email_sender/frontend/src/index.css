@@ -2302,3 +2302,44 @@ select option {
 .clickable-row:hover {
   background-color: rgba(255, 255, 255, 0.03) !important;
 }
+
+/* Universal Loading Buttons and Spinners */
+@keyframes buttonSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin,
+.animate-spin,
+.btn-spinner-icon svg {
+  animation: buttonSpin 0.75s linear infinite !important;
+}
+
+.btn-spinner-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 7px;
+  line-height: 1;
+  font-size: 1.05em;
+  vertical-align: middle;
+}
+
+button:empty .btn-spinner-icon,
+button > .btn-spinner-icon:only-child {
+  margin-right: 0;
+}
+
+.btn-loading-state,
+button[data-loading="true"] {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.78 !important;
+  transition: opacity 0.2s ease;
+  user-select: none;
+}

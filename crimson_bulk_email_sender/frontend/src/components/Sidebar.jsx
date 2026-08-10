@@ -19,7 +19,34 @@ export default function Sidebar() {
     localStorage.removeItem('crm_user_name');
     localStorage.removeItem('crm_user_role');
     localStorage.removeItem('crm_tenant_id');
+    localStorage.removeItem('crm_custom_permissions');
     window.location.reload();
+  };
+
+  let customPermissions = {};
+  try {
+    customPermissions = JSON.parse(localStorage.getItem('crm_custom_permissions') || '{}');
+  } catch(e) {}
+
+  const hasCustomPerms = Object.keys(customPermissions).length > 0;
+
+  const hasViewPermission = (resource) => {
+    if (!resource) return true; // Items without a specific resource required
+    
+    if (hasCustomPerms) {
+       const perms = customPermissions[resource] || [];
+       const allPerms = customPermissions['*'] || [];
+       return perms.includes('view') || allPerms.includes('view');
+    }
+    
+    // Fallback to role
+    if (currentUserRole === 'super_admin' || currentUserRole === 'Admin') return true;
+    
+    const rolePermissions = {
+      Manager: ['crm.dashboard', 'crm.leads', 'crm.contacts', 'crm.companies', 'crm.deals', 'crm.tasks', 'crm.activities', 'crm.reports', 'crm.settings', 'crm.orders', 'crm.accounts', 'crm.expenses', 'campaign.dispatcher', 'campaign.settings', 'campaign.history', 'docs.invoice', 'docs.proposal', 'docs.history', 'products.list'],
+      Agent: ['crm.dashboard', 'crm.leads', 'crm.contacts', 'crm.companies', 'crm.deals', 'crm.tasks', 'crm.activities', 'crm.orders', 'crm.accounts', 'crm.expenses', 'campaign.dispatcher', 'campaign.settings', 'campaign.history', 'docs.invoice', 'docs.proposal', 'docs.history', 'products.list']
+    };
+    return (rolePermissions[currentUserRole] || []).includes(resource);
   };
 
   const menuSections = [
@@ -27,13 +54,13 @@ export default function Sidebar() {
       id: 'campaigns-docs',
       title: 'Campaigns & Docs',
       items: [
-        { to: '/dispatcher', label: 'Campaign Dispatcher', icon: LayoutDashboard },
-        { to: '/settings', label: 'SMTP Settings', icon: Settings },
-        { to: '/history', label: 'Sent Campaigns', icon: History },
-        { to: '/invoice', label: 'Invoice Generator', icon: FileText },
-        { to: '/proposal', label: 'Proposal Creator', icon: Briefcase },
-        { to: '/document-history', label: 'Document History', icon: FolderOpen },
-        { to: '/products', label: 'Product List', icon: Package }
+        { to: '/dispatcher', label: 'Campaign Dispatcher', icon: LayoutDashboard, resource: 'campaign.dispatcher' },
+        { to: '/settings', label: 'SMTP Settings', icon: Settings, resource: 'campaign.settings' },
+        { to: '/history', label: 'Sent Campaigns', icon: History, resource: 'campaign.history' },
+        { to: '/invoice', label: 'Invoice Generator', icon: FileText, resource: 'docs.invoice' },
+        { to: '/proposal', label: 'Proposal Creator', icon: Briefcase, resource: 'docs.proposal' },
+        { to: '/document-history', label: 'Document History', icon: FolderOpen, resource: 'docs.history' },
+        { to: '/products', label: 'Product List', icon: Package, resource: 'products.list' }
       ]
     },
     {
@@ -44,46 +71,49 @@ export default function Sidebar() {
           to: '/crm/dashboard',
           label: 'CRM Dashboard',
           icon: LayoutDashboard,
+          resource: 'crm.dashboard',
           badge: unreadCount > 0 ? unreadCount : null
         },
-        { to: '/crm/leads', label: 'Leads', icon: Users },
-        { to: '/crm/deals', label: 'Sales Pipeline', icon: Briefcase },
-        { to: '/crm/orders', label: 'Orders', icon: ShoppingBag },
-        { to: '/crm/income', label: 'Income', icon: CreditCard },
-        { to: '/crm/expenses', label: 'Expenses log', icon: Receipt },
-        { to: '/crm/accounting', label: 'Accounting', icon: Scale },
-        // { to: '/crm/contacts', label: 'Contacts', icon: UserCheck },
-        // { to: '/crm/companies', label: 'Companies', icon: Building },
-        { to: '/crm/tasks', label: 'Task Board', icon: CheckSquare },
-        { to: '/crm/activities', label: 'Interactions', icon: Clock },
-        { to: '/crm/followups', label: 'Follow Ups', icon: Bell },
-        { to: '/crm/reports', label: 'Reports', icon: BarChart3 },
+        { to: '/crm/leads', label: 'Leads', icon: Users, resource: 'crm.leads' },
+        { to: '/crm/deals', label: 'Sales Pipeline', icon: Briefcase, resource: 'crm.deals' },
+        { to: '/crm/orders', label: 'Orders', icon: ShoppingBag, resource: 'crm.orders' },
+        { to: '/crm/income', label: 'Income', icon: CreditCard, resource: 'crm.accounts' },
+        { to: '/crm/expenses', label: 'Expenses log', icon: Receipt, resource: 'crm.expenses' },
+        { to: '/crm/accounting', label: 'Accounting', icon: Scale, resource: 'crm.accounts' },
+        // { to: '/crm/contacts', label: 'Contacts', icon: UserCheck, resource: 'crm.contacts' },
+        // { to: '/crm/companies', label: 'Companies', icon: Building, resource: 'crm.companies' },
+        { to: '/crm/tasks', label: 'Task Board', icon: CheckSquare, resource: 'crm.tasks' },
+        { to: '/crm/activities', label: 'Interactions', icon: Clock, resource: 'crm.activities' },
+        { to: '/crm/followups', label: 'Follow Ups', icon: Bell, resource: 'crm.tasks' },
+        { to: '/crm/reports', label: 'Reports', icon: BarChart3, resource: 'crm.reports' },
         { to: '/crm/users', label: 'User Accounts', icon: Users, show: showUserMgmt },
-        { to: '/crm/settings', label: 'CRM Settings', icon: Settings }
+        { to: '/crm/settings', label: 'CRM Settings', icon: Settings, resource: 'crm.settings' }
       ]
     }
   ];
 
   return (
     <aside className="w-[220px] shrink-0 flex flex-col bg-bg-card backdrop-blur-md border border-border rounded-[14px] p-4 h-full shadow-[0_15px_35px_rgba(0,0,0,0.2)] max-[900px]:w-full max-[900px]:h-auto max-[900px]:p-5">
-      <div className="p-2 rounded-[10px] mb-2 flex justify-center">
+      <div className="px-1 rounded-[10px] flex justify-center">
         <img src="/logo-op.png" alt="Logo" className="h-20 w-20 object-contain" />
       </div>
 
-      <nav className="flex flex-col gap-1 mt-4 grow overflow-y-auto pr-[2px] max-[900px]:flex-row max-[900px]:justify-around max-[900px]:mt-[15px] max-[900px]:overflow-visible">
-        {menuSections.map((section, sectionIdx) => (
-          <React.Fragment key={section.id}>
-            <div
-              className={`text-[9px] font-bold text-text-muted uppercase tracking-[1.5px] ${sectionIdx === 0
-                ? 'pt-3 px-4 pb-1 mt-0 border-t-0'
-                : 'pt-4 px-4 pb-1 mt-2 border-t border-white/5'
-                }`}
-            >
-              {section.title}
-            </div>
-            {section.items
-              .filter(item => item.show !== false)
-              .map((item) => (
+      <nav className="flex flex-col gap-1  grow overflow-y-auto pr-[2px] max-[900px]:flex-row max-[900px]:justify-around max-[900px]:mt-[15px] max-[900px]:overflow-visible">
+        {menuSections.map((section, sectionIdx) => {
+          const visibleItems = section.items.filter(item => item.show !== false && hasViewPermission(item.resource));
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <React.Fragment key={section.id}>
+              <div
+                className={`text-[9px] font-bold text-text-muted uppercase tracking-[1.5px] ${sectionIdx === 0
+                  ? 'pt-3 px-4 pb-1 mt-0 border-t-0'
+                  : 'pt-4 px-4 pb-1 mt-2 border-t border-white/5'
+                  }`}
+              >
+                {section.title}
+              </div>
+              {visibleItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -103,8 +133,9 @@ export default function Sidebar() {
                   )}
                 </NavLink>
               ))}
-          </React.Fragment>
-        ))}
+            </React.Fragment>
+          );
+        })}
       </nav>
 
       <div className="border-t border-white/5 pt-3 mt-2">

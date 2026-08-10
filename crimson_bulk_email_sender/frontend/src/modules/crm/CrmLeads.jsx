@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
-import { Search, Plus, FileSpreadsheet, Download, Upload, Edit, Trash2, X, Filter, Loader2, Sparkles, Calendar, DollarSign, Clock, Trash } from 'lucide-react';
+import { Search, Plus, FileSpreadsheet, Download, Upload, Edit, Trash2, X, Filter, Loader2, Sparkles, Calendar, DollarSign, Clock, Trash, ShoppingBag } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { product as defaultProducts } from '../../context/data';
 import Dropdown from '../../components/Dropdown';
@@ -11,12 +11,15 @@ export default function CrmLeads() {
     leads: rawLeads = [],
     leadsTotal,
     users = [],
+    orders = [],
     isLoading,
     settings,
     fetchLeads,
     createLead,
     updateLead,
     deleteLead,
+    createOrderFromLead,
+    fetchOrders,
     fetchSettings,
     fetchUsers
   } = useCrm();
@@ -36,6 +39,13 @@ export default function CrmLeads() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('details'); // 'details' | 'quotation' | 'history'
   const [currentLead, setCurrentLead] = useState(null); // null for create, object for edit
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    onCancel: null
+  });
 
   // Quotation Sub-States
   const [quotationProducts, setQuotationProducts] = useState([]);
@@ -58,11 +68,17 @@ export default function CrmLeads() {
     attachments: ''
   });
 
-  // Load leads, settings and users on mount
+  const leadOrders = orders.filter(o => {
+    const oLeadId = o.leadId?._id || o.leadId;
+    return oLeadId && currentLead && oLeadId === currentLead._id;
+  });
+
+  // Load leads, settings, users and orders on mount
   useEffect(() => {
     fetchLeads({ search, status: statusFilter, priority: priorityFilter, page, limit });
     fetchSettings();
     if (fetchUsers) fetchUsers();
+    if (fetchOrders) fetchOrders({ limit: 1000 });
   }, [search, statusFilter, priorityFilter, page]);
 
   // Open modal for Create
@@ -119,7 +135,7 @@ export default function CrmLeads() {
 
   // Handle Save with client-side form validation
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
     // Reset and validate
     const validationErrors = {};
@@ -139,56 +155,139 @@ export default function CrmLeads() {
       return;
     }
 
-    // Compute total Amount for Quotation
-    const totalAmount = quotationProducts.reduce((sum, p) => {
-      const lineTotal = p.quantity * p.unitPrice;
-      const discAmt = (lineTotal * (p.discount || 0)) / 100;
-      const taxAmt = ((lineTotal - discAmt) * (p.tax || 0)) / 100;
-      return sum + (lineTotal - discAmt + taxAmt);
-    }, 0);
+    const executeSave = async () => {
+      // Compute total Amount for Quotation
+      const totalAmount = quotationProducts.reduce((sum, p) => {
+        const lineTotal = p.quantity * p.unitPrice;
+        const discAmt = (lineTotal * (p.discount || 0)) / 100;
+        const taxAmt = ((lineTotal - discAmt) * (p.tax || 0)) / 100;
+        return sum + (lineTotal - discAmt + taxAmt);
+      }, 0);
 
-    const payload = {
-      ...formData,
-      tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-      notes: formData.notes.split('|').map(n => n.trim()).filter(Boolean),
-      attachments: formData.attachments.split(',').map(a => a.trim()).filter(Boolean),
-      quotation: {
-        products: quotationProducts,
-        totalAmount,
-        expectedDeliveryDate: expectedDeliveryDate ? new Date(expectedDeliveryDate) : null,
-        notes: quotationNotes
+      const payload = {
+        ...formData,
+        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+        notes: formData.notes.split('|').map(n => n.trim()).filter(Boolean),
+        attachments: formData.attachments.split(',').map(a => a.trim()).filter(Boolean),
+        quotation: {
+          products: quotationProducts,
+          totalAmount,
+          expectedDeliveryDate: expectedDeliveryDate ? new Date(expectedDeliveryDate) : null,
+          notes: quotationNotes
+        }
+      };
+
+      try {
+        if (currentLead) {
+          await updateLead(currentLead._id, payload);
+        } else {
+          await createLead(payload);
+        }
+        setIsModalOpen(false);
+      } catch (err) {
+        alert(err.message || 'Error saving lead');
       }
     };
 
     // If transitioning to Order Confirmed, prompt warning
     if (formData.status === 'Order Confirmed' && (!currentLead || currentLead.status !== 'Order Confirmed')) {
-      const confirmOrder = window.confirm(
-        'Confirming this order will automatically generate a new Order in the Orders Module and save these quotation details. Do you want to proceed?'
-      );
-      if (!confirmOrder) return;
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Confirm Order Conversion',
+        message: 'Confirming this order will automatically generate a new Order in the Orders Module and save these quotation details. Do you want to proceed?',
+        onConfirm: () => {
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+          executeSave();
+        },
+        onCancel: () => {
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        }
+      });
+      return;
     }
 
-    try {
-      if (currentLead) {
-        await updateLead(currentLead._id, payload);
-      } else {
-        await createLead(payload);
-      }
-      setIsModalOpen(false);
-    } catch (err) {
-      alert(err.message || 'Error saving lead');
+    await executeSave();
+  };
+
+  const handlePlaceOrder = async () => {
+    if (quotationProducts.length === 0) {
+      alert('Please add at least one product to the quotation.');
+      return;
     }
+
+    const executePlaceOrder = async () => {
+      try {
+        const totalAmount = quotationProducts.reduce((sum, p) => {
+          const lineTotal = p.quantity * p.unitPrice;
+          const discAmt = (lineTotal * (p.discount || 0)) / 100;
+          const taxAmt = ((lineTotal - discAmt) * (p.tax || 0)) / 100;
+          return sum + (lineTotal - discAmt + taxAmt);
+        }, 0);
+
+        const payload = {
+          ...formData,
+          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+          notes: formData.notes.split('|').map(n => n.trim()).filter(Boolean),
+          attachments: formData.attachments.split(',').map(a => a.trim()).filter(Boolean),
+          quotation: {
+            products: quotationProducts,
+            totalAmount,
+            expectedDeliveryDate: expectedDeliveryDate ? new Date(expectedDeliveryDate) : null,
+            notes: quotationNotes
+          }
+        };
+        
+        let leadId = currentLead?._id;
+        if (currentLead) {
+          await updateLead(currentLead._id, payload);
+        } else {
+          const newLead = await createLead(payload);
+          leadId = newLead._id;
+        }
+        
+        // Place Order (this triggers order creation and also creates Deal card in the Sales Pipeline)
+        const order = await createOrderFromLead(leadId);
+        alert(`Order ${order.orderNumber} and Sales Pipeline Deal created successfully!`);
+        
+        // Close modal
+        setIsModalOpen(false);
+      } catch (err) {
+        alert(err.message || 'Error creating order');
+      }
+    };
+
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Place Order from Quotation',
+      message: 'This will save the Lead details, generate a new Order in the Orders Module, and automatically create a new Sales Pipeline Deal card. Do you want to proceed?',
+      onConfirm: () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        executePlaceOrder();
+      },
+      onCancel: () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   // Handle Delete
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this lead?')) {
-      try {
-        await deleteLead(id);
-      } catch (err) {
-        alert(err.message || 'Error deleting lead');
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Lead',
+      message: 'Are you sure you want to delete this lead? This action soft-deletes the lead record.',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          await deleteLead(id);
+        } catch (err) {
+          alert(err.message || 'Error deleting lead');
+        }
+      },
+      onCancel: () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
       }
-    }
+    });
   };
 
   // Export to Excel/CSV using xlsx
@@ -494,6 +593,24 @@ export default function CrmLeads() {
                   }}
                 >
                   Status History
+                </button>
+              )}
+              {currentLead && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('orders')}
+                  style={{
+                    padding: '8px 16px',
+                    background: activeTab === 'orders' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '600'
+                  }}
+                >
+                  Order History
                 </button>
               )}
             </div>
@@ -834,25 +951,49 @@ export default function CrmLeads() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <button
-                      type="button"
-                      onClick={() => setQuotationProducts([...quotationProducts, { name: '', quantity: 1, unitPrice: 0, discount: 0, tax: 18 }])}
-                      style={{
-                        padding: '6px 12px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-primary)',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <Plus size={14} />
-                      Add Product Row
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setQuotationProducts([...quotationProducts, { name: '', quantity: 1, unitPrice: 0, discount: 0, tax: 18 }])}
+                        style={{
+                          padding: '6px 12px',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid var(--border)',
+                          color: 'var(--text-primary)',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Plus size={14} />
+                        Add Product Row
+                      </button>
+
+                      {quotationProducts.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handlePlaceOrder}
+                          className="btn-add-item-row"
+                          style={{
+                            marginTop: 0,
+                            padding: '6px 16px',
+                            fontSize: '12px',
+                            background: 'var(--primary-light)',
+                            border: '1px solid var(--primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            width: 'auto'
+                          }}
+                        >
+                          <ShoppingBag size={14} />
+                          Place Order
+                        </button>
+                      )}
+                    </div>
 
                     <div style={{ textAlign: 'right', fontSize: '14px', fontWeight: 'bold' }}>
                       Quotation Grand Total:{' '}
@@ -911,6 +1052,56 @@ export default function CrmLeads() {
                 </div>
               )}
 
+              {activeTab === 'orders' && currentLead && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Previous Orders</h3>
+                  {leadOrders.length === 0 ? (
+                    <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '20px', textAlign: 'center' }}>
+                      No orders placed by this lead yet.
+                    </div>
+                  ) : (
+                    <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'visible' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                          <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
+                            <th style={{ padding: '10px 12px', textAlign: 'left' }}>Order Number</th>
+                            <th style={{ padding: '10px 12px', textAlign: 'left' }}>Order Date</th>
+                            <th style={{ padding: '10px 12px', textAlign: 'center' }}>Status</th>
+                            <th style={{ padding: '10px 12px', textAlign: 'center' }}>Payment</th>
+                            <th style={{ padding: '10px 12px', textAlign: 'right' }}>Total Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {leadOrders.map((o) => (
+                            <tr key={o._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                              <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--secondary)' }}>
+                                {o.orderNumber}
+                              </td>
+                              <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
+                                {new Date(o.createdAt).toLocaleDateString()}
+                              </td>
+                              <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                                <span className={`badge ${o.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                                  {o.status}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                                <span className={`badge ${o.paymentStatus === 'Paid' ? 'completed' : o.paymentStatus === 'Partially Paid' ? 'processing' : 'pending'}`}>
+                                  {o.paymentStatus}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                                ₹{o.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
 
 
@@ -924,6 +1115,32 @@ export default function CrmLeads() {
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 110, backdropFilter: 'blur(6px)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '450px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid var(--border)', background: 'var(--bg-card)', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', animation: 'scaleUp 0.2s ease-out' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{confirmDialog.title || 'Are you sure?'}</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{confirmDialog.message}</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={confirmDialog.onCancel}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDialog.onConfirm}
+                className="btn-add-item-row"
+                style={{ marginTop: 0, width: 'auto', padding: '8px 20px', fontSize: '13px', background: 'var(--primary)' }}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}

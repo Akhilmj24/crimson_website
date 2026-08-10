@@ -37,6 +37,7 @@ router.get('/crm/leads/:id', checkPermission('crm.leads', 'view'), crmController
 router.post('/crm/leads', checkPermission('crm.leads', 'create'), validate(validateLead), crmController.createLead);
 router.put('/crm/leads/:id', checkPermission('crm.leads', 'edit'), validate(validateLead), crmController.updateLead);
 router.delete('/crm/leads/:id', checkPermission('crm.leads', 'delete'), crmController.deleteLead);
+router.post('/crm/leads/:id/create-order', checkPermission('crm.orders', 'create'), crmController.createOrderFromLeadEndpoint);
 
 // 4. Contacts
 router.get('/crm/contacts', checkPermission('crm.contacts', 'view'), crmController.getContacts);

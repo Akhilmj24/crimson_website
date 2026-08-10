@@ -31,6 +31,40 @@ import CrmAccounts from './modules/crm/CrmAccounts';
 import CrmExpenses from './modules/crm/CrmExpenses';
 import CrmAccounting from './modules/crm/CrmAccounting';
 
+const ProtectedRoute = ({ element, resource }) => {
+  const currentUserRole = localStorage.getItem('crm_user_role') || 'Agent';
+  let customPermissions = {};
+  try {
+    customPermissions = JSON.parse(localStorage.getItem('crm_custom_permissions') || '{}');
+  } catch(e) {}
+  const hasCustomPerms = Object.keys(customPermissions).length > 0;
+
+  const hasViewPermission = (res) => {
+    if (!res) return true;
+    if (res === 'admin_only') return currentUserRole === 'super_admin' || currentUserRole === 'Admin';
+
+    if (hasCustomPerms) {
+       const perms = customPermissions[res] || [];
+       const allPerms = customPermissions['*'] || [];
+       return perms.includes('view') || allPerms.includes('view');
+    }
+    
+    if (currentUserRole === 'super_admin' || currentUserRole === 'Admin') return true;
+    
+    const rolePermissions = {
+      Manager: ['crm.dashboard', 'crm.leads', 'crm.contacts', 'crm.companies', 'crm.deals', 'crm.tasks', 'crm.activities', 'crm.reports', 'crm.settings', 'crm.orders', 'crm.accounts', 'crm.expenses', 'campaign.dispatcher', 'campaign.settings', 'campaign.history', 'docs.invoice', 'docs.proposal', 'docs.history', 'products.list'],
+      Agent: ['crm.dashboard', 'crm.leads', 'crm.contacts', 'crm.companies', 'crm.deals', 'crm.tasks', 'crm.activities', 'crm.orders', 'crm.accounts', 'crm.expenses', 'campaign.dispatcher', 'campaign.settings', 'campaign.history', 'docs.invoice', 'docs.proposal', 'docs.history', 'products.list']
+    };
+    return (rolePermissions[currentUserRole] || []).includes(res);
+  };
+
+  if (!hasViewPermission(resource)) {
+    return <Navigate to="/crm/dashboard" replace />;
+  }
+
+  return element;
+};
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('crm_token'));
 
@@ -53,30 +87,30 @@ export default function App() {
                   <Sidebar />
                   <main className="flex-grow h-full overflow-y-auto pr-1 max-[900px]:h-auto max-[900px]:overflow-y-visible max-[900px]:pr-0">
                     <Routes>
-                      <Route path="/dispatcher" element={<CampaignDispatcher />} />
-                      <Route path="/settings" element={<SmtpSettings />} />
-                      <Route path="/history" element={<SentCampaigns />} />
-                      <Route path="/invoice" element={<InvoiceGenerator />} />
-                      <Route path="/proposal" element={<ProposalGenerator />} />
-                      <Route path="/document-history" element={<DocumentHistory />} />
-                      <Route path="/products" element={<ProductList />} />
+                      <Route path="/dispatcher" element={<ProtectedRoute element={<CampaignDispatcher />} resource="campaign.dispatcher" />} />
+                      <Route path="/settings" element={<ProtectedRoute element={<SmtpSettings />} resource="campaign.settings" />} />
+                      <Route path="/history" element={<ProtectedRoute element={<SentCampaigns />} resource="campaign.history" />} />
+                      <Route path="/invoice" element={<ProtectedRoute element={<InvoiceGenerator />} resource="docs.invoice" />} />
+                      <Route path="/proposal" element={<ProtectedRoute element={<ProposalGenerator />} resource="docs.proposal" />} />
+                      <Route path="/document-history" element={<ProtectedRoute element={<DocumentHistory />} resource="docs.history" />} />
+                      <Route path="/products" element={<ProtectedRoute element={<ProductList />} resource="products.list" />} />
 
                       {/* CRM Routes */}
-                      <Route path="/crm/dashboard" element={<CrmDashboard />} />
-                      <Route path="/crm/leads" element={<CrmLeads />} />
-                      <Route path="/crm/contacts" element={<CrmContacts />} />
-                      <Route path="/crm/companies" element={<CrmCompanies />} />
-                      <Route path="/crm/deals" element={<CrmDeals />} />
-                      <Route path="/crm/tasks" element={<CrmTasks />} />
-                      <Route path="/crm/activities" element={<CrmActivities />} />
-                      <Route path="/crm/followups" element={<CrmFollowUps />} />
-                      <Route path="/crm/reports" element={<CrmReports />} />
-                      <Route path="/crm/settings" element={<CrmSettings />} />
-                      <Route path="/crm/users" element={<CrmUserManagement />} />
-                      <Route path="/crm/orders" element={<CrmOrders />} />
-                      <Route path="/crm/income" element={<CrmAccounts />} />
-                      <Route path="/crm/expenses" element={<CrmExpenses />} />
-                      <Route path="/crm/accounting" element={<CrmAccounting />} />
+                      <Route path="/crm/dashboard" element={<ProtectedRoute element={<CrmDashboard />} resource="crm.dashboard" />} />
+                      <Route path="/crm/leads" element={<ProtectedRoute element={<CrmLeads />} resource="crm.leads" />} />
+                      <Route path="/crm/contacts" element={<ProtectedRoute element={<CrmContacts />} resource="crm.contacts" />} />
+                      <Route path="/crm/companies" element={<ProtectedRoute element={<CrmCompanies />} resource="crm.companies" />} />
+                      <Route path="/crm/deals" element={<ProtectedRoute element={<CrmDeals />} resource="crm.deals" />} />
+                      <Route path="/crm/tasks" element={<ProtectedRoute element={<CrmTasks />} resource="crm.tasks" />} />
+                      <Route path="/crm/activities" element={<ProtectedRoute element={<CrmActivities />} resource="crm.activities" />} />
+                      <Route path="/crm/followups" element={<ProtectedRoute element={<CrmFollowUps />} resource="crm.tasks" />} />
+                      <Route path="/crm/reports" element={<ProtectedRoute element={<CrmReports />} resource="crm.reports" />} />
+                      <Route path="/crm/settings" element={<ProtectedRoute element={<CrmSettings />} resource="crm.settings" />} />
+                      <Route path="/crm/users" element={<ProtectedRoute element={<CrmUserManagement />} resource="admin_only" />} />
+                      <Route path="/crm/orders" element={<ProtectedRoute element={<CrmOrders />} resource="crm.orders" />} />
+                      <Route path="/crm/income" element={<ProtectedRoute element={<CrmAccounts />} resource="crm.accounts" />} />
+                      <Route path="/crm/expenses" element={<ProtectedRoute element={<CrmExpenses />} resource="crm.expenses" />} />
+                      <Route path="/crm/accounting" element={<ProtectedRoute element={<CrmAccounting />} resource="crm.accounts" />} />
 
                       <Route path="*" element={<Navigate to="/crm/dashboard" replace />} />
                     </Routes>

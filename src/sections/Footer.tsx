@@ -138,7 +138,7 @@ export const Footer: React.FC = () => {
                   onClick={(e) => handleLinkClick(e, '#products')}
                   className="hover:text-white transition-colors"
                 >
-                  Sharkara Upperi (200g)
+                  Sharkara Upperi (100g)
                 </a>
               </li>
               <li>

@@ -4,8 +4,8 @@ export const BRAND_TAGLINE = 'Authentic Kerala Snacks'
 export const CONTACT_DETAILS = {
   phone: '+919946799457',
   displayPhone: '+91 99467 99457',
-  email: 'crimsongroupllp@gmail.com',
-  address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+  email: 'crimsoneatsllp@gmail.com',
+  address: 'Dwaraka, RKN Nagar, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
   googleMapsLink: 'https://maps.google.com/?q=Dwaraka,+RKN+Nagar,+Ezhakode,+Vilavoorkkal,+Malayinkeezhu,+Thiruvananthapuram,+Kerala+695571',
 }
 

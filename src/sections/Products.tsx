@@ -1,24 +1,26 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { MessageSquare, ArrowRight, Sparkles } from 'lucide-react'
-import { PRODUCTS_DATA } from '../data'
-import { Product } from '../types'
-import { CONTACT_DETAILS } from '../constants'
-import { Modal } from '../components/Modal'
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { MessageSquare, ArrowRight, Sparkles } from "lucide-react";
+import { PRODUCTS_DATA } from "../data";
+import { Product } from "../types";
+import { CONTACT_DETAILS } from "../constants";
+import { Modal } from "../components/Modal";
 
 export const Products: React.FC = () => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleLearnMore = (product: Product) => {
-    setSelectedProduct(product)
-    setIsModalOpen(true)
-  }
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
 
   return (
-    <section id="products" className="bg-transparent py-12 md:py-16 select-none">
+    <section
+      id="products"
+      className="bg-transparent py-12 md:py-16 select-none"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <span className="text-xs font-bold text-primary uppercase tracking-wider">
@@ -28,29 +30,31 @@ export const Products: React.FC = () => {
             Premium Handcrafted <span className="text-primary">Snacks</span>
           </h2>
           <p className="mt-4 text-sm md:text-base text-neutral-500 font-semibold leading-relaxed">
-            Freshly prepared following age-old traditions, sealed inside eco-friendly packs to deliver the pristine taste of Kerala.
+            Freshly prepared following age-old traditions, sealed inside
+            eco-friendly packs to deliver the pristine taste of Kerala.
           </p>
         </div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
           {PRODUCTS_DATA.map((product) => {
-            const encodedMsg = encodeURIComponent(product.whatsappMessage)
-            const whatsappUrl = `https://wa.me/${CONTACT_DETAILS.phone}?text=${encodedMsg}`
-            
+            const encodedMsg = encodeURIComponent(product.whatsappMessage);
+            const whatsappUrl = `https://wa.me/${CONTACT_DETAILS.phone}?text=${encodedMsg}`;
+
             return (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 whileHover={{
                   y: -12,
                   rotateX: 1,
                   rotateY: 2,
-                  boxShadow: '0 25px 50px -12px rgba(153, 15, 2, 0.12)',
+                  boxShadow: "0 25px 50px -12px rgba(153, 15, 2, 0.12)",
                 }}
+                onClick={() => handleLearnMore(product)}
                 className="group relative flex flex-col justify-between rounded-2xl bg-white p-6 border border-neutral-100 shadow-soft transition-all duration-500 perspective-1000"
               >
                 <div>
@@ -111,7 +115,7 @@ export const Products: React.FC = () => {
                     <MessageSquare className="h-4 w-4 fill-current" />
                     <span>Order on WhatsApp</span>
                   </a>
-                  
+
                   <button
                     onClick={() => handleLearnMore(product)}
                     className="flex w-full items-center justify-center gap-1.5 rounded-full border border-neutral-200 py-3.5 text-xs font-bold text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors cursor-pointer"
@@ -121,7 +125,7 @@ export const Products: React.FC = () => {
                   </button>
                 </div>
               </motion.div>
-            )
+            );
           })}
         </div>
 
@@ -131,8 +135,7 @@ export const Products: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
-
       </div>
     </section>
-  )
-}
+  );
+};

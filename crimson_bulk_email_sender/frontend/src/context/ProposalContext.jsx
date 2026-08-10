@@ -15,7 +15,7 @@ const defaultSender = {
   name: 'AKHIL',
   title: 'Manager',
   company: 'Crimson Eats LLP',
-  address: 'Dwaraka, RKN Nagar, Ezhakode, Vilavoorkkal, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
+  address: 'Dwaraka, RKN Nagar, Malayinkeezhu PO, Thiruvananthapuram, Kerala, 695571',
   email: 'crimsoneatsllp@gmail.com',
   phone: '+91 99467 99457'
 };

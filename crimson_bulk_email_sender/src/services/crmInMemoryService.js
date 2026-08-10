@@ -265,6 +265,25 @@ const getDeal = async (id, tenantId) => {
 };
 
 const createDeal = async (tenantId, data, userId) => {
+  if (data.stage === 'Won') {
+    const dealName = data.name || '';
+    const orderMatch = dealName.match(/ORD-\d+/i);
+    let order = null;
+    if (orderMatch) {
+      order = inMemoryOrders.find(o => o.tenantId === tenantId && !o.isDeleted && o.orderNumber?.toUpperCase() === orderMatch[0].toUpperCase());
+    } else if (data.customer) {
+      order = inMemoryOrders.find(o => o.tenantId === tenantId && !o.isDeleted && o.leadId === data.customer);
+    }
+
+    if (order) {
+      const payments = inMemoryPayments.filter(p => p.orderId === order._id && p.tenantId === tenantId);
+      const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      if (order.paymentStatus !== 'Paid' && totalPaid < (order.totalAmount || 0) - 0.01) {
+        throw new Error(`Cannot create deal in "Won" stage because payment is not completed. (Paid: ₹${totalPaid.toFixed(2)} / Grand Total: ₹${(order.totalAmount || 0).toFixed(2)})`);
+      }
+    }
+  }
+
   const id = 'deal_mem_' + Date.now();
   const deal = {
     _id: id,
@@ -285,6 +304,25 @@ const createDeal = async (tenantId, data, userId) => {
 const updateDeal = async (id, tenantId, data, userId) => {
   const deal = inMemoryDeals.find(d => d._id === id && d.tenantId === tenantId && !d.isDeleted);
   if (!deal) return null;
+
+  if (data.stage === 'Won' && deal.stage !== 'Won') {
+    const dealName = data.name || deal.name || '';
+    const orderMatch = dealName.match(/ORD-\d+/i);
+    let order = null;
+    if (orderMatch) {
+      order = inMemoryOrders.find(o => o.tenantId === tenantId && !o.isDeleted && o.orderNumber?.toUpperCase() === orderMatch[0].toUpperCase());
+    } else if (deal.customer) {
+      order = inMemoryOrders.find(o => o.tenantId === tenantId && !o.isDeleted && o.leadId === deal.customer);
+    }
+
+    if (order) {
+      const payments = inMemoryPayments.filter(p => p.orderId === order._id && p.tenantId === tenantId);
+      const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      if (order.paymentStatus !== 'Paid' && totalPaid < (order.totalAmount || 0) - 0.01) {
+        throw new Error(`Cannot move deal to "Won" stage because payment is not completed. (Paid: ₹${totalPaid.toFixed(2)} / Grand Total: ₹${(order.totalAmount || 0).toFixed(2)})`);
+      }
+    }
+  }
 
   const oldStage = deal.stage;
   const oldAssigned = deal.assignedUser;
@@ -492,7 +530,35 @@ const createOrderFromLeadInMemory = async (tenantId, lead, userId) => {
   };
   inMemoryOrders.push(order);
   logActivity(tenantId, 'CREATE', 'Order', order._id, `Order ${orderNumber} created from Lead ${lead.name}`, userId);
+
+  // Automatically create in-memory Deal card
+  const deal = {
+    _id: 'deal_mem_' + Date.now(),
+    name: `${lead.name} - Order ${orderNumber}`,
+    customer: lead._id,
+    customerModel: 'Lead',
+    value: totalAmount,
+    products,
+    closingDate: expectedDeliveryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    stage: 'New',
+    assignedUser: lead.assignedUser || '',
+    tenantId,
+    isDeleted: false,
+    createdBy: userId || 'system',
+    updatedBy: userId || 'system',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  inMemoryDeals.push(deal);
+  logActivity(tenantId, 'CREATE', 'Deal', deal._id, `Deal ${deal.name} automatically created from Order ${orderNumber}`, userId);
+
   return order;
+};
+
+const createOrderFromLead = async (tenantId, leadId, userId) => {
+  const lead = inMemoryLeads.find(l => l._id === leadId && l.tenantId === tenantId && !l.isDeleted);
+  if (!lead) throw new Error('Lead not found');
+  return createOrderFromLeadInMemory(tenantId, lead, userId);
 };
 
 // Orders
@@ -533,6 +599,29 @@ const createOrder = async (tenantId, data, userId) => {
   };
   inMemoryOrders.push(order);
   logActivity(tenantId, 'CREATE', 'Order', order._id, `Order ${orderNumber} created`, userId);
+
+  if (order.leadId) {
+    const deal = {
+      _id: 'deal_mem_' + Date.now() + '_manual',
+      name: `${order.customerName} - Order ${orderNumber}`,
+      customer: order.leadId,
+      customerModel: 'Lead',
+      value: order.totalAmount,
+      products: order.products || [],
+      closingDate: order.expectedDeliveryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      stage: 'New',
+      assignedUser: order.createdBy || 'system',
+      tenantId,
+      isDeleted: false,
+      createdBy: userId || 'system',
+      updatedBy: userId || 'system',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    inMemoryDeals.push(deal);
+    logActivity(tenantId, 'CREATE', 'Deal', deal._id, `Deal ${deal.name} automatically created from manually created Order ${orderNumber}`, userId);
+  }
+
   return order;
 };
 
@@ -561,6 +650,24 @@ const updateOrder = async (id, tenantId, data, userId) => {
       createdAt: new Date()
     });
     logActivity(tenantId, 'STATUS_CHANGE', 'Order', id, `Order status updated to ${data.status}`, userId);
+
+    if (data.status === 'Completed') {
+      inMemoryDeals.forEach(d => {
+        if (d.tenantId === tenantId && !d.isDeleted && (d.name?.includes(order.orderNumber) || (order.leadId && d.customer === order.leadId))) {
+          d.stage = 'Won';
+          d.updatedAt = new Date();
+          logActivity(tenantId, 'STAGE_CHANGE', 'Deal', d._id, `Deal "${d.name}" automatically moved to Won because Order ${order.orderNumber} is Completed`, userId);
+        }
+      });
+    } else if (data.status === 'Cancelled') {
+      inMemoryDeals.forEach(d => {
+        if (d.tenantId === tenantId && !d.isDeleted && (d.name?.includes(order.orderNumber) || (order.leadId && d.customer === order.leadId))) {
+          d.stage = 'Lost';
+          d.updatedAt = new Date();
+          logActivity(tenantId, 'STAGE_CHANGE', 'Deal', d._id, `Deal "${d.name}" automatically moved to Lost because Order ${order.orderNumber} is Cancelled`, userId);
+        }
+      });
+    }
   }
 
   return order;
@@ -820,6 +927,7 @@ module.exports = {
   createOrder,
   updateOrder,
   deleteOrder,
+  createOrderFromLead,
 
   getPayments,
   createPayment,

@@ -321,10 +321,34 @@ const getDealById = async (tenantId, id) => {
 };
 
 const createDeal = async (tenantId, data, createdBy) => {
-  const deal = new Deal({ ...data, tenantId, createdBy, updatedBy: createdBy });
+  if (data.stage === 'Won') {
+    const dealName = data.name || '';
+    const orderMatch = dealName.match(/ORD-\d+/i);
+    let order = null;
+    if (orderMatch) {
+      order = await Order.findOne({ tenantId, isDeleted: false, orderNumber: orderMatch[0].toUpperCase() });
+    } else if (data.customer) {
+      order = await Order.findOne({ tenantId, isDeleted: false, leadId: data.customer });
+    }
+
+    if (order) {
+      const payments = await Payment.find({ orderId: order._id, tenantId });
+      const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      if (order.paymentStatus !== 'Paid' && totalPaid < (order.totalAmount || 0) - 0.01) {
+        throw new AppError(`Cannot create deal in "Won" stage because payment is not completed. (Paid: ₹${totalPaid.toFixed(2)} / Grand Total: ₹${(order.totalAmount || 0).toFixed(2)})`, 400);
+      }
+    }
+  }
+
+  const deal = new Deal({
+    ...data,
+    tenantId,
+    createdBy,
+    updatedBy: createdBy
+  });
   await deal.save();
 
-  await logActivity(tenantId, 'CREATE', 'deals', deal._id, `Deal "${deal.name}" worth ₹${deal.value} created`, createdBy);
+  await logActivity(tenantId, 'CREATE', 'deals', deal._id, `Deal "${deal.name}" of value ₹${deal.value} created`, createdBy);
 
   if (deal.assignedUser) {
     await notifyUser(tenantId, deal.assignedUser, `New Deal Assigned: ${deal.name}`);
@@ -336,6 +360,25 @@ const createDeal = async (tenantId, data, createdBy) => {
 const updateDeal = async (tenantId, id, data, updatedBy) => {
   const oldDeal = await Deal.findOne({ _id: id, tenantId, isDeleted: false });
   if (!oldDeal) throw new AppError('Deal not found', 404);
+
+  if (data.stage === 'Won' && oldDeal.stage !== 'Won') {
+    const dealName = data.name || oldDeal.name || '';
+    const orderMatch = dealName.match(/ORD-\d+/i);
+    let order = null;
+    if (orderMatch) {
+      order = await Order.findOne({ tenantId, isDeleted: false, orderNumber: orderMatch[0].toUpperCase() });
+    } else if (oldDeal.customer) {
+      order = await Order.findOne({ tenantId, isDeleted: false, leadId: oldDeal.customer });
+    }
+
+    if (order) {
+      const payments = await Payment.find({ orderId: order._id, tenantId });
+      const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      if (order.paymentStatus !== 'Paid' && totalPaid < (order.totalAmount || 0) - 0.01) {
+        throw new AppError(`Cannot move deal to "Won" stage because payment is not completed. (Paid: ₹${totalPaid.toFixed(2)} / Grand Total: ₹${(order.totalAmount || 0).toFixed(2)})`, 400);
+      }
+    }
+  }
 
   const deal = await Deal.findOneAndUpdate(
     { _id: id, tenantId, isDeleted: false },
@@ -580,7 +623,31 @@ const createOrderFromLeadDB = async (tenantId, lead, userId) => {
   await order.save();
 
   await logActivity(tenantId, 'CREATE', 'orders', order._id, `Order ${orderNumber} created from Lead "${lead.name}"`, userId);
+
+  // Automatically create a Deal card in the Sales Pipeline!
+  const deal = new Deal({
+    name: `${lead.name} - Order ${orderNumber}`,
+    customer: lead._id,
+    customerModel: 'Lead',
+    value: totalAmount,
+    products,
+    closingDate: expectedDeliveryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    stage: 'New',
+    assignedUser: lead.assignedUser || '',
+    tenantId,
+    createdBy: userId,
+    updatedBy: userId
+  });
+  await deal.save();
+  await logActivity(tenantId, 'CREATE', 'deals', deal._id, `Deal "${deal.name}" automatically created from Order ${orderNumber}`, userId);
+
   return order;
+};
+
+const createOrderFromLead = async (tenantId, leadId, userId) => {
+  const lead = await Lead.findOne({ _id: leadId, tenantId, isDeleted: false });
+  if (!lead) throw new AppError('Lead not found', 404);
+  return createOrderFromLeadDB(tenantId, lead, userId);
 };
 
 const getOrders = async (tenantId, queryParams = {}) => {
@@ -628,6 +695,25 @@ const createOrder = async (tenantId, data, createdBy) => {
   await order.save();
 
   await logActivity(tenantId, 'CREATE', 'orders', order._id, `Order "${orderNumber}" created`, createdBy);
+
+  if (order.leadId) {
+    const deal = new Deal({
+      name: `${order.customerName} - Order ${orderNumber}`,
+      customer: order.leadId,
+      customerModel: 'Lead',
+      value: order.totalAmount,
+      products: order.products || [],
+      closingDate: order.expectedDeliveryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      stage: 'New',
+      assignedUser: order.createdBy || '',
+      tenantId,
+      createdBy,
+      updatedBy: createdBy
+    });
+    await deal.save();
+    await logActivity(tenantId, 'CREATE', 'deals', deal._id, `Deal "${deal.name}" automatically created from manually created Order ${orderNumber}`, createdBy);
+  }
+
   return order;
 };
 
@@ -664,6 +750,36 @@ const updateOrder = async (tenantId, id, data, updatedBy) => {
   if (statusChanged) {
     action = 'STAGE_CHANGE';
     details = `Order status changed from "${oldOrder.status}" to "${order.status}"`;
+
+    if (data.status === 'Completed') {
+      const dealsToUpdate = await Deal.find({
+        tenantId,
+        isDeleted: false,
+        $or: [
+          { name: { $regex: order.orderNumber, $options: 'i' } },
+          ...(order.leadId ? [{ customer: order.leadId }] : [])
+        ]
+      });
+
+      for (const d of dealsToUpdate) {
+        await Deal.findByIdAndUpdate(d._id, { $set: { stage: 'Won', updatedBy } });
+        await logActivity(tenantId, 'STAGE_CHANGE', 'deals', d._id, `Deal "${d.name}" automatically moved to Won because Order ${order.orderNumber} is Completed`, updatedBy);
+      }
+    } else if (data.status === 'Cancelled') {
+      const dealsToUpdate = await Deal.find({
+        tenantId,
+        isDeleted: false,
+        $or: [
+          { name: { $regex: order.orderNumber, $options: 'i' } },
+          ...(order.leadId ? [{ customer: order.leadId }] : [])
+        ]
+      });
+
+      for (const d of dealsToUpdate) {
+        await Deal.findByIdAndUpdate(d._id, { $set: { stage: 'Lost', updatedBy } });
+        await logActivity(tenantId, 'STAGE_CHANGE', 'deals', d._id, `Deal "${d.name}" automatically moved to Lost because Order ${order.orderNumber} is Cancelled`, updatedBy);
+      }
+    }
   }
 
   await logActivity(tenantId, action, 'orders', order._id, details, updatedBy);
@@ -1012,6 +1128,7 @@ module.exports = {
   createOrder: wrapService('createOrder', createOrder),
   updateOrder: wrapService('updateOrder', updateOrder),
   deleteOrder: wrapService('deleteOrder', deleteOrder),
+  createOrderFromLead: wrapService('createOrderFromLead', createOrderFromLead),
 
   getPayments: wrapService('getPayments', getPayments),
   createPayment: wrapService('createPayment', createPayment),

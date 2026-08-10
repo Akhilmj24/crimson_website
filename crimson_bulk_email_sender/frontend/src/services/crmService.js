@@ -15,8 +15,6 @@ const getHeaders = () => {
   return headers;
 };
 
-const originalFetch = window.fetch;
-
 const fetch = async (url, options = {}) => {
   // Ensure headers exist and merge getHeaders()
   options.headers = {
@@ -24,14 +22,14 @@ const fetch = async (url, options = {}) => {
     ...options.headers
   };
 
-  let res = await originalFetch(url, options);
+  let res = await window.fetch(url, options);
 
   // If expired token (401), try refresh
   if (res.status === 401) {
     const refreshToken = localStorage.getItem('crm_refresh_token');
     if (refreshToken) {
       try {
-        const refreshRes = await originalFetch('/api/auth/refresh', {
+        const refreshRes = await window.fetch('/api/auth/refresh', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -48,7 +46,7 @@ const fetch = async (url, options = {}) => {
             }
             // Retry the original request with the new token
             options.headers['Authorization'] = `Bearer ${refreshData.token}`;
-            res = await originalFetch(url, options);
+            res = await window.fetch(url, options);
           }
         } else {
           // Refresh token failed/expired -> log user out
@@ -127,6 +125,15 @@ export const crmService = {
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error('Failed to update Lead');
+    return res.json();
+  },
+
+  async createOrderFromLead(id) {
+    const res = await fetch(`/api/crm/leads/${id}/create-order`, {
+      method: 'POST',
+      headers: getHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to create Order from Lead');
     return res.json();
   },
 
@@ -410,6 +417,16 @@ export const crmService = {
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error('Failed to create user account');
+    return res.json();
+  },
+
+  async updateUserPermissions(userId, customPermissions) {
+    const res = await fetch(`/api/auth/users/${userId}/permissions`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ customPermissions })
+    });
+    if (!res.ok) throw new Error('Failed to update user permissions');
     return res.json();
   },
 

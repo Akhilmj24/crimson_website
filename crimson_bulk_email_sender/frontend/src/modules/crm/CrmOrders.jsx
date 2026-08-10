@@ -33,6 +33,7 @@ export default function CrmOrders() {
 
   // Payment dialog state (inside detail)
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentType, setPaymentType] = useState('full');
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     paymentMethod: 'Bank Transfer',
@@ -56,6 +57,22 @@ export default function CrmOrders() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleOpenPaymentModal = () => {
+    const totalPaid = orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalAmount = selectedOrder?.totalAmount || 0;
+    const remaining = Math.max(0, totalAmount - totalPaid);
+    
+    setPaymentForm({
+      amount: remaining.toFixed(2),
+      paymentMethod: 'Bank Transfer',
+      transactionReference: '',
+      notes: '',
+      paymentDate: new Date().toISOString().substring(0, 10)
+    });
+    setPaymentType('full');
+    setIsPaymentModalOpen(true);
   };
 
   const handleUpdateStatus = async (statusVal) => {
@@ -90,6 +107,16 @@ export default function CrmOrders() {
     if (!selectedOrder) return;
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
       alert('Valid payment amount is required');
+      return;
+    }
+
+    const totalPaid = orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalAmount = selectedOrder.totalAmount || 0;
+    const remaining = totalAmount - totalPaid;
+    const enteredAmount = parseFloat(paymentForm.amount);
+
+    if (enteredAmount > remaining + 0.01) {
+      alert(`Payment amount (₹${enteredAmount.toFixed(2)}) cannot exceed the remaining balance (₹${remaining.toFixed(2)}).`);
       return;
     }
 
@@ -378,7 +405,7 @@ export default function CrmOrders() {
                     <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: 0 }}>Payments Log</h3>
                     {selectedOrder.paymentStatus !== 'Paid' && (
                       <button
-                        onClick={() => setIsPaymentModalOpen(true)}
+                        onClick={handleOpenPaymentModal}
                         style={{
                           background: 'var(--primary)',
                           color: '#fff',
@@ -513,6 +540,42 @@ export default function CrmOrders() {
               </div>
 
               <div className="form-group">
+                <label>Payment Type</label>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '6px', marginBottom: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="full"
+                      checked={paymentType === 'full'}
+                      onChange={() => {
+                        setPaymentType('full');
+                        const totalPaid = orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+                        const remaining = Math.max(0, (selectedOrder?.totalAmount || 0) - totalPaid);
+                        setPaymentForm({ ...paymentForm, amount: remaining.toFixed(2) });
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    Full Amount (₹{Math.max(0, (selectedOrder?.totalAmount || 0) - orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })})
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="partial"
+                      checked={paymentType === 'partial'}
+                      onChange={() => {
+                        setPaymentType('partial');
+                        setPaymentForm({ ...paymentForm, amount: '' });
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    Partial Amount
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label>Amount (₹) *</label>
                 <input
                   type="number"
@@ -523,6 +586,8 @@ export default function CrmOrders() {
                   min="0.01"
                   step="0.01"
                   required
+                  readOnly={paymentType === 'full'}
+                  style={{ background: paymentType === 'full' ? 'rgba(255,255,255,0.02)' : 'transparent', color: paymentType === 'full' ? 'var(--text-muted)' : 'var(--text-primary)' }}
                 />
               </div>
 

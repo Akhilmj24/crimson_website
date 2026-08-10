@@ -19,7 +19,8 @@ bcrypt.hash('admin@123', 10).then(hashed => {
     role: 'super_admin',
     tenantId: 'default-tenant',
     isDeleted: false,
-    createdBy: 'system'
+    createdBy: 'system',
+    customPermissions: {}
   });
 });
 
@@ -93,7 +94,8 @@ const login = catchAsync(async (req, res, next) => {
       username: user.username,
       name: user.name || '',
       role: user.role,
-      tenantId: user.tenantId
+      tenantId: user.tenantId,
+      customPermissions: user.customPermissions || {}
     }
   });
 });
@@ -203,7 +205,8 @@ const createUser = catchAsync(async (req, res, next) => {
     tenantId: userTenant,
     isDeleted: false,
     createdBy: req.userId || 'admin',
-    createdAt: new Date()
+    createdAt: new Date(),
+    customPermissions: {}
   };
   inMemoryUsers.push(newUser);
 
@@ -336,11 +339,70 @@ const getUsersList = catchAsync(async (req, res, next) => {
   res.json(sanitized);
 });
 
+// Update User Permissions (Admins and Super Admins only)
+const updateUserPermissions = catchAsync(async (req, res, next) => {
+  if (req.userRole !== 'super_admin' && req.userRole !== 'Admin') {
+    return next(new AppError('Forbidden: Only admins can manage permissions', 403));
+  }
+
+  const { id } = req.params;
+  const { customPermissions } = req.body;
+
+  if (!customPermissions || typeof customPermissions !== 'object') {
+    return next(new AppError('Invalid custom permissions data', 400));
+  }
+
+  const dbConnected = isDBConnected();
+  if (dbConnected && !id.startsWith('user_mem_')) {
+    try {
+      const user = await User.findOne({ _id: id, isDeleted: false });
+      if (!user) {
+        return next(new AppError('User not found', 404));
+      }
+
+      // Check tenant bounds
+      if (req.userRole === 'Admin' && user.tenantId !== req.tenantId) {
+        return next(new AppError('Forbidden: User not in your tenant', 403));
+      }
+
+      user.customPermissions = customPermissions;
+      user.markModified('customPermissions');
+      await user.save();
+
+      return res.json({
+        success: true,
+        message: 'User permissions updated successfully',
+        customPermissions: user.customPermissions
+      });
+    } catch (err) {
+      console.warn('MongoDB failed to update permissions, checking in-memory.', err.message);
+    }
+  }
+
+  // Fallback in-memory update
+  const user = inMemoryUsers.find(u => u._id === id && !u.isDeleted);
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+
+  if (req.userRole === 'Admin' && user.tenantId !== req.tenantId) {
+    return next(new AppError('Forbidden: User not in your tenant', 403));
+  }
+
+  user.customPermissions = customPermissions;
+  res.json({
+    success: true,
+    message: 'User permissions updated successfully (in-memory)',
+    customPermissions: user.customPermissions
+  });
+});
+
 module.exports = {
   login,
   getUsers,
   createUser,
   deleteUser,
   refresh,
-  getUsersList
+  getUsersList,
+  updateUserPermissions
 };

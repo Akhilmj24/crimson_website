@@ -1,7 +1,7 @@
 import React from 'react';
 import Dropdown from './Dropdown';
 
-const SALUTATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Miss', 'Dr.', 'Prof.'];
+const SALUTATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Miss', 'Dr.', 'Prof.', 'M/s'];
 
 export default function SalutationDropdown({ value, onChange, disabled, style, selectStyle, error }) {
   const options = SALUTATIONS.map(s => ({ value: s, label: s }));

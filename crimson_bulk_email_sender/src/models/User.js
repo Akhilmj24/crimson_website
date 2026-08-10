@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
   },
   refreshToken: {
     type: String
+  },
+  customPermissions: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   }
 }, {
   timestamps: true

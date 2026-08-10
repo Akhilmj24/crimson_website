@@ -55,6 +55,11 @@ const deleteLead = catchAsync(async (req, res, next) => {
   res.json({ success: true, message: 'Lead soft-deleted successfully' });
 });
 
+const createOrderFromLeadEndpoint = catchAsync(async (req, res, next) => {
+  const order = await crmService.createOrderFromLead(req.tenantId, req.params.id, req.userId);
+  res.status(201).json(order);
+});
+
 // ==========================================
 // 4. Contacts
 // ==========================================
@@ -296,6 +301,7 @@ module.exports = {
   createLead,
   updateLead,
   deleteLead,
+  createOrderFromLeadEndpoint,
   
   getContacts,
   getContact,

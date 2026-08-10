@@ -147,7 +147,7 @@ export const Contact: React.FC = () => {
                   Business Hours
                 </h4>
                 <p className="text-xs text-neutral-500 font-semibold mt-2">
-                  Monday – Saturday: 9:00 AM – 6:00 PM (IST)
+                  Monday – Saturday: 9:00 AM – 9:00 PM (IST)
                 </p>
                 <p className="text-xs text-neutral-400 font-medium mt-1">
                   Sunday: Closed

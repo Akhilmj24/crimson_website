@@ -4,7 +4,7 @@ import { LayoutDashboard, Settings, History, FileText, Briefcase, FolderOpen, Pa
 import { useCampaign } from '../context/CampaignContext';
 import { useCrm } from '../context/CrmContext';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, setIsOpen }) {
   const { serverSmtp } = useCampaign();
   const crmContext = useCrm();
   const unreadCount = crmContext?.notifications?.filter(n => !n.read).length || 0;
@@ -93,12 +93,16 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-[220px] shrink-0 flex flex-col bg-bg-card backdrop-blur-md border border-border rounded-[14px] p-4 h-full shadow-[0_15px_35px_rgba(0,0,0,0.2)] max-[900px]:w-full max-[900px]:h-auto max-[900px]:p-5">
-      <div className="px-1 rounded-[10px] flex justify-center">
+    <aside className={`w-[220px] shrink-0 flex flex-col bg-bg-card backdrop-blur-md border border-border rounded-[14px] p-4 h-full shadow-[0_15px_35px_rgba(0,0,0,0.2)] 
+      max-[900px]:fixed max-[900px]:top-[72px] max-[900px]:left-0 max-[900px]:bottom-0 max-[900px]:z-50 max-[900px]:h-[calc(100vh-72px)] max-[900px]:rounded-none max-[900px]:border-t-0 max-[900px]:border-l-0 max-[900px]:border-b-0 max-[900px]:w-[260px] 
+      transition-transform duration-300 ease-in-out
+      ${isOpen ? 'max-[900px]:translate-x-0' : 'max-[900px]:-translate-x-full'}
+    `}>
+      <div className="px-1 rounded-[10px] flex justify-center max-[900px]:hidden">
         <img src="/logo-op.png" alt="Logo" className="h-20 w-20 object-contain" />
       </div>
 
-      <nav className="flex flex-col gap-1  grow overflow-y-auto pr-[2px] max-[900px]:flex-row max-[900px]:justify-around max-[900px]:mt-[15px] max-[900px]:overflow-visible">
+      <nav className="flex flex-col gap-1 grow overflow-y-auto pr-[2px]">
         {menuSections.map((section, sectionIdx) => {
           const visibleItems = section.items.filter(item => item.show !== false && hasViewPermission(item.resource));
           if (visibleItems.length === 0) return null;
@@ -114,9 +118,10 @@ export default function Sidebar() {
                 {section.title}
               </div>
               {visibleItems.map((item) => (
-                <NavLink
+                  <NavLink
                   key={item.to}
                   to={item.to}
+                  onClick={() => setIsOpen && setIsOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-2.5 p-[10px_12px] rounded-lg text-text-secondary font-semibold text-[12.5px] cursor-pointer border border-transparent transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-white/5 hover:text-text-primary hover:translate-x-0.5 max-[900px]:hover:transform-none ${isActive
                       ? 'bg-gradient-to-br from-primary to-primary-light text-white border-secondary/25 shadow-[0_8px_20px_rgba(153,15,2,0.2)]'

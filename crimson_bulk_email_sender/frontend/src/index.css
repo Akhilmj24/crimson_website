@@ -2343,3 +2343,9 @@ button[data-loading="true"] {
   transition: opacity 0.2s ease;
   user-select: none;
 }
+
+@media (max-width: 900px) {
+  .history-header > div {
+    flex-wrap: wrap;
+  }
+}

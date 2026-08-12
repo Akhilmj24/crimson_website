@@ -370,7 +370,7 @@ export default function CrmUserManagement() {
               </div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                       <th style={{ padding: '12px 20px', textAlign: 'left', color: 'var(--text-secondary)' }}>Name</th>
@@ -417,7 +417,7 @@ export default function CrmUserManagement() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             )}
           </div>
@@ -469,7 +469,7 @@ export default function CrmUserManagement() {
             </div>
             <div className="modal-body" style={{ padding: '24px' }}>
               <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border)', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--border)' }}>
                       <th style={{ padding: '12px 16px', textAlign: 'left', color: 'var(--text-secondary)' }}>Resource Module</th>
@@ -515,7 +515,7 @@ export default function CrmUserManagement() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
               <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
                 These custom permissions override default role settings for this specific user.

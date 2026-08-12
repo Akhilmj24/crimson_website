@@ -88,7 +88,7 @@ export default function ProgressDashboard() {
             Recipient Dispatch Status
           </div>
           <div className="recipients-table-wrapper">
-            <table className="recipients-table">
+            <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="recipients-table">
               <thead>
                 <tr>
                   <th>#</th>
@@ -119,7 +119,7 @@ export default function ProgressDashboard() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}

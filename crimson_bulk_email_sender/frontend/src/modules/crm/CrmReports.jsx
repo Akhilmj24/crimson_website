@@ -161,7 +161,7 @@ export default function CrmReports() {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '12px 20px', textAlign: 'left', color: 'var(--text-secondary)' }}>Representative</th>
@@ -182,7 +182,7 @@ export default function CrmReports() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </div>

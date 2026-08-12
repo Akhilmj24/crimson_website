@@ -114,7 +114,7 @@ export default function CrmDashboard() {
       </div>
 
       {/* SECTION 2: Pipeline breakdowns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[30px] mb-[30px]">
 
         {/* Leads breakdown */}
         <div className="card" style={{ padding: '20px' }}>
@@ -196,7 +196,7 @@ export default function CrmDashboard() {
       </div>
 
       {/* SECTION 3: Upcoming and Activity logs */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[30px]">
 
         {/* Left Side: Upcoming Follow Ups */}
         <div className="card">

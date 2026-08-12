@@ -215,7 +215,7 @@ export default function CrmAccounts() {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '14px 16px', textAlign: 'left', color: 'var(--text-secondary)' }}>Order #</th>
@@ -277,7 +277,7 @@ export default function CrmAccounts() {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )
         ) : (
@@ -288,7 +288,7 @@ export default function CrmAccounts() {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '14px 16px', textAlign: 'left', color: 'var(--text-secondary)' }}>Payment Date</th>
@@ -331,7 +331,7 @@ export default function CrmAccounts() {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )
         )}

@@ -466,7 +466,7 @@ export default function InvoiceForm() {
         {isOpen.items && (
           <div style={{ marginTop: '15px', animation: 'fadeIn 0.2s ease-out' }}>
             <div style={{ overflowX: 'auto' }}>
-              <table className="invoice-form-items-table">
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="invoice-form-items-table">
                 <thead>
                   <tr>
                     <th style={{ width: '50%' }}>Description</th>
@@ -598,7 +598,7 @@ export default function InvoiceForm() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
             <button type="button" className="btn-add-item-row" onClick={handleAddInvoiceItem} style={{ marginTop: '10px' }}>
               + Add New Product Row

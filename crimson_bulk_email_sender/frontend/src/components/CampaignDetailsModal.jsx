@@ -53,7 +53,7 @@ export default function CampaignDetailsModal() {
           {/* Tab 1: Recipients list */}
           {modalTab === 'recipients' && (
             <div className="recipients-table-wrapper" style={{ maxHeight: '350px' }}>
-              <table className="recipients-table">
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="recipients-table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -83,7 +83,7 @@ export default function CampaignDetailsModal() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 

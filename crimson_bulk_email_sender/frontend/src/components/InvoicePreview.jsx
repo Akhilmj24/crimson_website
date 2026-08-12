@@ -89,7 +89,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
             </div>
             <div className="invoice-preview-title-area">
               <div className="invoice-preview-title">Proforma Invoice</div>
-              <table className="invoice-preview-meta-table">
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="invoice-preview-meta-table">
                 <tbody>
                   <tr>
                     <td>Quote No:</td>
@@ -100,7 +100,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
                     <td>{formatDate(invoiceMeta.date)}</td>
                   </tr>
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
 
@@ -134,7 +134,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
 
           {/* Products list table */}
           <div className="invoice-preview-table-container">
-            <table className="invoice-preview-table">
+            <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="invoice-preview-table">
               <thead>
                 <tr>
                   <th style={{ width: '5%', textAlign: 'center' }}>Sr</th>
@@ -186,7 +186,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           </div>
 
           {/* Summary and totals */}
@@ -194,7 +194,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
             <div className="invoice-preview-summary-section">
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 {showTotal && (
-                  <table className="invoice-preview-summary-table">
+                  <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="invoice-preview-summary-table">
                     <tbody>
                       {gstEnabled ? (
                         <>
@@ -218,7 +218,7 @@ export default function InvoicePreview({ hideToolbar = false }) {
                         </tr>
                       )}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
                 {!gstEnabled && (
                   <div style={{

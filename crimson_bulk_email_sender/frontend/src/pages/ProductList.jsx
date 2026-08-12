@@ -175,7 +175,7 @@ export default function ProductList() {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table className="invoice-form-items-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="invoice-form-items-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)' }}>
                     <th style={{ width: '40%', padding: '12px 8px', textAlign: 'left' }}>Description</th>
@@ -295,7 +295,7 @@ export default function ProductList() {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </div>

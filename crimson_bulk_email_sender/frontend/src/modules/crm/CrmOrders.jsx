@@ -234,7 +234,7 @@ export default function CrmOrders() {
         ) : (
           <>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '14px 16px', textAlign: 'left', color: 'var(--text-secondary)' }}>Order #</th>
@@ -293,7 +293,7 @@ export default function CrmOrders() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             {ordersTotal > limit && (
@@ -359,7 +359,7 @@ export default function CrmOrders() {
                 <div style={{ marginBottom: '20px' }}>
                   <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid var(--border)', paddingBottom: '6px', marginBottom: '10px' }}>Products / Items</h3>
                   <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                       <thead>
                         <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                           <th style={{ padding: '8px', textAlign: 'left' }}>Item</th>
@@ -395,7 +395,7 @@ export default function CrmOrders() {
                           </td>
                         </tr>
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </div>
 

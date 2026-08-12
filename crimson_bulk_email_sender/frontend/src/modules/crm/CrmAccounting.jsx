@@ -471,7 +471,7 @@ export default function CrmAccounting() {
             </p>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+          <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <tbody>
               {/* REVENUE SECTION */}
               <tr style={{ fontWeight: 'bold', borderBottom: '1px solid #555' }}>
@@ -529,7 +529,7 @@ export default function CrmAccounting() {
                 </td>
               </tr>
             </tbody>
-          </table>
+          </table></div>
 
           {/* Report action footer */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }} className="no-print">
@@ -554,7 +554,7 @@ export default function CrmAccounting() {
             </p>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+          <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <tbody>
               {/* ASSETS SECTION */}
               <tr style={{ fontWeight: 'bold', borderBottom: '1px solid #555' }}>
@@ -650,7 +650,7 @@ export default function CrmAccounting() {
                 </td>
               </tr>
             </tbody>
-          </table>
+          </table></div>
 
           {/* Accounting confirmation block */}
           <div style={{ marginTop: '24px', padding: '10px 14px', background: data.balanceSheet.isBalanced ? 'rgba(46, 204, 113, 0.05)' : 'rgba(231, 76, 60, 0.05)', borderRadius: '6px', border: `1px solid ${data.balanceSheet.isBalanced ? 'var(--success)' : 'var(--error)'}`, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px' }}>
@@ -728,7 +728,7 @@ export default function CrmAccounting() {
 
           {/* Ledger Table */}
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                   <th style={{ padding: '12px 10px', textAlign: 'left', color: 'var(--text-secondary)' }}>Date</th>
@@ -776,7 +776,7 @@ export default function CrmAccounting() {
                   </tr>
                 )}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}
@@ -808,7 +808,7 @@ export default function CrmAccounting() {
                     Description: {jv.description}
                   </p>
 
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
                         <th style={{ textAlign: 'left', padding: '6px 0' }}>Account Title</th>
@@ -831,7 +831,7 @@ export default function CrmAccounting() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               </div>
             ))}
@@ -898,7 +898,7 @@ export default function CrmAccounting() {
 
                     <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '8px' }}>Related Transaction Ledgers</h4>
                     <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                      <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                         <thead>
                           <tr style={{ borderBottom: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
                             <th style={{ textAlign: 'left', padding: '6px' }}>Date</th>
@@ -930,7 +930,7 @@ export default function CrmAccounting() {
                             </tr>
                           )}
                         </tbody>
-                      </table>
+                      </table></div>
                     </div>
                   </div>
                 )}

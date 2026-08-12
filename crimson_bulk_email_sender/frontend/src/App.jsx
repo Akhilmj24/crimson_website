@@ -5,6 +5,7 @@ import { ProposalProvider } from './context/ProposalContext';
 import { InvoiceProvider } from './context/InvoiceContext';
 import { CrmProvider } from './context/CrmContext';
 import Sidebar from './components/Sidebar';
+import { Menu, X } from 'lucide-react';
 import CampaignDispatcher from './pages/CampaignDispatcher';
 import SmtpSettings from './pages/SmtpSettings';
 import SentCampaigns from './pages/SentCampaigns';
@@ -67,6 +68,7 @@ const ProtectedRoute = ({ element, resource }) => {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('crm_token'));
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
@@ -83,9 +85,33 @@ export default function App() {
                   <Login onLoginSuccess={handleLoginSuccess} />
                 </div>
               ) : (
-                <div className="flex h-screen max-h-screen gap-5 p-5 overflow-hidden max-[900px]:flex-col max-[900px]:gap-[15px] max-[900px]:h-auto max-[900px]:max-h-none max-[900px]:overflow-visible max-[900px]:p-2.5 bg-bg-dark">
-                  <Sidebar />
-                  <main className="flex-grow h-full overflow-y-auto pr-1 max-[900px]:h-auto max-[900px]:overflow-y-visible max-[900px]:pr-0">
+                <div className="flex h-screen max-h-screen gap-5 p-5 overflow-hidden max-[900px]:flex-col max-[900px]:gap-0 max-[900px]:p-0 bg-bg-dark relative">
+                  
+                  {/* Mobile Header */}
+                  <div className="min-[900px]:hidden flex items-center justify-between p-4 bg-bg-card border-b border-white/10 sticky top-0 z-50">
+                    <div className="flex items-center gap-2">
+                      <img src="/logo-op.png" alt="Logo" className="h-8 w-8 object-contain" />
+                      <span className="font-bold text-white tracking-wide">CRIMSON</span>
+                    </div>
+                    <button 
+                      onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                      className="p-2 text-white bg-white/5 rounded-md hover:bg-white/10"
+                    >
+                      {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                  </div>
+
+                  <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+                  
+                  {/* Overlay for mobile when sidebar is open */}
+                  {isSidebarOpen && (
+                    <div 
+                      className="min-[900px]:hidden fixed inset-0 bg-black/60 z-40 backdrop-blur-sm top-[72px]"
+                      onClick={() => setIsSidebarOpen(false)}
+                    />
+                  )}
+
+                  <main className="flex-grow h-full overflow-y-auto pr-1 max-[900px]:p-4 max-[900px]:pb-20 max-[900px]:overflow-y-auto w-full max-w-full overflow-x-hidden">
                     <Routes>
                       <Route path="/dispatcher" element={<ProtectedRoute element={<CampaignDispatcher />} resource="campaign.dispatcher" />} />
                       <Route path="/settings" element={<ProtectedRoute element={<SmtpSettings />} resource="campaign.settings" />} />

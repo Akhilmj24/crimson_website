@@ -374,7 +374,7 @@ export default function CrmLeads() {
         <div>
           <h1>Leads Management</h1>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Import CSV */}
           <label className="btn-icon-label" style={{ cursor: 'pointer', background: 'rgba(255,255,255,0.05)', borderColor: 'var(--border)' }}>
             <Upload size={14} />
@@ -450,7 +450,7 @@ export default function CrmLeads() {
         ) : (
           <>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '14px 16px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: 'bold' }}>Name</th>
@@ -501,7 +501,7 @@ export default function CrmLeads() {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             {/* Pagination Controls */}
@@ -791,7 +791,7 @@ export default function CrmLeads() {
                   </div>
 
                   <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'visible' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                       <thead>
                         <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                           <th style={{ padding: '8px', textAlign: 'left' }}>Item / Product</th>
@@ -947,7 +947,7 @@ export default function CrmLeads() {
                           })
                         )}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1061,7 +1061,7 @@ export default function CrmLeads() {
                     </div>
                   ) : (
                     <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'visible' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                      <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                         <thead>
                           <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
                             <th style={{ padding: '10px 12px', textAlign: 'left' }}>Order Number</th>
@@ -1096,7 +1096,7 @@ export default function CrmLeads() {
                             </tr>
                           ))}
                         </tbody>
-                      </table>
+                      </table></div>
                     </div>
                   )}
                 </div>

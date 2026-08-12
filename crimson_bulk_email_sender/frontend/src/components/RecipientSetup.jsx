@@ -254,7 +254,7 @@ export default function RecipientSetup() {
 
                   {/* Scrollable checklist */}
                   <div className="excel-contacts-wrapper">
-                    <table className="excel-contacts-table">
+                    <div className="overflow-x-auto w-full max-w-full custom-scrollbar"><table className="excel-contacts-table">
                       <thead>
                         <tr>
                           <th style={{ width: '40px', textAlign: 'center' }}>
@@ -300,7 +300,7 @@ export default function RecipientSetup() {
                           ))
                         )}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </>
               )}
